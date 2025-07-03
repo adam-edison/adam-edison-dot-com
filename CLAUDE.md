@@ -28,12 +28,14 @@ npm run lint
 ## Architecture
 
 ### Framework & Stack
+
 - **Next.js 15.3.4** with Pages Router (not App Router)
 - **React 19** with TypeScript
 - **Tailwind CSS 4** for styling
 - **Static export** configuration for Netlify deployment
 
 ### Project Structure
+
 ```
 src/
 ├── pages/           # Next.js pages (Pages Router)
@@ -46,6 +48,7 @@ src/
 ```
 
 ### Key Configuration Files
+
 - `next.config.ts` - Next.js configuration with React Strict Mode
 - `tsconfig.json` - TypeScript config with `@/*` path mapping to `./src/*`
 - `package.json` - Contains `static` script for Netlify deployment
@@ -67,6 +70,7 @@ src/
 ## SEO Considerations
 
 The project includes `SearchEngineOptimization.md` with comprehensive SEO guidelines including:
+
 - Meta tags and Open Graph setup
 - Structured data (JSON-LD)
 - Performance optimization
