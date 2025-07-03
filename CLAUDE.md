@@ -23,6 +23,12 @@ npm start
 
 # Run linting
 npm run lint
+
+# Format code with Prettier
+npm run format
+
+# Check code formatting
+npm run format:check
 ```
 
 ## Architecture
@@ -52,6 +58,8 @@ src/
 - `next.config.ts` - Next.js configuration with React Strict Mode
 - `tsconfig.json` - TypeScript config with `@/*` path mapping to `./src/*`
 - `package.json` - Contains `static` script for Netlify deployment
+- `eslint.config.mjs` - ESLint configuration with Prettier integration
+- `.prettierrc` - Prettier formatting configuration
 
 ## Styling System
 
@@ -77,10 +85,30 @@ The project includes `SearchEngineOptimization.md` with comprehensive SEO guidel
 - Mobile-first design
 - Accessibility requirements
 
+## Code Quality & Formatting
+
+- **ESLint**: Integrated with Next.js rules and Prettier
+- **Prettier**: Configured with single quotes, 120 character line width, no trailing commas
+- **TypeScript**: Strict mode enabled
+- All code is automatically formatted on save and enforced via ESLint
+
+### Prettier Configuration
+```json
+{
+  "trailingComma": "none",
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "printWidth": 120,
+  "bracketSpacing": true
+}
+```
+
 ## Development Notes
 
 - Uses Pages Router architecture (not App Router)
-- TypeScript strict mode enabled
 - Path aliases configured (`@/*` maps to `./src/*`)
 - Resume PDF available in `/public/resume.pdf`
-- ESLint configuration for code quality
+- Run `npm run lint` to check for code quality issues
+- Run `npm run format` to auto-format code before commits
