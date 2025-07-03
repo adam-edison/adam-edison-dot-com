@@ -93,6 +93,7 @@ The project includes `SearchEngineOptimization.md` with comprehensive SEO guidel
 - All code is automatically formatted on save and enforced via ESLint
 
 ### Prettier Configuration
+
 ```json
 {
   "trailingComma": "none",
@@ -108,14 +109,22 @@ The project includes `SearchEngineOptimization.md` with comprehensive SEO guidel
 ## Code Preferences
 
 **Navigation & Routing:**
+
 - Always use `Link` from `next/link` for internal navigation instead of `<a>` tags
 - Use `<a>` tags only for external links with `target="_blank"` and `rel="noopener noreferrer"`
 
 **Images:**
+
 - Always use `Image` from `next/image` instead of `<img>` tags for better performance and optimization
 
 **External Links:**
+
 - For external social media and website links, use regular `<a>` tags with proper security attributes
+
+**Commit Messages:**
+
+- Never include Claude Code references, branding, or co-authored-by lines in commit messages
+- Keep commit messages clean and professional without AI tool attribution
 
 ## Development Notes
 
