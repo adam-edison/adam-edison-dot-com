@@ -119,15 +119,8 @@ export default function Resume() {
       <HeaderBanner />
       <div className="max-w-7xl mx-auto px-6 py-16">
         <MainHeader />
-
         {/* Resume Content */}
         <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-16">
-            <h1 className="text-5xl font-bold mb-4">Adam Edison</h1>
-            <p className="text-xl text-gray-300 mb-6">Senior Full-Stack Engineer</p>
-          </div>
-
           {/* Professional Summary */}
           <section className="mb-16">
             <h2 className="text-2xl font-bold mb-6 text-blue-400">Professional Summary</h2>
@@ -194,13 +187,83 @@ export default function Resume() {
             </div>
           </section>
 
+          {/* Previous Experience */}
+          <section className="mb-16">
+            <h2 className="text-2xl font-bold mb-8 text-blue-400">Previous Experience</h2>
+            <div className="space-y-8">
+              <div className="border-l-2 border-gray-700 pl-6">
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-2">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Music Instructor</h3>
+                    <p className="text-blue-300">Self-Employed</p>
+                  </div>
+                  <div className="text-sm text-gray-400 mt-1 lg:mt-0">
+                    <p>Falls Church, VA</p>
+                    <p className="font-mono">08/2010 — 12/2017</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-l-2 border-gray-700 pl-6">
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-2">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Open Source Developer</h3>
+                    <p className="text-blue-300">Ginkgo Street Labs</p>
+                  </div>
+                  <div className="text-sm text-gray-400 mt-1 lg:mt-0">
+                    <p>Washington, DC, USA</p>
+                    <p className="font-mono">11/2015 — 04/2016</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-l-2 border-gray-700 pl-6">
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-2">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Consultant Developer</h3>
+                    <p className="text-blue-300">Acumen Solutions at SoundExchange</p>
+                  </div>
+                  <div className="text-sm text-gray-400 mt-1 lg:mt-0">
+                    <p>McLean, VA, USA</p>
+                    <p className="font-mono">05/2014 — 01/2015</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-l-2 border-gray-700 pl-6">
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-2">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Quality Engineer</h3>
+                    <p className="text-blue-300">MicroStrategy</p>
+                  </div>
+                  <div className="text-sm text-gray-400 mt-1 lg:mt-0">
+                    <p>McLean, VA, USA</p>
+                    <p className="font-mono">01/2008 — 08/2010</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-l-2 border-gray-700 pl-6">
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-2">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Technical Support Engineer</h3>
+                    <p className="text-blue-300">MicroStrategy</p>
+                  </div>
+                  <div className="text-sm text-gray-400 mt-1 lg:mt-0">
+                    <p>McLean, VA, USA</p>
+                    <p className="font-mono">05/2007 — 01/2008</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Education */}
           <section className="mb-16">
             <h2 className="text-2xl font-bold mb-6 text-blue-400">Education</h2>
             <div className="border-l-2 border-gray-700 pl-6">
               <h3 className="text-lg font-semibold text-white">Bachelor of Science — Chemical Engineering</h3>
               <p className="text-blue-300">Carnegie Mellon University</p>
-              <p className="text-sm text-gray-400 font-mono">August 2003 — June 2007</p>
             </div>
           </section>
 
@@ -223,6 +286,25 @@ export default function Resume() {
               ))}
             </div>
           </section>
+
+          {/* Download PDF Button */}
+          <div className="max-w-5xl mx-auto mb-8">
+            <a
+              href="/resume.pdf"
+              download="Adam_Edison_Resume.pdf"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              Download PDF
+            </a>
+          </div>
         </div>
       </div>
     </div>
