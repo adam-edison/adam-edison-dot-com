@@ -105,6 +105,18 @@ The project includes `SearchEngineOptimization.md` with comprehensive SEO guidel
 }
 ```
 
+## Code Preferences
+
+**Navigation & Routing:**
+- Always use `Link` from `next/link` for internal navigation instead of `<a>` tags
+- Use `<a>` tags only for external links with `target="_blank"` and `rel="noopener noreferrer"`
+
+**Images:**
+- Always use `Image` from `next/image` instead of `<img>` tags for better performance and optimization
+
+**External Links:**
+- For external social media and website links, use regular `<a>` tags with proper security attributes
+
 ## Development Notes
 
 - Uses Pages Router architecture (not App Router)

@@ -1,4 +1,5 @@
 import { Geist } from 'next/font/google';
+import Image from 'next/image';
 import Link from 'next/link';
 
 const geistSans = Geist({
@@ -7,20 +8,17 @@ const geistSans = Geist({
 });
 
 export default function Home() {
+  const linkedInUrl = 'https://www.linkedin.com/in/adam-edison-software/';
+  const githubUrl = 'https://github.com/adam-edison';
+
   return (
     <div className={`${geistSans.className} min-h-screen bg-black text-white`}>
       {/* Header Banner */}
       <div className="bg-gray-900 px-6 py-3">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <span className="text-gray-300 text-sm">
-            Currently available for freelance and full-time roles in the web development space!
+            Currently available for small contract and part-time roles as a senior full-stack software engineer!
           </span>
-          <Link
-            href="/contact"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-          >
-            Work with me
-          </Link>
         </div>
       </div>
 
@@ -33,7 +31,7 @@ export default function Home() {
             {/* Social Icons */}
             <div className="flex space-x-4">
               <a
-                href="https://github.com/adamedison"
+                href={githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors"
@@ -44,7 +42,7 @@ export default function Home() {
                 </svg>
               </a>
               <a
-                href="https://linkedin.com/in/adamedison"
+                href={linkedInUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors"
@@ -55,7 +53,7 @@ export default function Home() {
                 </svg>
               </a>
             </div>
-            
+
             {/* Navigation Links */}
             <div className="flex space-x-8">
               <Link href="/about" className="text-gray-300 hover:text-white transition-colors">
@@ -73,11 +71,23 @@ export default function Home() {
 
         {/* Hero Section */}
         <main>
-          <div className="max-w-4xl">
-            <h2 className="text-6xl font-bold leading-tight mb-8">
-              I am a software engineer who builds scalable web applications, user interfaces, and
-              digital experiences with modern technologies.
-            </h2>
+          <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-8">
+            {/* Image on the left */}
+            <div className="w-full md:w-1/2 flex justify-center md:justify-start mb-8 md:mb-0">
+              <Image
+                src="/undraw_developer-activity_4zqd.svg"
+                alt="Developer Environment Illustration"
+                width={256}
+                height={256}
+                className="w-64 h-auto"
+              />
+            </div>
+            {/* Text on the right */}
+            <div className="w-full md:w-1/2 text-center md:text-left">
+              <h2 className="text-2xl md:text-4xl font-bold leading-tight mb-8">
+                Hello, there! <br /> <br /> I am a software engineer, and I build scalable web applications.
+              </h2>
+            </div>
           </div>
         </main>
       </div>
