@@ -9,14 +9,11 @@ const geistSans = Geist({
 });
 
 export default function Home() {
-  const linkedInUrl = 'https://www.linkedin.com/in/adam-edison-software/';
-  const githubUrl = 'https://github.com/adam-edison';
-
   return (
     <div className={`${geistSans.className} min-h-screen bg-black text-white`}>
       <HeaderBanner />
       <div className="max-w-7xl mx-auto px-6 py-16">
-        <MainHeader githubUrl={githubUrl} linkedInUrl={linkedInUrl} />
+        <MainHeader />
         <HeroSection />
       </div>
     </div>
