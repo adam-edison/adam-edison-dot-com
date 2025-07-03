@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+
+# Build outputs
+.next
+out
+build
+dist
+
+# Cache
+.eslintcache
+
+# Logs
+*.log
+
+# Environment variables
+.env*
+
+# Git
+.git
+
+# Package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# OS
+.DS_Store
+Thumbs.db
