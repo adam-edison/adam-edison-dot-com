@@ -124,7 +124,7 @@ export default function Resume() {
           {/* Professional Summary */}
           <section className="mb-16">
             <h2 className="text-2xl font-bold mb-6 text-blue-400">Professional Summary</h2>
-            <div className="border-l-2 border-gray-700 pl-6">
+            <div className="border-l-2 border-gray-800 pl-6">
               <p className="text-gray-300 leading-relaxed">
                 Senior Full-Stack Engineer with 10+ years of experience in backend development, REST APIs, and cloud
                 infrastructure. Reduced marketing analytics tool cost by 60% at Trust and Will by filtering out test
@@ -146,7 +146,7 @@ export default function Resume() {
                   <div className="absolute left-0 w-3 h-3 bg-blue-400 rounded-full -translate-x-1.5"></div>
                   {/* Timeline line */}
                   {index < experiences.length - 1 && (
-                    <div className="absolute left-0 top-3 w-0.5 h-full bg-gray-700 -translate-x-0.25"></div>
+                    <div className="absolute left-0 top-3 w-0.5 h-full bg-gray-800 -translate-x-0.25"></div>
                   )}
 
                   <div className="ml-8">
@@ -174,7 +174,7 @@ export default function Resume() {
                       {exp.technologies.map((tech, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-full text-sm transition-colors"
+                          className="inline-flex items-center gap-1 px-3 py-1 bg-gray-950 hover:bg-gray-800 rounded-full text-sm transition-colors"
                         >
                           <TechIcon name={tech} className="w-4 h-4" />
                           {tech}
@@ -191,7 +191,7 @@ export default function Resume() {
           <section className="mb-16">
             <h2 className="text-2xl font-bold mb-8 text-blue-400">Previous Experience</h2>
             <div className="space-y-8">
-              <div className="border-l-2 border-gray-700 pl-6">
+              <div className="border-l-2 border-gray-800 pl-6">
                 <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-2">
                   <div>
                     <h3 className="text-lg font-semibold text-white">Music Instructor</h3>
@@ -204,7 +204,7 @@ export default function Resume() {
                 </div>
               </div>
 
-              <div className="border-l-2 border-gray-700 pl-6">
+              <div className="border-l-2 border-gray-800 pl-6">
                 <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-2">
                   <div>
                     <h3 className="text-lg font-semibold text-white">Open Source Developer</h3>
@@ -217,7 +217,7 @@ export default function Resume() {
                 </div>
               </div>
 
-              <div className="border-l-2 border-gray-700 pl-6">
+              <div className="border-l-2 border-gray-800 pl-6">
                 <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-2">
                   <div>
                     <h3 className="text-lg font-semibold text-white">Consultant Developer</h3>
@@ -230,7 +230,7 @@ export default function Resume() {
                 </div>
               </div>
 
-              <div className="border-l-2 border-gray-700 pl-6">
+              <div className="border-l-2 border-gray-800 pl-6">
                 <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-2">
                   <div>
                     <h3 className="text-lg font-semibold text-white">Quality Engineer</h3>
@@ -243,7 +243,7 @@ export default function Resume() {
                 </div>
               </div>
 
-              <div className="border-l-2 border-gray-700 pl-6">
+              <div className="border-l-2 border-gray-800 pl-6">
                 <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-2">
                   <div>
                     <h3 className="text-lg font-semibold text-white">Technical Support Engineer</h3>
@@ -261,7 +261,7 @@ export default function Resume() {
           {/* Education */}
           <section className="mb-16">
             <h2 className="text-2xl font-bold mb-6 text-blue-400">Education</h2>
-            <div className="border-l-2 border-gray-700 pl-6">
+            <div className="border-l-2 border-gray-800 pl-6">
               <h3 className="text-lg font-semibold text-white">Bachelor of Science — Chemical Engineering</h3>
               <p className="text-blue-300">Carnegie Mellon University</p>
             </div>
@@ -272,7 +272,7 @@ export default function Resume() {
             <h2 className="text-2xl font-bold mb-8 text-blue-400">Skills & Technologies</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {Object.entries(skills).map(([category, techs]) => (
-                <div key={category} className="bg-gray-900 rounded-lg p-4">
+                <div key={category} className="bg-gray-950 rounded-lg p-4">
                   <h3 className="font-semibold text-white mb-3">{category}</h3>
                   <div className="space-y-2">
                     {techs.map((tech, i) => (
