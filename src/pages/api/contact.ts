@@ -1,8 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { contactFormSubmissionSchema, contactFormServerSchema } from '@/lib/validations/contact';
+import { createEmailHTML, createEmailText, createEmailTransporter, sanitizeInput } from '@/lib/api/email';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { verifyRecaptcha } from '@/lib/api/recaptcha';
-import { createEmailTransporter, sanitizeInput, createEmailHTML, createEmailText } from '@/lib/api/email';
+import { contactFormServerSchema, contactFormSubmissionSchema } from '@/lib/validations/contact';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Only allow POST requests
@@ -68,10 +68,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await transporter.sendMail({
       from: `"Adam Edison - Contact Form" <${process.env.SMTP_USER}>`,
       to: contactEmail,
-      replyTo: sanitizedData.email,
       subject: `New Contact Form Submission from ${sanitizedData.firstName} ${sanitizedData.lastName}`,
       html: createEmailHTML(sanitizedData),
-      text: createEmailText(sanitizedData)
+      text: createEmailText(sanitizedData),
+      headers: {
+        'X-Priority': '1',
+        'X-MSMail-Priority': 'High'
+      }
     });
 
     res.status(200).json({ message: 'Message sent successfully' });
