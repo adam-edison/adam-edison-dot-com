@@ -44,11 +44,25 @@ npm run format:check
 
 ```
 src/
+├── components/      # Reusable React components
+│   ├── GitHubIcon.tsx
+│   ├── HeaderBanner.tsx
+│   ├── HeroSection.tsx
+│   ├── LinkedInIcon.tsx
+│   ├── MainHeader.tsx
+│   ├── NavLink.tsx
+│   ├── SocialIconLink.tsx
+│   └── icons/
+│       └── TechIcon.tsx
+├── constants/       # Application constants
+│   └── socialLinks.ts
 ├── pages/           # Next.js pages (Pages Router)
 │   ├── _app.tsx     # App wrapper component
 │   ├── _document.tsx # Document wrapper
 │   ├── index.tsx    # Home page
+│   ├── resume.tsx   # Resume page
 │   └── api/         # API routes
+│       └── hello.ts
 └── styles/
     └── globals.css  # Global styles with Tailwind
 ```
@@ -108,6 +122,13 @@ The project includes `SearchEngineOptimization.md` with comprehensive SEO guidel
 
 ## Code Preferences
 
+**Component Architecture:**
+
+- Small, focused components with single responsibilities
+- Reusable components organized in `/src/components/`
+- Props interfaces defined with TypeScript for type safety
+- Functional components with clear, descriptive names
+
 **Navigation & Routing:**
 
 - Always use `Link` from `next/link` for internal navigation instead of `<a>` tags
@@ -120,6 +141,20 @@ The project includes `SearchEngineOptimization.md` with comprehensive SEO guidel
 **External Links:**
 
 - For external social media and website links, use regular `<a>` tags with proper security attributes
+
+**Code Organization:**
+
+- Constants extracted to `/src/constants/` for reusability
+- Clean separation of concerns between components, pages, and utilities
+- DRY principle applied consistently
+- Semantic HTML with proper accessibility attributes (`aria-label`, etc.)
+
+**Styling:**
+
+- Tailwind CSS classes for consistent styling
+- Responsive design with mobile-first approach
+- Hover states and transitions for interactive elements
+- Color scheme using CSS custom properties
 
 **Commit Messages:**
 
