@@ -1,0 +1,41 @@
+import { HeaderBanner } from '@/components/layout/HeaderBanner';
+import { MainHeader } from '@/components/layout/MainHeader';
+import { ContactHeader } from '@/components/contact/ContactHeader';
+import { ContactInfo } from '@/components/contact/ContactInfo';
+import { ServicesInfo } from '@/components/contact/ServicesInfo';
+import { FormSection } from '@/components/contact/FormSection';
+import Head from 'next/head';
+
+export default function Contact() {
+  return (
+    <>
+      <Head>
+        <title>Contact - Adam Edison</title>
+        <meta
+          name="description"
+          content="Get in touch with Adam Edison for software engineering opportunities and collaborations."
+        />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <div className="min-h-screen bg-black text-white">
+        <HeaderBanner />
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <MainHeader />
+
+          <div className="max-w-4xl mx-auto">
+            <ContactHeader />
+
+            <div className="grid md:grid-cols-2 gap-12 mb-16">
+              <ContactInfo />
+              <ServicesInfo />
+            </div>
+
+            <FormSection />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

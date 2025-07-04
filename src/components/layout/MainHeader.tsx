@@ -1,7 +1,7 @@
-import { SocialIconLink } from './SocialIconLink';
-import { NavLink } from './NavLink';
-import { GitHubIcon } from './GitHubIcon';
-import { LinkedInIcon } from './LinkedInIcon';
+import { SocialIconLink } from '@/components/link/SocialIconLink';
+import { NavLink } from '@/components/link/NavLink';
+import { GitHubIcon } from '@/components/icons/GitHubIcon';
+import { LinkedInIcon } from '@/components/icons/LinkedInIcon';
 import { SOCIAL_LINKS } from '@/constants/socialLinks';
 
 export function MainHeader() {
