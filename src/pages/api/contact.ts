@@ -1,141 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import nodemailer from 'nodemailer';
-import validator from 'validator';
-import { contactFormSubmissionSchema, contactFormServerSchema, ContactFormServerData } from '@/lib/validations/contact';
-
-// Rate limiting map (in production, use Redis or similar)
-const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
-
-// Simple rate limiting function
-function rateLimit(ip: string, maxRequests: number = 5, windowMs: number = 60000): boolean {
-  const now = Date.now();
-  const userLimit = rateLimitMap.get(ip);
-
-  if (!userLimit) {
-    rateLimitMap.set(ip, { count: 1, lastReset: now });
-    return false;
-  }
-
-  if (now - userLimit.lastReset > windowMs) {
-    userLimit.count = 1;
-    userLimit.lastReset = now;
-    return false;
-  }
-
-  if (userLimit.count >= maxRequests) {
-    return true;
-  }
-
-  userLimit.count++;
-  return false;
-}
-
-// Verify reCAPTCHA token
-async function verifyRecaptcha(token: string): Promise<boolean> {
-  const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-  if (!secretKey) {
-    throw new Error('reCAPTCHA secret key not configured');
-  }
-
-  try {
-    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: `secret=${secretKey}&response=${token}`
-    });
-
-    const data = await response.json();
-
-    if (!data.success) {
-      console.error('reCAPTCHA verification failed:', data['error-codes']);
-      return false;
-    }
-
-    // Check score for reCAPTCHA v3 (score between 0.0 and 1.0)
-    const scoreThreshold = parseFloat(process.env.RECAPTCHA_SCORE_THRESHOLD || '0.5');
-    if (data.score && data.score < scoreThreshold) {
-      console.error('reCAPTCHA score too low:', data.score);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error verifying reCAPTCHA:', error);
-    return false;
-  }
-}
-
-// Create email transporter
-function createEmailTransporter() {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
-    throw new Error('Email configuration is incomplete');
-  }
-
-  return nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: parseInt(SMTP_PORT),
-    secure: parseInt(SMTP_PORT) === 465, // true for 465, false for other ports
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS
-    }
-  });
-}
-
-// Sanitize input to prevent XSS
-function sanitizeInput(input: string): string {
-  return validator.escape(input.trim());
-}
-
-// Create email HTML content
-function createEmailHTML(data: ContactFormServerData): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <title>New Contact Form Submission</title>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background-color: #f4f4f4; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-          .field { margin-bottom: 15px; }
-          .field strong { color: #2563eb; }
-          .message { background-color: #f9f9f9; padding: 15px; border-left: 4px solid #2563eb; border-radius: 3px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h2>New Contact Form Submission</h2>
-            <p>You've received a new message from your website contact form.</p>
-          </div>
-          
-          <div class="field">
-            <strong>Name:</strong> ${data.firstName} ${data.lastName}
-          </div>
-          
-          <div class="field">
-            <strong>Email:</strong> ${data.email}
-          </div>
-          
-          <div class="field">
-            <strong>Message:</strong>
-            <div class="message">${data.message.replace(/\n/g, '<br>')}</div>
-          </div>
-          
-          <div class="field">
-            <strong>Submitted:</strong> ${new Date().toLocaleString()}
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
-}
+import { contactFormSubmissionSchema, contactFormServerSchema } from '@/lib/validations/contact';
+import { rateLimit } from '@/lib/api/rateLimit';
+import { verifyRecaptcha } from '@/lib/api/recaptcha';
+import { createEmailTransporter, sanitizeInput, createEmailHTML, createEmailText } from '@/lib/api/email';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Only allow POST requests
@@ -204,17 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       replyTo: sanitizedData.email,
       subject: `New Contact Form Submission from ${sanitizedData.firstName} ${sanitizedData.lastName}`,
       html: createEmailHTML(sanitizedData),
-      text: `
-        New Contact Form Submission
-        
-        Name: ${sanitizedData.firstName} ${sanitizedData.lastName}
-        Email: ${sanitizedData.email}
-        
-        Message:
-        ${sanitizedData.message}
-        
-        Submitted: ${new Date().toLocaleString()}
-      `
+      text: createEmailText(sanitizedData)
     });
 
     res.status(200).json({ message: 'Message sent successfully' });
