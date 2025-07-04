@@ -1,5 +1,5 @@
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
-import { ContactFormInner } from './contact/ContactFormInner';
+import { ContactFormInner } from './ContactFormInner';
 
 interface ContactFormProps {
   className?: string;

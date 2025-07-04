@@ -11,7 +11,7 @@ export function WorkExperience({ experiences }: WorkExperienceProps) {
       <h2 className="text-2xl font-bold mb-8 text-blue-400">Work Experience</h2>
       <div className="space-y-12">
         {experiences.map((exp, index) => (
-          <ExperienceItem key={index} experience={exp} index={index} isLast={index === experiences.length - 1} />
+          <ExperienceItem key={index} experience={exp} isLast={index === experiences.length - 1} />
         ))}
       </div>
     </section>

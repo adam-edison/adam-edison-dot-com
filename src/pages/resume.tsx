@@ -1,5 +1,5 @@
-import { HeaderBanner } from '@/components/HeaderBanner';
-import { MainHeader } from '@/components/MainHeader';
+import { HeaderBanner } from '@/components/layout/HeaderBanner';
+import { MainHeader } from '@/components/layout/MainHeader';
 import { ProfessionalSummary } from '@/components/resume/ProfessionalSummary';
 import { WorkExperience } from '@/components/resume/WorkExperience';
 import { PreviousExperience } from '@/components/resume/PreviousExperience';

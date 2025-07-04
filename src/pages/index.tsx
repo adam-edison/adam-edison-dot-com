@@ -1,6 +1,6 @@
-import { HeaderBanner } from '@/components/HeaderBanner';
-import { MainHeader } from '@/components/MainHeader';
-import { HeroSection } from '@/components/HeroSection';
+import { HeaderBanner } from '@/components/layout/HeaderBanner';
+import { MainHeader } from '@/components/layout/MainHeader';
+import { HeroSection } from '@/components/home/HeroSection';
 
 export default function Home() {
   return (

@@ -1,5 +1,5 @@
-import { HeaderBanner } from '@/components/HeaderBanner';
-import { MainHeader } from '@/components/MainHeader';
+import { HeaderBanner } from '@/components/layout/HeaderBanner';
+import { MainHeader } from '@/components/layout/MainHeader';
 import { ContactHeader } from '@/components/contact/ContactHeader';
 import { ContactInfo } from '@/components/contact/ContactInfo';
 import { ServicesInfo } from '@/components/contact/ServicesInfo';
