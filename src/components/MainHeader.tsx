@@ -7,7 +7,9 @@ import { SOCIAL_LINKS } from '@/constants/socialLinks';
 export function MainHeader() {
   return (
     <header className="flex justify-between items-center mb-24">
-      <h1 className="text-4xl font-bold">Adam Edison</h1>
+      <NavLink href="/">
+        <h1 className="text-4xl font-bold">Adam Edison</h1>
+      </NavLink>
       <nav className="flex items-center space-x-8">
         {/* Social Icons */}
         <div className="flex space-x-4">
@@ -21,7 +23,7 @@ export function MainHeader() {
 
         {/* Navigation Links */}
         <div className="flex space-x-8">
-          <NavLink href="/about">About Me</NavLink>
+          <NavLink href="/">About Me</NavLink>
           <NavLink href="/resume">Resume</NavLink>
           <NavLink href="/contact">Contact</NavLink>
         </div>
