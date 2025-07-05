@@ -1,10 +1,12 @@
+import { cn } from '../../lib/utils';
+
 interface StatusCardProps {
   type: 'error' | 'success' | 'warning';
   message: string;
   className?: string;
 }
 
-export function StatusCard({ type, message, className = '' }: StatusCardProps) {
+export function StatusCard({ type, message, className }: StatusCardProps) {
   const getStatusStyles = () => {
     switch (type) {
       case 'error':
@@ -58,8 +60,10 @@ export function StatusCard({ type, message, className = '' }: StatusCardProps) {
     }
   };
 
+  const containerClasses = cn(getStatusStyles(), 'border rounded-lg p-4', className);
+
   return (
-    <div className={`${getStatusStyles()} border rounded-lg p-4 ${className}`}>
+    <div className={containerClasses}>
       <div className="flex items-center">
         <div className="mr-3 flex-shrink-0">{getIcon()}</div>
         <div className="text-sm font-medium">{message}</div>
