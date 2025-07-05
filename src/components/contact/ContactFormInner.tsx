@@ -5,7 +5,8 @@ import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { contactFormSchema, ContactFormData } from '@/lib/validations/contact';
 import { ContactSuccessMessage } from './ContactSuccessMessage';
 import { StatusCard } from '@/components/ui/StatusCard';
-import { FormField } from './FormField';
+import { InputField } from './InputField';
+import { TextareaField } from './TextareaField';
 import { SubmitButton } from './SubmitButton';
 import { RecaptchaNotice } from './RecaptchaNotice';
 
@@ -95,17 +96,19 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
       {submitStatus === 'error' && errorMessage && <StatusCard variant="error" message={errorMessage} showIcon />}
 
       <div className="grid md:grid-cols-2 gap-6">
-        <FormField
+        <InputField
           id="firstName"
           label="First Name"
+          type="text"
           placeholder="Enter your first name"
           required
           register={register}
           error={errors.firstName}
         />
-        <FormField
+        <InputField
           id="lastName"
           label="Last Name"
+          type="text"
           placeholder="Enter your last name"
           required
           register={register}
@@ -113,7 +116,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         />
       </div>
 
-      <FormField
+      <InputField
         id="email"
         label="Email Address"
         type="email"
@@ -123,7 +126,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         error={errors.email}
       />
 
-      <FormField
+      <InputField
         id="confirmEmail"
         label="Confirm Email Address"
         type="email"
@@ -133,10 +136,9 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         error={errors.confirmEmail}
       />
 
-      <FormField
+      <TextareaField
         id="message"
         label="Message"
-        type="textarea"
         placeholder="Enter your message (50-1000 characters)"
         required
         register={register}
