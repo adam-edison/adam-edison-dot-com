@@ -37,40 +37,40 @@ docs/pages/api-reference/create-next-app).
    npm run dev
    ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
-
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
 ## Environment Setup
 
 ### Required Environment Variables
 
 The contact form requires several environment variables to function properly. Copy `.env.example` to `.env.local` and configure the following:
 
-#### Email Configuration
+#### Email Configuration with Resend
 
-For email functionality, you'll need SMTP credentials. Gmail is recommended for development:
+The contact form uses [Resend](https://resend.com) for email delivery, which is simpler and more reliable than traditional SMTP:
 
 ```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-CONTACT_EMAIL=your-contact@email.com
+RESEND_API_KEY=your-resend-api-key-here
+FROM_EMAIL=your-contact@email.com
 ```
 
-**Gmail Setup:**
+**Resend Setup:**
 
-1. Enable 2-factor authentication on your Google account
-2. Go to [Google App Passwords](https://support.google.com/accounts/answer/185833)
-3. Generate an app password for "Mail"
-4. Use this app password (not your regular password) in `SMTP_PASS`
+1. **Create a Resend account** at [resend.com](https://resend.com)
+2. **Verify your domain** (required for production):
+   - Go to your Resend dashboard
+   - Add your domain (e.g., `adamedison.com`)
+   - Add the provided DNS records (SPF, DKIM, DMARC) to your domain
+   - Wait for verification (usually takes a few minutes)
+3. **Get your API key**:
+   - Go to [API Keys](https://resend.com/api-keys) in your Resend dashboard
+   - Create a new API key
+   - Copy the key and add it to your `.env.local` file
+4. **Set your contact email**:
+   - This is where contact form submissions will be sent
+   - Can be any email address you have access to
+
+**Important Notes:**
+- The `replyTo` field is automatically set to the form submitter's email
+- Free tier includes 3,000 emails per month
 
 #### reCAPTCHA Configuration
 
@@ -95,15 +95,16 @@ RECAPTCHA_SCORE_THRESHOLD=0.5
 - **Production**: Update reCAPTCHA domains to include your actual domain
 - **Environment Files**: Use `.env.local` for development, configure environment variables in your hosting platform for production
 
-### Email Providers
+### Why Resend?
 
-While Gmail is used in the example, you can use any SMTP provider:
+Resend was chosen over traditional SMTP providers for several reasons:
 
-- **Gmail**: `smtp.gmail.com:587` (requires app password)
-- **Outlook**: `smtp-mail.outlook.com:587`
-- **Yahoo**: `smtp.mail.yahoo.com:587`
-- **SendGrid**: `smtp.sendgrid.net:587`
-- **Mailgun**: `smtp.mailgun.org:587`
+- **Simpler Setup**: No complex SMTP configuration or app passwords needed
+- **Better Deliverability**: Higher email delivery rates than Gmail SMTP
+- **Developer-Friendly**: Built specifically for developers with clean APIs
+- **Domain Verification**: Easy DNS setup with clear instructions
+- **Reply-To Support**: Proper reply-to headers for form responses
+- **Free Tier**: 3,000 emails per month at no cost
 
 ### Testing the Contact Form
 
@@ -116,9 +117,10 @@ While Gmail is used in the example, you can use any SMTP provider:
 ### Security Notes
 
 - Never commit `.env.local` to version control (it is already in `.gitignore`)
-- Use app passwords for Gmail (not your regular password)
+- Keep your Resend API key secure and never expose it in client-side code
 - Keep your reCAPTCHA secret key secure
 - The contact form includes rate limiting and input sanitization
+- Resend automatically handles SPF, DKIM, and DMARC authentication
 
 ## Deploy on Netlify
 
