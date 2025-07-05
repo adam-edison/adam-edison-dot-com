@@ -1,5 +1,6 @@
 import { UseFormRegister, FieldError } from 'react-hook-form';
 import { ContactFormData } from '@/lib/validations/contact';
+import { CharacterCounter } from './CharacterCounter';
 
 interface FormFieldProps {
   id: keyof ContactFormData;
@@ -10,6 +11,9 @@ interface FormFieldProps {
   rows?: number;
   register: UseFormRegister<ContactFormData>;
   error?: FieldError;
+  maxLength?: number;
+  minLength?: number;
+  watchedValue?: string;
 }
 
 const inputClasses =
@@ -23,7 +27,10 @@ export function FormField({
   required = false,
   rows,
   register,
-  error
+  error,
+  minLength,
+  maxLength,
+  watchedValue
 }: FormFieldProps) {
   return (
     <div>
@@ -31,17 +38,31 @@ export function FormField({
         {label} {required && <span className="text-red-400">*</span>}
       </label>
 
-      {type === 'textarea' ? (
-        <textarea
-          {...register(id)}
-          id={id}
-          rows={rows || 6}
-          className={`${inputClasses} resize-vertical`}
-          placeholder={placeholder}
-        />
-      ) : (
-        <input {...register(id)} type={type} id={id} className={inputClasses} placeholder={placeholder} />
-      )}
+      <div className="relative">
+        {type === 'textarea' ? (
+          <textarea
+            {...register(id)}
+            id={id}
+            rows={rows || 6}
+            className={`${inputClasses} resize-vertical`}
+            placeholder={placeholder}
+            maxLength={maxLength}
+          />
+        ) : (
+          <input
+            {...register(id)}
+            type={type}
+            id={id}
+            className={inputClasses}
+            placeholder={placeholder}
+            maxLength={maxLength}
+          />
+        )}
+
+        {type === 'textarea' && maxLength && minLength && (
+          <CharacterCounter value={watchedValue || ''} minLength={minLength} maxLength={maxLength} />
+        )}
+      </div>
 
       {error && <p className="mt-1 text-sm text-red-400">{error.message}</p>}
     </div>

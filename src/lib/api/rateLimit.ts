@@ -1,8 +1,9 @@
 // Rate limiting map
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
+const fiveMinutes = 300000;
 
 // Simple rate limiting function
-export function rateLimit(ip: string, maxRequests: number = 5, windowMs: number = 60000): boolean {
+export function rateLimit(ip: string, maxRequests: number = 3, windowMs: number = fiveMinutes): boolean {
   const now = Date.now();
   const userLimit = rateLimitMap.get(ip);
 

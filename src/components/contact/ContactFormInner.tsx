@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { contactFormSchema, ContactFormData } from '@/lib/validations/contact';
@@ -23,11 +23,14 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
+    control
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
     mode: 'onBlur'
   });
+
+  const watchedMessage = useWatch({ control, name: 'message' });
 
   const onSubmit = async (data: ContactFormData) => {
     if (!executeRecaptcha) {
@@ -139,6 +142,9 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         register={register}
         error={errors.message}
         rows={6}
+        minLength={50}
+        maxLength={1000}
+        watchedValue={watchedMessage}
       />
 
       <RecaptchaNotice />
