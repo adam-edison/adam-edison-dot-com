@@ -27,19 +27,14 @@ export async function sendEmail(data: ContactFormServerData) {
     throw new Error('To email not configured');
   }
 
-  const emailParams = {
+  const result = await resend.emails.send({
     from: `Personal Website Contact Form <${fromEmail}>`,
     to: `Adam Edison <${toEmail}>`,
     replyTo: data.email,
     subject: `New Message from ${data.firstName} ${data.lastName}`,
     html: createEmailHTML(data),
     text: createEmailText(data)
-  };
-
-  console.log('Sending email with params:', emailParams);
-
-  const result = await resend.emails.send(emailParams);
-  console.log('Resend API response:', result);
+  });
 
   return result;
 }
