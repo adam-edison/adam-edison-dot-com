@@ -27,4 +27,4 @@ export function CharacterCounter({ value, minLength, maxLength, className = '' }
       </span>
     </div>
   );
-} 
+}
