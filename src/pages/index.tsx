@@ -1,13 +1,9 @@
 import { PageLayout } from '@/components/layout/PageLayout';
 import { HeroSection } from '@/components/home/HeroSection';
 
-interface HomeProps {
-  onOpenCommand: () => void;
-}
-
-export default function Home({ onOpenCommand }: HomeProps) {
+export default function Home() {
   return (
-    <PageLayout onOpenCommand={onOpenCommand}>
+    <PageLayout>
       <HeroSection />
     </PageLayout>
   );
