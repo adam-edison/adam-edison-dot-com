@@ -4,13 +4,27 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Home, FileText, Mail, Github, Linkedin, Code } from 'lucide-react';
 import { SOCIAL_LINKS } from '@/constants/socialLinks';
 
 interface CommandPaletteProps {
   children?: React.ReactNode;
 }
+
+// Create a context to share the setOpen function
+import { createContext, useContext } from 'react';
+
+const CommandPaletteContext = createContext<{
+  setOpen: (open: boolean) => void;
+} | null>(null);
+
+export const useCommandPalette = () => {
+  const context = useContext(CommandPaletteContext);
+  if (!context) {
+    throw new Error('useCommandPalette must be used within CommandPalette');
+  }
+  return context;
+};
 
 export function CommandPalette({ children }: CommandPaletteProps) {
   const [open, setOpen] = useState(false);
@@ -39,18 +53,8 @@ export function CommandPalette({ children }: CommandPaletteProps) {
   };
 
   return (
-    <>
+    <CommandPaletteContext.Provider value={{ setOpen }}>
       {children}
-      <Button
-        variant="outline"
-        onClick={() => setOpen(true)}
-        className="fixed bottom-4 right-4 bg-gray-900 hover:bg-gray-800 text-white border-gray-700 shadow-lg"
-      >
-        <span className="mr-2">Click Here for Quick Commands</span>
-        <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-          <span className="text-xs">/</span>
-        </kbd>
-      </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="dark bg-gray-950 dark:bg-gray-950 overflow-hidden p-0 shadow-lg">
@@ -95,6 +99,6 @@ export function CommandPalette({ children }: CommandPaletteProps) {
           </Command>
         </DialogContent>
       </Dialog>
-    </>
+    </CommandPaletteContext.Provider>
   );
 }
