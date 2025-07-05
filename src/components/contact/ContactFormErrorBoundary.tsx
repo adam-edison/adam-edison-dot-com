@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusCard } from './StatusCard';
+import { StatusCard } from '@/components/ui/StatusCard';
 
 interface ContactFormErrorBoundaryState {
   hasError: boolean;
@@ -32,8 +32,9 @@ export class ContactFormErrorBoundary extends React.Component<
       return (
         <div className="max-w-2xl mx-auto p-8">
           <StatusCard
-            type="error"
+            variant="error"
             message="Something went wrong with the contact form. Please refresh the page and try again."
+            showIcon
             className="mb-4"
           />
           <button
