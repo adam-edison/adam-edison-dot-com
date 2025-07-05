@@ -73,7 +73,7 @@ export function createEmailHTML(data: ContactFormServerData): string {
           </div>
           
           <div class="field">
-            <strong>Email (click to reply):</strong> ${data.email}
+            <strong>Email:</strong> ${data.email}
           </div>
           
           <div class="field">
@@ -96,7 +96,7 @@ export function createEmailText(data: ContactFormServerData): string {
     New Contact Form Submission
     
     Name: ${data.firstName} ${data.lastName}
-    Email (click to reply): ${data.email}
+    Email: ${data.email}
     
     Message:
     ${data.message}

@@ -4,8 +4,7 @@ Source code for adamedison.com
 
 ## Technologies
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/
-docs/pages/api-reference/create-next-app).
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
 
 ## Getting Started
 
@@ -69,7 +68,7 @@ FROM_EMAIL=your-contact@email.com
    - Can be any email address you have access to
 
 **Important Notes:**
-- The `replyTo` field is automatically set to the form submitter's email
+
 - Free tier includes 3,000 emails per month
 
 #### reCAPTCHA Configuration
@@ -108,11 +107,21 @@ Resend was chosen over traditional SMTP providers for several reasons:
 
 ### Testing the Contact Form
 
-1. Ensure all environment variables are set
-2. Start the development server: `npm run dev`
-3. Navigate to `/contact`
-4. Fill out and submit the form
-5. Check your configured email address for the message
+#### Automated Tests
+
+The project includes comprehensive integration tests for the contact form:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode (development)
+npm run test:watch
+```
+
+#### Manual Testing
+
+For test cases with manual testing instructions, including happy path and error scenarios, see the [Manual Testing Guide](./MANUAL-TESTING.md).
 
 ### Security Notes
 

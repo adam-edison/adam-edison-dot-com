@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { contactFormSchema, ContactFormData } from '@/lib/validations/contact';
 import { SuccessMessage } from './SuccessMessage';
-import { ErrorMessage } from './ErrorMessage';
+import { StatusCard } from './StatusCard';
 import { FormField } from './FormField';
 import { SubmitButton } from './SubmitButton';
 import { RecaptchaNotice } from './RecaptchaNotice';
@@ -55,7 +55,16 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to send message');
+        setSubmitStatus('error');
+
+        // Provide user-friendly error messages
+        let friendlyMessage = errorData.message || 'Failed to send message';
+        if (friendlyMessage.includes('reCAPTCHA')) {
+          friendlyMessage = 'Security verification failed. Please refresh the page and try again.';
+        }
+
+        setErrorMessage(friendlyMessage);
+        return;
       }
 
       setSubmitStatus('success');
@@ -80,7 +89,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={`${className} space-y-6`}>
-      {submitStatus === 'error' && errorMessage && <ErrorMessage message={errorMessage} />}
+      {submitStatus === 'error' && errorMessage && <StatusCard type="error" message={errorMessage} />}
 
       <div className="grid md:grid-cols-2 gap-6">
         <FormField
