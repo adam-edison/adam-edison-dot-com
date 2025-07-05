@@ -1,11 +1,11 @@
 import { StatusCard } from '@/components/ui/StatusCard';
 
-interface SuccessMessageProps {
+interface ContactSuccessMessageProps {
   className?: string;
   onSendAnother: () => void;
 }
 
-export function SuccessMessage({ className, onSendAnother }: SuccessMessageProps) {
+export function ContactSuccessMessage({ className, onSendAnother }: ContactSuccessMessageProps) {
   return (
     <StatusCard variant="success" className={`${className} p-8 text-center`}>
       <div className="text-green-400 mb-4">

@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { contactFormSchema, ContactFormData } from '@/lib/validations/contact';
-import { SuccessMessage } from './SuccessMessage';
+import { ContactSuccessMessage } from './ContactSuccessMessage';
 import { StatusCard } from '@/components/ui/StatusCard';
 import { FormField } from './FormField';
 import { SubmitButton } from './SubmitButton';
@@ -84,7 +84,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   };
 
   if (submitStatus === 'success') {
-    return <SuccessMessage className={className} onSendAnother={handleSendAnother} />;
+    return <ContactSuccessMessage className={className} onSendAnother={handleSendAnother} />;
   }
 
   return (
