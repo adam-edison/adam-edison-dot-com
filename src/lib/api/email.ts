@@ -1,24 +1,42 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import validator from 'validator';
 import { ContactFormServerData } from '@/lib/validations/contact';
 
-// Create email transporter
-export function createEmailTransporter() {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+// Create Resend client
+export function createResendClient() {
+  const { RESEND_API_KEY } = process.env;
 
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
-    throw new Error('Email configuration is incomplete');
+  if (!RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY is not configured');
   }
 
-  return nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: parseInt(SMTP_PORT),
-    secure: parseInt(SMTP_PORT) === 465, // true for 465, false for other ports
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS
-    }
+  return new Resend(RESEND_API_KEY);
+}
+
+// Send email using Resend
+export async function sendEmail(data: ContactFormServerData) {
+  const resend = createResendClient();
+  const fromEmail = process.env.FROM_EMAIL;
+  const toEmail = process.env.TO_EMAIL;
+
+  if (!fromEmail) {
+    throw new Error('From email not configured');
+  }
+
+  if (!toEmail) {
+    throw new Error('To email not configured');
+  }
+
+  const result = await resend.emails.send({
+    from: `Personal Website Contact Form <${fromEmail}>`,
+    to: `Adam Edison <${toEmail}>`,
+    replyTo: data.email,
+    subject: `New Message from ${data.firstName} ${data.lastName}`,
+    html: createEmailHTML(data),
+    text: createEmailText(data)
   });
+
+  return result;
 }
 
 // Sanitize input to prevent XSS
@@ -55,7 +73,7 @@ export function createEmailHTML(data: ContactFormServerData): string {
           </div>
           
           <div class="field">
-            <strong>Email (click to reply):</strong> ${data.email}
+            <strong>Email:</strong> ${data.email}
           </div>
           
           <div class="field">
@@ -78,7 +96,7 @@ export function createEmailText(data: ContactFormServerData): string {
     New Contact Form Submission
     
     Name: ${data.firstName} ${data.lastName}
-    Email (click to reply): ${data.email}
+    Email: ${data.email}
     
     Message:
     ${data.message}

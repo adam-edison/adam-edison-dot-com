@@ -1,4 +1,4 @@
-import { createEmailHTML, createEmailText, createEmailTransporter, sanitizeInput } from '@/lib/api/email';
+import { sendEmail, sanitizeInput } from '@/lib/api/email';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { verifyRecaptcha } from '@/lib/api/recaptcha';
 import { contactFormServerSchema, contactFormSubmissionSchema } from '@/lib/validations/contact';
@@ -58,24 +58,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    const contactEmail = process.env.CONTACT_EMAIL;
-    if (!contactEmail) {
-      throw new Error('Contact email not configured');
-    }
-
-    // Create email transporter and send email
-    const transporter = createEmailTransporter();
-    await transporter.sendMail({
-      from: `"Adam Edison - Contact Form" <${process.env.SMTP_USER}>`,
-      to: contactEmail,
-      subject: `New Contact Form Submission from ${sanitizedData.firstName} ${sanitizedData.lastName}`,
-      html: createEmailHTML(sanitizedData),
-      text: createEmailText(sanitizedData),
-      headers: {
-        'X-Priority': '1',
-        'X-MSMail-Priority': 'High'
-      }
-    });
+    // Send email using Resend
+    await sendEmail(sanitizedData);
 
     res.status(200).json({ message: 'Message sent successfully' });
   } catch (error) {

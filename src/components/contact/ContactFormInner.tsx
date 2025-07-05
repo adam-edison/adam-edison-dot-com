@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { contactFormSchema, ContactFormData } from '@/lib/validations/contact';
-import { SuccessMessage } from './SuccessMessage';
-import { ErrorMessage } from './ErrorMessage';
-import { FormField } from './FormField';
+import { ContactSuccessMessage } from './ContactSuccessMessage';
+import { StatusCard } from '@/components/ui/StatusCard';
+import { InputField } from './InputField';
+import { TextareaField } from './TextareaField';
 import { SubmitButton } from './SubmitButton';
 import { RecaptchaNotice } from './RecaptchaNotice';
 
@@ -23,11 +24,14 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
+    control
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
     mode: 'onBlur'
   });
+
+  const watchedMessage = useWatch({ control, name: 'message' });
 
   const onSubmit = async (data: ContactFormData) => {
     if (!executeRecaptcha) {
@@ -55,7 +59,16 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to send message');
+        setSubmitStatus('error');
+
+        // Provide user-friendly error messages
+        let friendlyMessage = errorData.message || 'Failed to send message';
+        if (friendlyMessage.includes('reCAPTCHA')) {
+          friendlyMessage = 'Security verification failed. Please refresh the page and try again.';
+        }
+
+        setErrorMessage(friendlyMessage);
+        return;
       }
 
       setSubmitStatus('success');
@@ -75,25 +88,27 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   };
 
   if (submitStatus === 'success') {
-    return <SuccessMessage className={className} onSendAnother={handleSendAnother} />;
+    return <ContactSuccessMessage className={className} onSendAnother={handleSendAnother} />;
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={`${className} space-y-6`}>
-      {submitStatus === 'error' && errorMessage && <ErrorMessage message={errorMessage} />}
+      {submitStatus === 'error' && errorMessage && <StatusCard variant="error" message={errorMessage} showIcon />}
 
       <div className="grid md:grid-cols-2 gap-6">
-        <FormField
+        <InputField
           id="firstName"
           label="First Name"
+          type="text"
           placeholder="Enter your first name"
           required
           register={register}
           error={errors.firstName}
         />
-        <FormField
+        <InputField
           id="lastName"
           label="Last Name"
+          type="text"
           placeholder="Enter your last name"
           required
           register={register}
@@ -101,7 +116,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         />
       </div>
 
-      <FormField
+      <InputField
         id="email"
         label="Email Address"
         type="email"
@@ -111,7 +126,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         error={errors.email}
       />
 
-      <FormField
+      <InputField
         id="confirmEmail"
         label="Confirm Email Address"
         type="email"
@@ -121,15 +136,17 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         error={errors.confirmEmail}
       />
 
-      <FormField
+      <TextareaField
         id="message"
         label="Message"
-        type="textarea"
         placeholder="Enter your message (50-1000 characters)"
         required
         register={register}
         error={errors.message}
         rows={6}
+        minLength={50}
+        maxLength={1000}
+        watchedValue={watchedMessage}
       />
 
       <RecaptchaNotice />
