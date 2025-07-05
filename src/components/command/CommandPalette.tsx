@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -8,24 +7,13 @@ import { Home, FileText, Mail, Github, Linkedin, Code } from 'lucide-react';
 import { SOCIAL_LINKS } from '@/constants/socialLinks';
 
 interface CommandPaletteProps {
-  children: (setOpen: (open: boolean) => void) => React.ReactNode;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
-export function CommandPalette({ children }: CommandPaletteProps) {
-  const [open, setOpen] = useState(false);
+export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
   const router = useRouter();
 
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === '/') {
-        e.preventDefault();
-        setOpen((open) => !open);
-      }
-    };
-
-    document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
-  }, []);
 
   const handleNavigate = (path: string) => {
     router.push(path);
@@ -38,10 +26,7 @@ export function CommandPalette({ children }: CommandPaletteProps) {
   };
 
   return (
-    <>
-      {children(setOpen)}
-
-      <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="dark bg-gray-950 dark:bg-gray-950 overflow-hidden p-0 shadow-lg">
           <Command className="dark dark:bg-gray-900 dark:text-white [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
             <CommandInput placeholder="Type a command or search..." />
@@ -83,7 +68,6 @@ export function CommandPalette({ children }: CommandPaletteProps) {
             </CommandList>
           </Command>
         </DialogContent>
-      </Dialog>
-    </>
+    </Dialog>
   );
 }
