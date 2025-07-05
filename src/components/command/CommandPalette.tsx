@@ -8,23 +8,8 @@ import { Home, FileText, Mail, Github, Linkedin, Code } from 'lucide-react';
 import { SOCIAL_LINKS } from '@/constants/socialLinks';
 
 interface CommandPaletteProps {
-  children?: React.ReactNode;
+  children: (setOpen: (open: boolean) => void) => React.ReactNode;
 }
-
-// Create a context to share the setOpen function
-import { createContext, useContext } from 'react';
-
-const CommandPaletteContext = createContext<{
-  setOpen: (open: boolean) => void;
-} | null>(null);
-
-export const useCommandPalette = () => {
-  const context = useContext(CommandPaletteContext);
-  if (!context) {
-    throw new Error('useCommandPalette must be used within CommandPalette');
-  }
-  return context;
-};
 
 export function CommandPalette({ children }: CommandPaletteProps) {
   const [open, setOpen] = useState(false);
@@ -53,8 +38,8 @@ export function CommandPalette({ children }: CommandPaletteProps) {
   };
 
   return (
-    <CommandPaletteContext.Provider value={{ setOpen }}>
-      {children}
+    <>
+      {children(setOpen)}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="dark bg-gray-950 dark:bg-gray-950 overflow-hidden p-0 shadow-lg">
@@ -99,6 +84,6 @@ export function CommandPalette({ children }: CommandPaletteProps) {
           </Command>
         </DialogContent>
       </Dialog>
-    </CommandPaletteContext.Provider>
+    </>
   );
 }

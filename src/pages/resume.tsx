@@ -7,9 +7,13 @@ import { Skills } from '@/components/resume/Skills';
 import { DownloadButton } from '@/components/resume/DownloadButton';
 import { experiences, skills, professionalSummary, previousExperience, education } from '@/data/resume';
 
-export default function Resume() {
+interface ResumeProps {
+  onOpenCommand: () => void;
+}
+
+export default function Resume({ onOpenCommand }: ResumeProps) {
   return (
-    <PageLayout>
+    <PageLayout onOpenCommand={onOpenCommand}>
       <div className="max-w-5xl mx-auto">
         <ProfessionalSummary summary={professionalSummary} />
         <WorkExperience experiences={experiences} />

@@ -5,7 +5,11 @@ import { ServicesInfo } from '@/components/contact/ServicesInfo';
 import { FormSection } from '@/components/contact/FormSection';
 import Head from 'next/head';
 
-export default function Contact() {
+interface ContactProps {
+  onOpenCommand: () => void;
+}
+
+export default function Contact({ onOpenCommand }: ContactProps) {
   return (
     <>
       <Head>
@@ -18,7 +22,7 @@ export default function Contact() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <PageLayout>
+      <PageLayout onOpenCommand={onOpenCommand}>
         <div className="max-w-4xl mx-auto">
           <ContactHeader />
 

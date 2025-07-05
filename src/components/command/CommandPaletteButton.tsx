@@ -1,14 +1,15 @@
 import { Button } from '@/components/ui/button';
-import { useCommandPalette } from './CommandPalette';
 
-export function CommandPaletteButton() {
-  const { setOpen } = useCommandPalette();
+interface CommandPaletteButtonProps {
+  onClick: () => void;
+}
 
+export function CommandPaletteButton({ onClick }: CommandPaletteButtonProps) {
   return (
     <Button
       variant="outline"
       size="sm"
-      onClick={() => setOpen(true)}
+      onClick={onClick}
       className="bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-600 text-xs"
     >
       {/* Mobile: Click to open */}

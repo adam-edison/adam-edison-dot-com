@@ -11,9 +11,7 @@ const geistSans = Geist({
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <div className={geistSans.variable}>
-      <CommandPalette>
-        <Component {...pageProps} />
-      </CommandPalette>
+      <CommandPalette>{(setOpen) => <Component {...pageProps} onOpenCommand={() => setOpen(true)} />}</CommandPalette>
     </div>
   );
 }

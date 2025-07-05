@@ -1,7 +1,11 @@
 import { CommandPaletteButton } from '@/components/command/CommandPaletteButton';
 import { ResponsiveLayout } from './ResponsiveLayout';
 
-export function HeaderBanner() {
+interface HeaderBannerProps {
+  onOpenCommand: () => void;
+}
+
+export function HeaderBanner({ onOpenCommand }: HeaderBannerProps) {
   const message =
     'Currently available for small contract and part-time roles as a senior full-stack software engineer!';
 
@@ -12,13 +16,13 @@ export function HeaderBanner() {
           mobileLayout={
             <div className="text-center space-y-3">
               <span className="block text-gray-300 text-sm">{message}</span>
-              <CommandPaletteButton />
+              <CommandPaletteButton onClick={onOpenCommand} />
             </div>
           }
           desktopLayout={
             <>
               <span className="text-gray-300 text-sm">{message}</span>
-              <CommandPaletteButton />
+              <CommandPaletteButton onClick={onOpenCommand} />
             </>
           }
           mobileClasses="lg:hidden"
