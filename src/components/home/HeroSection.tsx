@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { AnimatedGreeting } from './AnimatedGreeting';
 
 export function HeroSection() {
   return (
@@ -17,8 +18,11 @@ export function HeroSection() {
         {/* Text on the right */}
         <div className="w-full md:w-1/2 text-center md:text-left">
           <h2 className="text-2xl md:text-4xl font-bold leading-tight mb-8">
-            Hello, there! <br /> <br /> I am a software engineer, and I build scalable web applications.
+            <AnimatedGreeting />
           </h2>
+          <h3 className="text-lg md:text-2xl font-bold leading-tight mb-8">
+            I am a software engineer, and I build scalable web applications.
+          </h3>
         </div>
       </div>
     </main>

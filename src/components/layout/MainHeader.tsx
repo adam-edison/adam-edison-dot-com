@@ -25,7 +25,7 @@ export function MainHeader() {
   );
 
   return (
-    <header className="mb-8 lg:mb-24">
+    <header className="mb-8 lg:mb-16">
       {/* Mobile Layout: Adam Edison on top */}
       <div className="flex flex-col lg:hidden">
         <NavLink href="/" className="self-center mb-8">

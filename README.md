@@ -133,14 +133,4 @@ For test cases with manual testing instructions, including happy path and error 
 
 ## Deploy on Netlify
 
-Netlify is connected via GitHub, where the build command is:
-
-```bash
-npm run static
-```
-
-And the published directory is set to:
-
-```bash
-out
-```
+Netlify is connected via GitHub, and templates already exist that support APIs and convert them to Functions. See [this official documentation](https://docs.netlify.com/frameworks/next-js/overview/) for more details.
