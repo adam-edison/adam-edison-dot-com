@@ -1,3 +1,5 @@
+import { StatusCard } from '@/components/ui/StatusCard';
+
 interface SuccessMessageProps {
   className?: string;
   onSendAnother: () => void;
@@ -5,7 +7,7 @@ interface SuccessMessageProps {
 
 export function SuccessMessage({ className, onSendAnother }: SuccessMessageProps) {
   return (
-    <div className={`${className} bg-green-950 border border-green-800 rounded-lg p-8 text-center`}>
+    <StatusCard variant="success" className={`${className} p-8 text-center`}>
       <div className="text-green-400 mb-4">
         <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -21,6 +23,6 @@ export function SuccessMessage({ className, onSendAnother }: SuccessMessageProps
       <button onClick={onSendAnother} className="text-green-400 hover:text-green-300 transition-colors underline">
         Send another message
       </button>
-    </div>
+    </StatusCard>
   );
 }
