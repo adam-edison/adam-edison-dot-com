@@ -1,5 +1,4 @@
-import { HeaderBanner } from '@/components/layout/HeaderBanner';
-import { MainHeader } from '@/components/layout/MainHeader';
+import { PageLayout } from '@/components/layout/PageLayout';
 import { ContactHeader } from '@/components/contact/ContactHeader';
 import { ContactInfo } from '@/components/contact/ContactInfo';
 import { ServicesInfo } from '@/components/contact/ServicesInfo';
@@ -19,23 +18,18 @@ export default function Contact() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="min-h-screen bg-black text-white">
-        <HeaderBanner />
-        <div className="max-w-7xl mx-auto px-6 py-16">
-          <MainHeader />
+      <PageLayout>
+        <div className="max-w-4xl mx-auto">
+          <ContactHeader />
 
-          <div className="max-w-4xl mx-auto">
-            <ContactHeader />
-
-            <div className="grid md:grid-cols-2 gap-12 mb-16">
-              <ContactInfo />
-              <ServicesInfo />
-            </div>
-
-            <FormSection />
+          <div className="grid md:grid-cols-2 gap-12 mb-16">
+            <ContactInfo />
+            <ServicesInfo />
           </div>
+
+          <FormSection />
         </div>
-      </div>
+      </PageLayout>
     </>
   );
 }
