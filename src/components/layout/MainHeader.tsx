@@ -19,7 +19,7 @@ export function MainHeader() {
 
   const navigationLinks = (
     <>
-      <NavLink href="/">About Me</NavLink>
+      <NavLink href="/">Home</NavLink>
       <NavLink href="/resume">Resume</NavLink>
       <NavLink href="/contact">Contact</NavLink>
     </>
