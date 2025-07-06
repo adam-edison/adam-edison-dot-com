@@ -28,7 +28,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
     control
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
-    mode: 'onBlur'
+    mode: 'onChange'
   });
 
   const watchedMessage = useWatch({ control, name: 'message' });
