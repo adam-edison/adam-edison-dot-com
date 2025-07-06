@@ -17,7 +17,7 @@ export function StorySeparator() {
 
           {/* Main brush stroke with varying thickness */}
           <path
-            d="M5 30 C 25 25, 45 35, 70 28 C 95 32, 120 24, 145 30 C 170 36, 195 26, 220 32 C 245 28, 270 34, 295 30 C 320 26, 345 32, 370 28 C 385 30, 395 30, 395 30"
+            d="M50 25 C 75 25, 85 18, 115 20 C 130 21, 155 44, 190 38 C 205 36, 225 14, 260 22 C 275 24, 295 46, 330 40 C 340 38, 350 30, 350 30"
             stroke="currentColor"
             strokeWidth="12"
             fill="none"
@@ -28,7 +28,7 @@ export function StorySeparator() {
 
           {/* Thicker center section */}
           <path
-            d="M50 30 C 95 28, 120 32, 145 30 C 170 28, 195 32, 220 30 C 245 28, 270 32, 295 30 C 320 28, 350 30, 350 30"
+            d="M50 25 C 75 25, 85 18, 115 20 C 130 21, 155 44, 190 38 C 205 36, 225 14, 260 22 C 275 24, 295 46, 330 40 C 340 38, 350 30, 350 30"
             stroke="currentColor"
             strokeWidth="16"
             fill="none"
@@ -39,7 +39,7 @@ export function StorySeparator() {
 
           {/* Texture overlay */}
           <path
-            d="M10 30 C 30 26, 50 34, 75 29 C 100 33, 125 25, 150 31 C 175 35, 200 27, 225 33 C 250 29, 275 35, 300 31 C 325 27, 350 33, 375 29 C 390 31, 395 30, 395 30"
+            d="M50 25 C 75 25, 85 18, 115 20 C 130 21, 155 44, 190 38 C 205 36, 225 14, 260 22 C 275 24, 295 46, 330 40 C 340 38, 350 30, 350 30"
             stroke="currentColor"
             strokeWidth="8"
             fill="none"
