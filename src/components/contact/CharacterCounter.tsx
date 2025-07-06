@@ -11,7 +11,7 @@ export function CharacterCounter({ value, minLength, maxLength, className = '' }
   const [charCount, setCharCount] = useState(0);
 
   useEffect(() => {
-    setCharCount(value.length);
+    setCharCount(value?.length || 0);
   }, [value]);
 
   const getCharCounterColor = () => {
