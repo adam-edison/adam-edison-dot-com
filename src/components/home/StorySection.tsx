@@ -20,7 +20,13 @@ export function StorySection({ step, isFirst = false, isLast = false }: StorySec
           <div
             className={`w-full md:w-1/2 flex justify-center mb-8 md:mb-0 ${isImageLeft ? 'md:order-1' : 'md:order-2'}`}
           >
-            <Image src={step.imageSrc} alt={step.imageAlt} width={256} height={256} className="w-64 h-auto" />
+            <Image
+              src={step.imageSrc}
+              alt={step.imageAlt}
+              width={256}
+              height={256}
+              className="w-64 h-auto rounded-lg"
+            />
           </div>
 
           {/* Text */}

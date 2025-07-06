@@ -10,73 +10,73 @@ export interface StoryStep {
 export const storySteps: StoryStep[] = [
   {
     id: 'intro',
-    imageSrc: '/story/circle_cropped_anime_avatar.png',
+    imageSrc: '/story/circle_cropped_anime_avatar.webp',
     imageAlt: 'Cheerful anime programmer avatar',
-    text: "I'm a full-stack developer who builds web applications. I build complete features, one vertical slice at a time.",
+    text: "I'm a full-stack developer, and I build websites and web apps - one complete feature at a time.",
     imagePosition: 'left',
     showAnimatedGreeting: true
   },
   {
     id: 'planning',
-    imageSrc:
-      '/story/An abstract and cute anime-style image of _character_ sketching out ideas for app design, with beautiful interfaces and user-friendly elements, vibrant colors, and a cheerful mood..png',
+    imageSrc: '/story/abstract_figma.webp',
     imageAlt: 'Anime character sketching app ideas and designs',
-    text: 'Each feature starts with understanding what users need. I sketch out the complete flow from button click to database and back.',
+    text: 'Each feature begins by understanding user needs, and designing the full solution.',
     imagePosition: 'right'
   },
   {
     id: 'security',
-    imageSrc:
-      '/story/An abstract and cute anime-style image of _character_ protecting data with encryption, showing a lock and a shield, keeping out bad guys, vibrant colors, and a cheerful mood..png',
+    imageSrc: '/story/security_stops_hackers.webp',
     imageAlt: 'Anime character implementing security and data protection',
-    text: 'Security is baked into every feature from day one. I design each piece to be secure before writing any code.',
+    text: 'Security best practices are baked into every feature from day one, ensuring compliance, protecting user data, and defending against threats.',
     imagePosition: 'left'
   },
   {
     id: 'frontend',
-    imageSrc:
-      '/story/An abstract and cute anime-style image of _character_ building a user interface that looks great and accommodates mobile, tablet, and desktop users, with responsive design elements, vibrant colors, and a cheerful mood..png',
+    imageSrc: '/story/testing_responsive_interfaces.webp',
     imageAlt: 'Anime character building responsive user interfaces',
-    text: 'For each feature, I build the interface users will love - making it work perfectly on phones, tablets, and computers.',
+    text: 'User interfaces are built to deliver a seamless experience on phones, tablets, and desktops without compromising functionality.',
     imagePosition: 'right'
   },
   {
     id: 'backend',
-    imageSrc:
-      '/story/An abstract and cute anime-style image of _character_ crafting the backend features of an app, showing gears and smooth-working mechanisms behind the scenes, vibrant colors, and a cheerful mood..png',
+    imageSrc: '/story/backend_systems.webp',
     imageAlt: 'Anime character building backend systems and features',
-    text: 'Then I connect it to the backend systems that make the feature actually work, handling all the data and logic behind the scenes.',
+    text: 'Backend systems are built to power databases, APIs, application logic, AI agents, and any other essential services behind the scenes.',
     imagePosition: 'left'
   },
   {
-    id: 'hosting',
-    imageSrc:
-      '/story/An abstract and cute anime-style image of _character_ with powerful servers hosting the app, automatically scaling up with more users, showing server racks and expanding capacity, vibrant colors, and a cheerful mood..png',
+    id: 'demo',
+    imageSrc: '/story/great_demo.webp',
     imageAlt: 'Anime character with scalable server infrastructure',
-    text: 'Each feature gets deployed to powerful servers that automatically scale up when more people use it. We demo complete features weekly.',
+    text: 'Each week, new and evolving features are showcased to all stakeholders, enabling early feedback and ensuring the product truly meets their needs. I take feedback without defensiveness and am happy to make changes.',
     imagePosition: 'right'
   },
   {
     id: 'cloud',
-    imageSrc:
-      '/story/An abstract and cute anime-style image of _character_ with cloud hosting, showing a cloud with app icons and 24_7 availability, vibrant colors, and a cheerful mood..png',
+    imageSrc: '/story/cloud_hosting_services.webp',
     imageAlt: 'Anime character with cloud hosting and 24/7 availability',
-    text: 'Cloud hosting keeps every feature running 24/7, so users can access what they need anytime, anywhere.',
+    text: 'Cloud hosting ensures every feature runs 24/7 with 99.99% uptime, providing reliable access. I make sure the cloud hosting is secure and scalable.',
     imagePosition: 'left'
   },
   {
     id: 'performance',
-    imageSrc:
-      '/story/An abstract and cute anime-style image of _character_ optimizing app performance, showing speed lines and efficient data flow, handling many users at once, vibrant colors, and a cheerful mood..png',
+    imageSrc: '/story/performance_optimized.webp',
     imageAlt: 'Anime character optimizing app performance and speed',
-    text: 'I optimize each feature to run lightning-fast, making sure every interaction feels smooth even with thousands of users.',
+    text: 'Each feature is streamlined for lightning-fast performance, making every interaction smooth - even with thousands of simultaneous users. I optimize for the best possible user experience.',
     imagePosition: 'right'
   },
   {
-    id: 'launch',
-    imageSrc: '/story/cheerful_anime_programmer.png',
+    id: 'testing',
+    imageSrc: '/story/testing.webp',
+    imageAlt: 'Anime character testing backend systems',
+    text: 'Every step of development is tested with unit, integration, performance, and even destructive tests. In this way, I catch issues early and deploy with confidence.',
+    imagePosition: 'right'
+  },
+  {
+    id: 'final-launch',
+    imageSrc: '/story/programmer_at_desk.webp',
     imageAlt: 'Cheerful anime programmer celebrating launch',
-    text: "Launch day! 🚀 Feature by feature, we've built something amazing together. Each slice delivered value from day one!",
+    text: 'Launch day! 🚀 I am proud to build and deploy clean, robust software that truly meets your needs. And I look forward to building more features with you!',
     imagePosition: 'left'
   }
 ];
