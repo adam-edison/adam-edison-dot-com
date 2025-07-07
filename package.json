@@ -15,6 +15,7 @@
   "dependencies": {
     "@google-cloud/recaptcha-enterprise": "^6.2.0",
     "@hookform/resolvers": "^5.1.1",
+    "@netlify/blobs": "^10.0.3",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
