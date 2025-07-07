@@ -6,6 +6,7 @@ import React, { useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText as GSAPSplitText } from 'gsap/SplitText';
+import { cn } from '@/lib/utils';
 
 gsap.registerPlugin(ScrollTrigger, GSAPSplitText);
 
@@ -26,7 +27,7 @@ export interface SplitTextProps {
 
 const SplitText: React.FC<SplitTextProps> = ({
   text,
-  className = '',
+  className,
   delay = 100,
   duration = 0.6,
   ease = 'power3.out',
@@ -118,7 +119,7 @@ const SplitText: React.FC<SplitTextProps> = ({
   return (
     <p
       ref={ref}
-      className={`split-parent overflow-hidden inline-block whitespace-normal ${className}`}
+      className={cn('split-parent overflow-hidden inline-block whitespace-normal', className)}
       style={{
         textAlign,
         wordWrap: 'break-word'
