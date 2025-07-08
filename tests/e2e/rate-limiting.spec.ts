@@ -33,15 +33,19 @@ test.describe('Rate Limiting', () => {
 
     const responses = await Promise.all(requests);
 
-    // Check that at least some requests are rate limited (status 429)
+    // Check that exactly 5 requests are rate limited (since limit is 5 per 10 minutes)
     const rateLimitedResponses = responses.filter((response) => response.status() === 429);
+    const successfulResponses = responses.filter((response) => response.status() === 200);
 
-    expect(rateLimitedResponses.length).toBeGreaterThan(0);
+    expect(rateLimitedResponses.length).toBeGreaterThanOrEqual(5);
+    expect(successfulResponses.length).toBeLessThanOrEqual(5);
 
     // Verify rate limit response message
     if (rateLimitedResponses.length > 0) {
       const body = await rateLimitedResponses[0].json();
       expect(body.message).toContain('Too many requests');
+      expect(body.retryAfter).toBeDefined();
+      expect(typeof body.retryAfter).toBe('number');
     }
   });
 
@@ -72,9 +76,11 @@ test.describe('Rate Limiting', () => {
 
     const ip1Responses = await Promise.all(ip1Requests);
     const ip1RateLimited = ip1Responses.filter((response) => response.status() === 429);
+    const ip1Successful = ip1Responses.filter((response) => response.status() === 200);
 
-    // IP1 should be rate limited
-    expect(ip1RateLimited.length).toBeGreaterThan(0);
+    // IP1 should be rate limited - exactly 1 request should be rate limited (6 requests, limit is 5)
+    expect(ip1RateLimited.length).toBeGreaterThanOrEqual(1);
+    expect(ip1Successful.length).toBeLessThanOrEqual(5);
 
     // Make requests from different IP (should not be rate limited initially)
     const ip2Response = await request.post('/api/contact', {
