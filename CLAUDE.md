@@ -29,6 +29,27 @@ npm run format
 
 # Check code formatting
 npm run format:check
+
+# Run unit tests only (fast, no external dependencies)
+npm run test
+
+# Run unit tests (explicit)
+npm run test:unit
+
+# Run integration tests (requires Redis configuration in .env.local)
+npm run test:integration
+
+# Run all tests (unit + integration)
+npm run test:all
+
+# Run e2e tests
+npm run test:e2e
+
+# Run manual integration tests (requires email service credentials)
+npm run test:manual
+
+# Run manual tests with actual email sending (requires RESEND_API_KEY, FROM_EMAIL, TO_EMAIL)
+# RESEND_API_KEY=your_key FROM_EMAIL=from@domain.com TO_EMAIL=to@domain.com npm run test:manual
 ```
 
 ## Email Configuration
@@ -40,6 +61,22 @@ The contact form uses **Resend** for email delivery instead of traditional SMTP:
 - **To Address**: Uses `TO_EMAIL` in environment variables
 - **Reply-To**: Automatically set to the form submitter's email
 - **Domain**: Requires domain verification in Resend dashboard for production use
+
+## Rate Limiting Configuration
+
+The contact form uses configurable rate limiting with two layers:
+
+**Per-IP Rate Limiting:**
+
+- **Requests**: Set `RATE_LIMIT_REQUESTS` in environment variables (default: 5)
+- **Window**: Set `RATE_LIMIT_WINDOW` in environment variables (default: '10 m')
+
+**Global Rate Limiting:**
+
+- **Requests**: Set `GLOBAL_RATE_LIMIT_REQUESTS` in environment variables (default: 10)
+- **Window**: Set `GLOBAL_RATE_LIMIT_WINDOW` in environment variables (default: '1 h')
+
+**Redis**: Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
 
 ## Architecture
 

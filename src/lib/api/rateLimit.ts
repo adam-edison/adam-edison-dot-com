@@ -1,27 +1,32 @@
-// Rate limiting map
-const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
-const fiveMinutes = 300000;
+import { Redis } from '@upstash/redis';
+import { RateLimiter } from './RateLimiter';
 
-// Simple rate limiting function
-export function rateLimit(ip: string, maxRequests: number = 3, windowMs: number = fiveMinutes): boolean {
-  const now = Date.now();
-  const userLimit = rateLimitMap.get(ip);
+// Create rate limiter instance with environment configuration
+const redis = Redis.fromEnv();
+const rateLimiter = new RateLimiter({
+  redis,
+  limit: parseInt(process.env.RATE_LIMIT_REQUESTS!),
+  window: process.env.RATE_LIMIT_WINDOW!,
+  prefix: process.env.REDIS_PREFIX!
+});
 
-  if (!userLimit) {
-    rateLimitMap.set(ip, { count: 1, lastReset: now });
-    return false;
-  }
+// Create global rate limiter instance for site-wide limits
+const globalRateLimiter = new RateLimiter({
+  redis,
+  limit: parseInt(process.env.GLOBAL_RATE_LIMIT_REQUESTS!),
+  window: process.env.GLOBAL_RATE_LIMIT_WINDOW!,
+  prefix: process.env.REDIS_PREFIX!
+});
 
-  if (now - userLimit.lastReset > windowMs) {
-    userLimit.count = 1;
-    userLimit.lastReset = now;
-    return false;
-  }
-
-  if (userLimit.count >= maxRequests) {
-    return true;
-  }
-
-  userLimit.count++;
-  return false;
+// Rate limiting function that returns both success status and headers
+export async function checkRateLimit(identifier: string) {
+  return rateLimiter.checkLimit(identifier);
 }
+
+// Global rate limiting function for site-wide limits
+export async function checkGlobalRateLimit() {
+  return globalRateLimiter.checkLimit('global');
+}
+
+// Export the rate limiter instances for testing
+export { rateLimiter, globalRateLimiter };

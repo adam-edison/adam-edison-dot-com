@@ -1,9 +1,11 @@
+import { cn } from '@/lib/utils';
+
 interface BrushStrokeBackgroundProps {
   variant: 'brush1' | 'brush2' | 'brush3';
   className?: string;
 }
 
-export function BrushStrokeBackground({ variant, className = '' }: BrushStrokeBackgroundProps) {
+export function BrushStrokeBackground({ variant, className }: BrushStrokeBackgroundProps) {
   const brushPaths = {
     brush1: (
       <path
@@ -29,7 +31,7 @@ export function BrushStrokeBackground({ variant, className = '' }: BrushStrokeBa
   };
 
   return (
-    <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
+    <div className={cn('absolute inset-0 overflow-hidden pointer-events-none', className)}>
       <svg
         className="absolute inset-0 w-full h-full"
         viewBox="0 0 500 100"

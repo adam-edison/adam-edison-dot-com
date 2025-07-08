@@ -1,5 +1,10 @@
 // Verify reCAPTCHA token
 export async function verifyRecaptcha(token: string): Promise<boolean> {
+  // Skip reCAPTCHA verification when threshold is 0, for better performance during testing
+  if (process.env.RECAPTCHA_SCORE_THRESHOLD === '0') {
+    return true;
+  }
+
   const secretKey = process.env.RECAPTCHA_SECRET_KEY;
   if (!secretKey) {
     throw new Error('reCAPTCHA secret key not configured');

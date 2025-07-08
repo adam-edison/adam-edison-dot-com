@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 interface CharacterCounterProps {
   value: string;
@@ -7,7 +8,7 @@ interface CharacterCounterProps {
   className?: string;
 }
 
-export function CharacterCounter({ value, minLength, maxLength, className = '' }: CharacterCounterProps) {
+export function CharacterCounter({ value, minLength, maxLength, className }: CharacterCounterProps) {
   const [charCount, setCharCount] = useState(0);
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export function CharacterCounter({ value, minLength, maxLength, className = '' }
   };
 
   return (
-    <div className={`absolute bottom-2 right-2 text-xs ${className}`}>
+    <div className={cn('absolute bottom-2 right-2 text-xs', className)}>
       <span className={getCharCounterColor()}>
         {charCount}/{maxLength}
       </span>

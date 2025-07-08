@@ -24,6 +24,8 @@ describe('ContactForm', () => {
     // Set environment variables for tests
     vi.stubEnv('NEXT_PUBLIC_RECAPTCHA_SITE_KEY', 'test-site-key');
     vi.stubEnv('RECAPTCHA_SECRET_KEY', 'test-secret-key');
+    vi.stubEnv('RECAPTCHA_SCORE_THRESHOLD', '0');
+    vi.stubEnv('SEND_EMAIL_ENABLED', 'false');
 
     // Mock the config check API call to return success by default
     vi.mocked(fetch).mockImplementation(async (url) => {

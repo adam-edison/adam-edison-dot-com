@@ -1,12 +1,8 @@
 # adam-edison-dot-com
 
-Source code for adamedison.com
+Source code for [adamedison.com](https://adamedison.com) - a personal portfolio website built with Next.js.
 
-## Technologies
-
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
@@ -15,122 +11,215 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ### Installation
 
-1. Clone the repository:
-
+1. Clone the repository
 2. Install dependencies:
-
    ```bash
    npm install
    ```
-
-3. Set up environment variables:
-
+3. Copy environment template:
    ```bash
    cp .env.example .env.local
    ```
-
-   Edit `.env.local` with your actual values (see [Environment Setup](#environment-setup) below).
-
-4. Run the development server:
+4. Configure environment variables (see [Configuration](#configuration) below)
+5. Start development server:
    ```bash
    npm run dev
    ```
 
-## Environment Setup
+The development server runs on [http://localhost:3000](http://localhost:3000) with [Turbopack](https://turbo.build/pack) for fast builds and hot reload.
+
+## Available Scripts
+
+```bash
+# Development
+npm run dev          # Start development server with Turbopack
+npm run build        # Build for production
+npm run start        # Start production server
+
+# Code Quality
+npm run lint         # Run ESLint
+npm run format       # Format code with Prettier
+npm run format:check # Check format without writing changes
+
+# Testing
+npm run test         # Run unit tests
+npm run test:unit    # Run unit tests (explicit)
+npm run test:integration # Run integration tests (requires Redis)
+npm run test:e2e     # Run end-to-end tests with Playwright
+npm run test:all     # Run all tests (unit + integration + e2e)
+npm run test:manual  # Run manual integration tests (requires email config)
+```
+
+## Configuration
 
 ### Required Environment Variables
 
-The contact form requires several environment variables to function properly. Copy `.env.example` to `.env.local` and configure the following:
+Copy `.env.example` to `.env.local` and configure these services:
 
-#### Email Configuration with Resend
-
-The contact form uses [Resend](https://resend.com) for email delivery, which is simpler and more reliable than traditional SMTP:
+#### Email Service (Resend)
 
 ```env
 RESEND_API_KEY=your-resend-api-key-here
 FROM_EMAIL=your-contact@email.com
 ```
 
-**Resend Setup:**
+1. Create account at [resend.com](https://resend.com)
+2. Verify your domain (add DNS records)
+3. Generate API key from dashboard
+4. Set contact email address
 
-1. **Create a Resend account** at [resend.com](https://resend.com)
-2. **Verify your domain** (required for production):
-   - Go to your Resend dashboard
-   - Add your domain (e.g., `adamedison.com`)
-   - Add the provided DNS records (SPF, DKIM, DMARC) to your domain
-   - Wait for verification (usually takes a few minutes)
-3. **Get your API key**:
-   - Go to [API Keys](https://resend.com/api-keys) in your Resend dashboard
-   - Create a new API key
-   - Copy the key and add it to your `.env.local` file
-4. **Set your contact email**:
-   - This is where contact form submissions will be sent
-   - Can be any email address you have access to
-
-**Important Notes:**
-
-- Free tier includes 3,000 emails per month
-
-#### reCAPTCHA Configuration
-
-The contact form uses Google reCAPTCHA v3 for spam protection:
+#### Spam Protection (reCAPTCHA)
 
 ```env
-NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-recaptcha-site-key
-RECAPTCHA_SECRET_KEY=your-recaptcha-secret-key
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-site-key
+RECAPTCHA_SECRET_KEY=your-secret-key
 RECAPTCHA_SCORE_THRESHOLD=0.5
 ```
 
-**reCAPTCHA Setup:**
+1. Visit [Google reCAPTCHA Console](https://www.google.com/recaptcha/admin/create)
+2. Create reCAPTCHA v3 site
+3. Add domain (use `localhost` for development)
+4. Copy site key and secret key
 
-1. Go to [Google reCAPTCHA Console](https://www.google.com/recaptcha/admin/create)
-2. Create a new site with reCAPTCHA v3
-3. Add your domain(s) (for development, add `localhost`)
-4. Copy the site key and secret key to your `.env.local` file
+#### Rate Limiting (Upstash Redis)
 
-### Development vs Production
+```env
+UPSTASH_REDIS_REST_URL=https://your-redis-instance.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your-redis-token
+```
+
+Optional rate limit configuration:
+```env
+RATE_LIMIT_REQUESTS=5
+RATE_LIMIT_WINDOW=10 m
+GLOBAL_RATE_LIMIT_REQUESTS=10
+GLOBAL_RATE_LIMIT_WINDOW=1 h
+```
+
+1. Create account at [upstash.com](https://upstash.com)
+2. Create Redis database
+3. Copy REST URL and token from dashboard
+
+## Testing
+
+### Test Types
+
+- **Unit Tests**: Fast, isolated component testing (no external dependencies)
+- **Integration Tests**: API and database integration (requires Redis configuration)
+- **E2E Tests**: Full browser automation with Playwright
+- **Manual Tests**: Email service testing (requires full environment setup)
+
+### Running Tests
+
+```bash
+# Quick feedback loop
+npm run test:unit
+
+# Full test suite
+npm run test:all
+
+# Integration only (needs Redis)
+npm run test:integration
+
+# Browser testing
+npm run test:e2e
+
+# Email testing (needs Resend config)
+npm run test:manual
+```
+
+### Test Environment
+
+Integration tests use higher rate limits for stability. Tests automatically clean up Redis keys to prevent interference between runs.
+
+For detailed test scenarios, see [MANUAL-TESTING.md](./MANUAL-TESTING.md).
+
+## Technologies
+
+### Core Stack
+
+- **[Next.js 15.3.4](https://nextjs.org)** - React framework with App Router
+- **[React 19.0.0](https://react.dev)** - UI library
+- **[TypeScript 5](https://www.typescriptlang.org)** - Type safety
+- **[Tailwind CSS 4](https://tailwindcss.com)** - Utility-first CSS framework
+
+### UI Components & Styling
+
+- **[Radix UI](https://radix-ui.com)** - Accessible component primitives
+- **[Lucide React](https://lucide.dev)** - Icon library
+- **[GSAP](https://greensock.com/gsap)** - Animation library
+- **[Tailwind Merge](https://github.com/dcastil/tailwind-merge)** - Utility class merging
+
+### Forms & Validation
+
+- **[React Hook Form](https://react-hook-form.com)** - Form management
+- **[Zod](https://zod.dev)** - Schema validation
+- **[Hookform Resolvers](https://github.com/react-hook-form/resolvers)** - Form validation integration
+
+### Communication & Security
+
+- **[Resend](https://resend.com)** - Email delivery service
+- **[reCAPTCHA](https://www.google.com/recaptcha)** - Spam protection
+- **[Upstash](https://upstash.com)** - Redis for rate limiting
+
+### Testing & Development
+
+- **[Vitest](https://vitest.dev)** - Unit and integration testing
+- **[Playwright](https://playwright.dev)** - End-to-end testing
+- **[Testing Library](https://testing-library.com)** - React testing utilities
+- **[ESLint](https://eslint.org)** - Code linting
+- **[Prettier](https://prettier.io)** - Code formatting
+
+## Architecture
+
+### Contact Form Features
+
+- **Email Delivery**: Powered by Resend with domain verification
+- **Spam Protection**: reCAPTCHA v3 with configurable score threshold
+- **Rate Limiting**: Dual-layer protection (per-IP + global) using Upstash Redis
+- **Form Validation**: Client and server-side validation with Zod schemas
+- **Error Handling**: Graceful degradation with detailed error messages
+
+### Rate Limiting Strategy
+
+- **Per-IP Limits**: Prevent individual abuse (default: 5 requests/10 minutes)
+- **Global Limits**: Protect against distributed attacks (default: 10 requests/hour)
+- **Sliding Window**: Smooth rate limiting without sudden resets
+- **Fail-Open**: Service remains available if Redis is unavailable
+
+### Why These Technologies?
+
+- **Resend**: Better deliverability than SMTP, developer-friendly API
+- **Upstash**: Serverless Redis perfect for Next.js/Vercel deployments
+- **reCAPTCHA v3**: Invisible spam protection with risk scoring
+- **Zod**: Type-safe validation that works client and server-side
+
+## Deployment
+
+### Environment Setup
 
 - **Development**: Use `localhost` in reCAPTCHA domains
 - **Production**: Update reCAPTCHA domains to include your actual domain
-- **Environment Files**: Use `.env.local` for development, configure environment variables in your hosting platform for production
+- **Environment Files**: Use `.env.local` for development, configure environment variables in your hosting platform
 
-### Why Resend?
+### Netlify Deployment
 
-Resend was chosen over traditional SMTP providers for several reasons:
+This project is configured for Netlify with automatic GitHub integration. Next.js APIs are automatically converted to Netlify Functions.
 
-- **Simpler Setup**: No complex SMTP configuration or app passwords needed
-- **Better Deliverability**: Higher email delivery rates than Gmail SMTP
-- **Developer-Friendly**: Built specifically for developers with clean APIs
-- **Domain Verification**: Easy DNS setup with clear instructions
-- **Reply-To Support**: Proper reply-to headers for form responses
-- **Free Tier**: 3,000 emails per month at no cost
+See [Next.js on Netlify documentation](https://docs.netlify.com/frameworks/next-js/overview/) for details.
 
-### Testing the Contact Form
+### Security Best Practices
 
-#### Automated Tests
+- Never commit `.env.local` to version control (already in `.gitignore`)
+- Keep all API keys secure and never expose in client-side code
+- Use environment variables for all sensitive configuration
+- The contact form includes input sanitization and rate limiting
+- Resend handles SPF, DKIM, and DMARC authentication automatically
 
-The project includes comprehensive integration tests for the contact form:
+## Development
 
-```bash
-# Run all tests
-npm test
+Built with Next.js Pages Router, this project uses modern web development best practices with comprehensive testing and security features.
 
-# Run tests in watch mode (development)
-npm run test:watch
-```
+For component development, the project uses Radix UI for accessibility and Tailwind CSS for styling. Forms are managed with React Hook Form and validated with Zod schemas.
 
-#### Manual Testing
-
-For test cases with manual testing instructions, including happy path and error scenarios, see the [Manual Testing Guide](./MANUAL-TESTING.md).
-
-### Security Notes
-
-- Never commit `.env.local` to version control (it is already in `.gitignore`)
-- Keep your Resend API key secure and never expose it in client-side code
-- Keep your reCAPTCHA secret key secure
-- The contact form includes rate limiting and input sanitization
-- Resend automatically handles SPF, DKIM, and DMARC authentication
-
-## Deploy on Netlify
-
-Netlify is connected via GitHub, and templates already exist that support APIs and convert them to Functions. See [this official documentation](https://docs.netlify.com/frameworks/next-js/overview/) for more details.
+Animation is handled by GSAP for smooth, professional interactions.
