@@ -1,5 +1,4 @@
 import { sendEmail, sanitizeInput } from '@/lib/api/email';
-import { rateLimit } from '@/lib/api/rateLimit';
 import { verifyRecaptcha } from '@/lib/api/recaptcha';
 import { contactFormServerSchema, contactFormSubmissionSchema } from '@/lib/validations/contact';
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -11,15 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Get client IP for rate limiting
-    const clientIP = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
-    const ip = Array.isArray(clientIP) ? clientIP[0] : clientIP;
-
-    // Apply rate limiting
-    if (rateLimit(ip)) {
-      return res.status(429).json({ message: 'Too many requests. Please try again later.' });
-    }
-
     // Validate request body structure
     const validationResult = contactFormSubmissionSchema.safeParse(req.body);
     if (!validationResult.success) {

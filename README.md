@@ -128,7 +128,7 @@ For test cases with manual testing instructions, including happy path and error 
 - Never commit `.env.local` to version control (it is already in `.gitignore`)
 - Keep your Resend API key secure and never expose it in client-side code
 - Keep your reCAPTCHA secret key secure
-- The contact form includes rate limiting and input sanitization
+- The contact form includes input sanitization
 - Resend automatically handles SPF, DKIM, and DMARC authentication
 
 ## Deploy on Netlify
