@@ -123,12 +123,59 @@ npm run test:watch
 
 For test cases with manual testing instructions, including happy path and error scenarios, see the [Manual Testing Guide](./MANUAL-TESTING.md).
 
+#### Rate Limiting with Upstash
+
+The contact form uses [Upstash Rate Limiting](https://upstash.com/docs/redis/sdks/ratelimit-ts/overview) for spam protection:
+
+```env
+UPSTASH_REDIS_REST_URL=https://your-redis-instance.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your-redis-token
+```
+
+**Upstash Setup:**
+
+1. **Create an Upstash account** at [upstash.com](https://upstash.com)
+2. **Create a Redis database**:
+   - Go to your Upstash dashboard
+   - Click "Create Database"
+   - Choose your region (closer to your users for better performance)
+   - Select "Global" for multi-region support (optional)
+3. **Get your connection details**:
+   - Click on your database name
+   - Copy the "REST URL" and "REST TOKEN"
+   - Add them to your `.env.local` file
+
+**Rate Limiting Configuration:**
+
+The rate limiter uses a sliding window algorithm with these default settings:
+
+- **5 requests per 10 minutes** per IP address
+- **Sliding window** algorithm for smooth rate limiting
+- **Analytics tracking** enabled for monitoring
+
+**Local Development:**
+
+For local development, you can use a free Upstash Redis instance:
+
+- Free tier includes 10,000 requests per month
+- No credit card required for the free tier
+- Supports both development and production environments
+
+**Why Upstash?**
+
+- **Serverless-first**: Designed for Next.js and Vercel deployments
+- **HTTP-based**: No persistent connections required
+- **Global**: Multi-region support for low latency
+- **Analytics**: Built-in monitoring and usage tracking
+- **Reliable**: Professional Redis service with 99.9% uptime
+
 ### Security Notes
 
 - Never commit `.env.local` to version control (it is already in `.gitignore`)
 - Keep your Resend API key secure and never expose it in client-side code
 - Keep your reCAPTCHA secret key secure
-- The contact form includes input sanitization
+- Keep your Upstash Redis credentials secure
+- The contact form includes input sanitization and rate limiting
 - Resend automatically handles SPF, DKIM, and DMARC authentication
 
 ## Deploy on Netlify
