@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { generateUniqueIP } from '../utils/testHelpers';
 
 test.describe('Rate Limiting', () => {
   test('should rate limit after 5 requests in 10 minutes', async ({ request }) => {
@@ -16,7 +17,7 @@ test.describe('Rate Limiting', () => {
     };
 
     // Use a unique IP to avoid interference with other tests
-    const uniqueIP = `10.${Date.now() % 255}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+    const uniqueIP = generateUniqueIP();
 
     // Make 5 requests (should all succeed)
     const responses = [];

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { generateUniqueIP } from '../utils/testHelpers';
 
 test.describe('Contact Form', () => {
   test('should successfully submit contact form', async ({ request }) => {
@@ -13,7 +14,7 @@ test.describe('Contact Form', () => {
     };
 
     // Use a unique IP to avoid rate limiting between test runs
-    const uniqueIP = `10.${Date.now() % 255}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+    const uniqueIP = generateUniqueIP();
 
     const response = await request.post('/api/contact', {
       data: contactData,

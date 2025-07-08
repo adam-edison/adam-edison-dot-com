@@ -10,13 +10,7 @@
 import { Redis } from '@upstash/redis';
 import { RateLimiter } from '../RateLimiter';
 import { describe, test, expect, beforeAll, afterEach } from 'vitest';
-
-// Helper to generate unique identifiers for test isolation
-function generateUniqueIdentifier(): string {
-  const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 1000);
-  return `test-${timestamp}-${random}`;
-}
+import { generateUniqueIdentifier } from '../../../../tests/utils/testHelpers';
 
 describe('RateLimiter Integration Tests', () => {
   let rateLimiter: RateLimiter;

@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { checkRateLimit, checkGlobalRateLimit, rateLimiter, globalRateLimiter } from '../rateLimit';
+import { generateUniqueIP } from '../../../../tests/utils/testHelpers';
 
 const ipRequestLimit = parseInt(process.env.RATE_LIMIT_REQUESTS!);
 const globalRequestLimit = parseInt(process.env.GLOBAL_RATE_LIMIT_REQUESTS!);
@@ -14,7 +15,7 @@ describe('Combined Rate Limiting Integration Tests', () => {
   });
 
   it('should enforce both per-IP and global rate limits independently', async () => {
-    const ip1 = '192.168.1.1';
+    const ip1 = generateUniqueIP();
 
     // Make a request to per-IP rate limiter
     const ip1Result = await checkRateLimit(ip1);
@@ -34,8 +35,8 @@ describe('Combined Rate Limiting Integration Tests', () => {
     // This test verifies that the per-IP limiter uses the IP as identifier
     // and the global limiter uses 'global' as identifier
 
-    const ip1 = '192.168.1.10';
-    const ip2 = '192.168.1.11';
+    const ip1 = generateUniqueIP();
+    const ip2 = generateUniqueIP();
 
     // Different IPs should have separate per-IP limits
     const ip1Result = await checkRateLimit(ip1);
