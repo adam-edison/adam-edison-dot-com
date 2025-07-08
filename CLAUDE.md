@@ -31,6 +31,13 @@ npm run format
 npm run format:check
 ```
 
+## Testing Commands
+
+```bash
+# Run all tests in the repository
+npm run test:all
+```
+
 ## Email Configuration
 
 The contact form uses **Resend** for email delivery instead of traditional SMTP:
