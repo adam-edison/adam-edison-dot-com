@@ -257,9 +257,9 @@ test.describe('Rate Limiting', () => {
         }
       });
       responses.push(response);
-      
+
       // Small delay to help with rate limiting precision
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
     const successfulResponses = responses.filter((response) => response.status() === 200);
@@ -275,7 +275,7 @@ test.describe('Rate Limiting', () => {
     if (successfulResponses.length > 0) {
       const headers = successfulResponses[0].headers();
       expect(headers['x-ratelimit-limit']).toBe('5');
-      
+
       const remaining = parseInt(headers['x-ratelimit-remaining']);
       expect(remaining).toBeGreaterThanOrEqual(0);
       expect(remaining).toBeLessThanOrEqual(5);
