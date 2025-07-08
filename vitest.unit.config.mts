@@ -6,8 +6,8 @@ export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
     environment: 'jsdom',
-    include: ['**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    exclude: ['**/tests/e2e/**', '**/node_modules/**', '**/*.manual.test.ts'],
+    include: ['**/*.unit.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    exclude: ['**/tests/e2e/**', '**/node_modules/**'],
     globals: true
   }
 });

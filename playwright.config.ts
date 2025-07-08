@@ -23,6 +23,10 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
     stdout: 'ignore',
-    stderr: 'ignore'
+    stderr: 'ignore',
+    env: {
+      RECAPTCHA_SCORE_THRESHOLD: '0',
+      SEND_EMAIL_ENABLED: 'false'
+    }
   }
 });

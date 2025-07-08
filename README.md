@@ -109,15 +109,34 @@ Resend was chosen over traditional SMTP providers for several reasons:
 
 #### Automated Tests
 
-The project includes comprehensive integration tests for the contact form:
+The project includes comprehensive tests for the contact form:
 
 ```bash
-# Run all tests
+# Run unit tests only (fast, no external dependencies)
 npm test
 
-# Run tests in watch mode (development)
-npm run test:watch
+# Run unit tests (explicit)
+npm run test:unit
+
+# Run integration tests (requires Redis configuration)
+npm run test:integration
+
+# Run all tests (unit + integration)
+npm run test:all
+
+# Run end-to-end tests (requires Next.js server)
+npm run test:e2e
+
+# Run manual integration tests (requires email service credentials)
+npm run test:manual
 ```
+
+**Test Types:**
+
+- **Unit tests** (`.unit.test.{ts,tsx}`): Always pass, no external dependencies
+- **Integration tests** (`.integration.test.{ts,tsx}`): Require Redis configuration (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`) in `.env.local`
+- **E2E tests**: Only require Next.js server (Redis optional, uses fail-open behavior)
+- **Manual tests**: Require actual email service credentials
 
 #### Manual Testing
 
