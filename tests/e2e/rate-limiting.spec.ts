@@ -14,7 +14,7 @@ test.describe('Rate Limiting', () => {
       confirmEmail: 'test@example.com',
       message:
         'This is a test message for rate limiting functionality. It needs to be at least 50 characters long to pass validation.',
-      recaptchaToken: 'test-token'
+      recaptchaToken: 'dummy-token'
     };
 
     // Make rapid requests to trigger rate limiting
@@ -57,7 +57,7 @@ test.describe('Rate Limiting', () => {
       confirmEmail: 'test@example.com',
       message:
         'This is a test message for rate limiting functionality. It needs to be at least 50 characters long to pass validation.',
-      recaptchaToken: 'test-token'
+      recaptchaToken: 'dummy-token'
     };
 
     // Make 6 requests from first IP (should hit rate limit)
@@ -104,7 +104,7 @@ test.describe('Rate Limiting', () => {
       confirmEmail: 'test@example.com',
       message:
         'This is a test message for rate limiting functionality. It needs to be at least 50 characters long to pass validation.',
-      recaptchaToken: 'test-token'
+      recaptchaToken: 'dummy-token'
     };
 
     const response = await request.post('/api/contact', {
@@ -133,7 +133,7 @@ test.describe('Rate Limiting', () => {
       email: 'invalid-email', // Invalid - not a valid email
       confirmEmail: 'different@email.com', // Invalid - doesn't match
       message: 'short', // Invalid - too short
-      recaptchaToken: 'test-token'
+      recaptchaToken: 'dummy-token'
     };
 
     // Make rapid requests with malformed data to trigger rate limiting
@@ -181,7 +181,7 @@ test.describe('Rate Limiting', () => {
       confirmEmail: 'test@example.com',
       message:
         'This is a test message for rate limiting functionality. It needs to be at least 50 characters long to pass validation.',
-      recaptchaToken: 'test-token'
+      recaptchaToken: 'dummy-token'
     };
 
     // Note: This test verifies that the current rate limiting implementation
@@ -240,7 +240,7 @@ test.describe('Rate Limiting', () => {
       confirmEmail: 'test@example.com',
       message:
         'This is a test message for rate limiting functionality. It needs to be at least 50 characters long to pass validation.',
-      recaptchaToken: 'test-token'
+      recaptchaToken: 'dummy-token'
     };
 
     // Use a unique IP with timestamp to avoid interference from other tests

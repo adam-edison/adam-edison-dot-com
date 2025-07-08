@@ -1,7 +1,7 @@
 // Verify reCAPTCHA token
 export async function verifyRecaptcha(token: string): Promise<boolean> {
-  // Skip reCAPTCHA verification for test tokens or when in test mode
-  if (token === 'test-token' || process.env.NODE_ENV === 'test' || process.env.RECAPTCHA_SCORE_THRESHOLD === '0') {
+  // Skip reCAPTCHA verification when threshold is 0, for better performance during testing
+  if (process.env.RECAPTCHA_SCORE_THRESHOLD === '0') {
     return true;
   }
 
