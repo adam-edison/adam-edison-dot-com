@@ -124,4 +124,51 @@ test.describe('Rate Limiting', () => {
     expect(parseInt(headers['x-ratelimit-limit'])).toBeGreaterThan(0);
     expect(parseInt(headers['x-ratelimit-remaining'])).toBeGreaterThanOrEqual(0);
   });
+
+  test('should apply rate limiting before validating malformed request data', async ({ request }) => {
+    const malformedData = {
+      firstName: '', // Invalid - empty
+      lastName: '', // Invalid - empty
+      email: 'invalid-email', // Invalid - not a valid email
+      confirmEmail: 'different@email.com', // Invalid - doesn't match
+      message: 'short', // Invalid - too short
+      recaptchaToken: 'test-token'
+    };
+
+    // Make rapid requests with malformed data to trigger rate limiting
+    const requests = [];
+    for (let i = 0; i < 8; i++) {
+      requests.push(
+        request.post('/api/contact', {
+          data: malformedData,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-forwarded-for': '192.168.1.400' // Use unique IP
+          }
+        })
+      );
+    }
+
+    const responses = await Promise.all(requests);
+
+    // Some requests should be rate limited (429), others should be validation errors (400)
+    const rateLimitedResponses = responses.filter((response) => response.status() === 429);
+    const validationErrorResponses = responses.filter((response) => response.status() === 400);
+
+    // Rate limiting should kick in before validation
+    expect(rateLimitedResponses.length).toBeGreaterThanOrEqual(3);
+    expect(validationErrorResponses.length).toBeLessThanOrEqual(5);
+
+    // Verify rate limit response takes precedence over validation errors
+    if (rateLimitedResponses.length > 0) {
+      const rateLimitBody = await rateLimitedResponses[0].json();
+      expect(rateLimitBody.message).toContain('Too many requests');
+    }
+
+    // Verify validation errors still occur for non-rate-limited requests
+    if (validationErrorResponses.length > 0) {
+      const validationBody = await validationErrorResponses[0].json();
+      expect(validationBody.message).toContain('Invalid form data');
+    }
+  });
 });
