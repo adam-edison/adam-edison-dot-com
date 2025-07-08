@@ -10,10 +10,23 @@ const rateLimiter = new RateLimiter({
   prefix: 'personal-website'
 });
 
+// Create global rate limiter instance for site-wide limits
+const globalRateLimiter = new RateLimiter({
+  redis,
+  limit: parseInt(process.env.GLOBAL_RATE_LIMIT_REQUESTS!),
+  window: process.env.GLOBAL_RATE_LIMIT_WINDOW!,
+  prefix: 'personal-website'
+});
+
 // Rate limiting function that returns both success status and headers
 export async function checkRateLimit(identifier: string) {
   return rateLimiter.checkLimit(identifier);
 }
 
-// Export the rate limiter instance for testing
-export { rateLimiter };
+// Global rate limiting function for site-wide limits
+export async function checkGlobalRateLimit() {
+  return globalRateLimiter.checkLimit('global');
+}
+
+// Export the rate limiter instances for testing
+export { rateLimiter, globalRateLimiter };

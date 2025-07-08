@@ -64,11 +64,19 @@ The contact form uses **Resend** for email delivery instead of traditional SMTP:
 
 ## Rate Limiting Configuration
 
-The contact form uses configurable rate limiting:
+The contact form uses configurable rate limiting with two layers:
+
+**Per-IP Rate Limiting:**
 
 - **Requests**: Set `RATE_LIMIT_REQUESTS` in environment variables (default: 5)
 - **Window**: Set `RATE_LIMIT_WINDOW` in environment variables (default: '10 m')
-- **Redis**: Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
+
+**Global Rate Limiting:**
+
+- **Requests**: Set `GLOBAL_RATE_LIMIT_REQUESTS` in environment variables (default: 10)
+- **Window**: Set `GLOBAL_RATE_LIMIT_WINDOW` in environment variables (default: '1 h')
+
+**Redis**: Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
 
 ## Architecture
 

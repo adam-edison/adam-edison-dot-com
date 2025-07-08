@@ -1,5 +1,5 @@
 import { sendEmail, sanitizeInput } from '@/lib/api/email';
-import { checkRateLimit } from '@/lib/api/rateLimit';
+import { checkRateLimit, checkGlobalRateLimit } from '@/lib/api/rateLimit';
 import { verifyRecaptcha } from '@/lib/api/recaptcha';
 import { contactFormServerSchema, contactFormSubmissionSchema } from '@/lib/validations/contact';
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -15,7 +15,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const clientIP = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
     const ip = Array.isArray(clientIP) ? clientIP[0] : clientIP;
 
-    // Apply rate limiting
+    // Apply global rate limiting first
+    const globalRateLimitResult = await checkGlobalRateLimit();
+
+    if (!globalRateLimitResult.success) {
+      // Set global rate limit headers
+      Object.entries(globalRateLimitResult.headers).forEach(([key, value]) => {
+        res.setHeader(key, value);
+      });
+
+      return res.status(429).json({
+        message: 'Site-wide rate limit exceeded. Please try again later.',
+        retryAfter: Math.ceil((globalRateLimitResult.reset - Date.now()) / 1000)
+      });
+    }
+
+    // Apply per-IP rate limiting
     const rateLimitResult = await checkRateLimit(ip);
 
     // Set rate limit headers

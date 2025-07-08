@@ -171,11 +171,14 @@ The rate limiter uses a sliding window algorithm with configurable settings:
 ```env
 RATE_LIMIT_REQUESTS=5
 RATE_LIMIT_WINDOW=10 m
+GLOBAL_RATE_LIMIT_REQUESTS=10
+GLOBAL_RATE_LIMIT_WINDOW=1 h
 ```
 
 Default settings:
 
-- **5 requests per 10 minutes** per IP address
+- **Per-IP**: 5 requests per 10 minutes per IP address
+- **Global**: 10 requests per hour site-wide (all IPs combined)
 - **Sliding window** algorithm for smooth rate limiting
 - **Analytics tracking** enabled for monitoring
 

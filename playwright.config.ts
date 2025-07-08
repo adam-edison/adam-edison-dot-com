@@ -28,7 +28,9 @@ export default defineConfig({
       RECAPTCHA_SCORE_THRESHOLD: '0',
       SEND_EMAIL_ENABLED: 'false',
       RATE_LIMIT_REQUESTS: '5',
-      RATE_LIMIT_WINDOW: '10 m'
+      RATE_LIMIT_WINDOW: '10 m',
+      GLOBAL_RATE_LIMIT_REQUESTS: '100',
+      GLOBAL_RATE_LIMIT_WINDOW: '1 h'
     }
   }
 });
