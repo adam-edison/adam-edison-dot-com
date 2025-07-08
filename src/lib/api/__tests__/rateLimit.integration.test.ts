@@ -33,7 +33,7 @@ describe('RateLimiter Integration Tests', () => {
   });
 
   test('should allow requests within rate limit', async () => {
-    const identifier = generateUniqueIdentifier();
+    const identifier = generateUniqueIdentifier(testPrefix);
 
     const result = await rateLimiter.checkLimit(identifier);
 
@@ -45,7 +45,7 @@ describe('RateLimiter Integration Tests', () => {
   });
 
   test('should enforce rate limit after exceeding threshold', async () => {
-    const identifier = generateUniqueIdentifier();
+    const identifier = generateUniqueIdentifier(testPrefix);
     const results = [];
 
     // Make 6 requests sequentially
@@ -71,8 +71,8 @@ describe('RateLimiter Integration Tests', () => {
   });
 
   test('should have separate limits for different identifiers', async () => {
-    const identifier1 = generateUniqueIdentifier();
-    const identifier2 = generateUniqueIdentifier();
+    const identifier1 = generateUniqueIdentifier(testPrefix);
+    const identifier2 = generateUniqueIdentifier(testPrefix);
 
     // Exhaust limit for identifier1
     for (let i = 0; i < 6; i++) {
@@ -86,7 +86,7 @@ describe('RateLimiter Integration Tests', () => {
   });
 
   test('should include proper headers in response', async () => {
-    const identifier = generateUniqueIdentifier();
+    const identifier = generateUniqueIdentifier(testPrefix);
 
     const result = await rateLimiter.checkLimit(identifier);
 
@@ -102,7 +102,7 @@ describe('RateLimiter Integration Tests', () => {
   });
 
   test('should respect sliding window behavior', async () => {
-    const identifier = generateUniqueIdentifier();
+    const identifier = generateUniqueIdentifier(testPrefix);
 
     // Make 5 requests to reach the limit
     for (let i = 0; i < 5; i++) {
@@ -127,7 +127,7 @@ describe('RateLimiter Integration Tests', () => {
       prefix: 'fail-test'
     });
 
-    const identifier = generateUniqueIdentifier();
+    const identifier = generateUniqueIdentifier('fail-test');
     const result = await failingRateLimiter.checkLimit(identifier);
 
     // Should fail open (allow the request)

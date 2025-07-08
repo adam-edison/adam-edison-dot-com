@@ -21,10 +21,10 @@ export function generateUniqueIP(): string {
  * Generates a unique identifier for test isolation.
  * Combines timestamp and random number for uniqueness.
  *
- * @param prefix Optional prefix for the identifier
+ * @param prefix Required prefix for the identifier (should include test prefix for isolation)
  * @returns A unique identifier string
  */
-export function generateUniqueIdentifier(prefix: string = 'test'): string {
+export function generateUniqueIdentifier(prefix: string): string {
   const timestamp = Date.now();
   const random = Math.floor(Math.random() * 1000);
   return `${prefix}-${timestamp}-${random}`;
