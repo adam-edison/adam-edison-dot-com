@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { generateUniqueIP } from '../utils/testHelpers';
+import { cleanupE2EKeys } from '../utils/redisCleanup';
 
 test.describe('Rate Limiting', () => {
+  test.afterEach(async () => {
+    // Clean up Redis keys after each test to prevent interference
+    await cleanupE2EKeys();
+  });
   test('should rate limit after 5 requests in 10 minutes', async ({ request }) => {
     // This test uses the default rate limiting configuration (5 requests per 10 minutes)
     // Set in playwright.config.ts webServer env

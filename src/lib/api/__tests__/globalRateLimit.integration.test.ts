@@ -6,7 +6,7 @@ const globalRequestLimit = parseInt(process.env.GLOBAL_RATE_LIMIT_REQUESTS!);
 describe('Global Rate Limiting Integration Tests', () => {
   afterEach(async () => {
     // Clean up global rate limit keys after each test
-    await globalRateLimiter.clearKeys('personal-website:global*');
+    await globalRateLimiter.clearKeys(`${process.env.REDIS_PREFIX}:global*`);
   });
 
   it('should return proper headers for global rate limiting', async () => {

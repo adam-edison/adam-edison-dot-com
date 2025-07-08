@@ -9,8 +9,8 @@ describe('Combined Rate Limiting Integration Tests', () => {
   afterEach(async () => {
     // Clean up both per-IP and global rate limit keys after each test
     await Promise.all([
-      rateLimiter.clearKeys('personal-website:*'),
-      globalRateLimiter.clearKeys('personal-website:global*')
+      rateLimiter.clearKeys(`${process.env.REDIS_PREFIX}:*`),
+      globalRateLimiter.clearKeys(`${process.env.REDIS_PREFIX}:global*`)
     ]);
   });
 

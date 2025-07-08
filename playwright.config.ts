@@ -30,7 +30,8 @@ export default defineConfig({
       RATE_LIMIT_REQUESTS: '5',
       RATE_LIMIT_WINDOW: '10 m',
       GLOBAL_RATE_LIMIT_REQUESTS: '100',
-      GLOBAL_RATE_LIMIT_WINDOW: '1 h'
+      GLOBAL_RATE_LIMIT_WINDOW: '1 h',
+      REDIS_PREFIX: 'personal-website-e2e'
     }
   }
 });

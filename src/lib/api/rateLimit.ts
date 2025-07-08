@@ -7,7 +7,7 @@ const rateLimiter = new RateLimiter({
   redis,
   limit: parseInt(process.env.RATE_LIMIT_REQUESTS!),
   window: process.env.RATE_LIMIT_WINDOW!,
-  prefix: 'personal-website'
+  prefix: process.env.REDIS_PREFIX!
 });
 
 // Create global rate limiter instance for site-wide limits
@@ -15,7 +15,7 @@ const globalRateLimiter = new RateLimiter({
   redis,
   limit: parseInt(process.env.GLOBAL_RATE_LIMIT_REQUESTS!),
   window: process.env.GLOBAL_RATE_LIMIT_WINDOW!,
-  prefix: 'personal-website'
+  prefix: process.env.REDIS_PREFIX!
 });
 
 // Rate limiting function that returns both success status and headers
