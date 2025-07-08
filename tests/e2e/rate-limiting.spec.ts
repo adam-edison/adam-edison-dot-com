@@ -4,6 +4,8 @@ test.describe('Rate Limiting', () => {
   test.beforeEach(() => {
     // Set reCAPTCHA threshold to 0 for testing to bypass verification
     process.env.RECAPTCHA_SCORE_THRESHOLD = '0';
+    // Disable email sending during tests
+    process.env.SEND_EMAIL_ENABLED = 'false';
   });
 
   test('should apply rate limiting to contact form API', async ({ request }) => {

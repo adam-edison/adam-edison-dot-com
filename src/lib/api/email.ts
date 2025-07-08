@@ -15,6 +15,14 @@ export function createResendClient() {
 
 // Send email using Resend
 export async function sendEmail(data: ContactFormServerData) {
+  // Skip email sending if disabled (for testing)
+  if (process.env.SEND_EMAIL_ENABLED === 'false') {
+    return {
+      data: { id: 'mock-email-id' },
+      error: null
+    };
+  }
+
   const resend = createResendClient();
   const fromEmail = process.env.FROM_EMAIL;
   const toEmail = process.env.TO_EMAIL;
