@@ -62,6 +62,14 @@ The contact form uses **Resend** for email delivery instead of traditional SMTP:
 - **Reply-To**: Automatically set to the form submitter's email
 - **Domain**: Requires domain verification in Resend dashboard for production use
 
+## Rate Limiting Configuration
+
+The contact form uses configurable rate limiting:
+
+- **Requests**: Set `RATE_LIMIT_REQUESTS` in environment variables (default: 5)
+- **Window**: Set `RATE_LIMIT_WINDOW` in environment variables (default: '10 m')
+- **Redis**: Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
+
 ## Architecture
 
 ### Framework & Stack

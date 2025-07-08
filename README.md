@@ -166,7 +166,14 @@ UPSTASH_REDIS_REST_TOKEN=your-redis-token
 
 **Rate Limiting Configuration:**
 
-The rate limiter uses a sliding window algorithm with these default settings:
+The rate limiter uses a sliding window algorithm with configurable settings:
+
+```env
+RATE_LIMIT_REQUESTS=5
+RATE_LIMIT_WINDOW=10 m
+```
+
+Default settings:
 
 - **5 requests per 10 minutes** per IP address
 - **Sliding window** algorithm for smooth rate limiting
