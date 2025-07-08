@@ -29,6 +29,18 @@ npm run format
 
 # Check code formatting
 npm run format:check
+
+# Run unit tests
+npm run test
+
+# Run e2e tests
+npm run test:e2e
+
+# Run manual integration tests (skips if env vars not set)
+npm run test:manual
+
+# Run manual tests with actual email sending (requires RESEND_API_KEY, FROM_EMAIL, TO_EMAIL)
+# RESEND_API_KEY=your_key FROM_EMAIL=from@domain.com TO_EMAIL=to@domain.com npm run test:manual
 ```
 
 ## Testing Commands
