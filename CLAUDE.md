@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Next.js-based personal portfolio website for adamedison.com using the Pages Router architecture. The site is configured for static export and deployment on Netlify.
+This is a Next.js-based personal portfolio website for adamedison.com using the Pages Router architecture. The site includes API routes for contact form functionality and is deployed on Netlify.
 
 ## Development Commands
 
@@ -15,8 +15,8 @@ npm run dev
 # Build for production
 npm run build
 
-# Build and export static site for Netlify deployment
-npm run static
+# Build for Netlify deployment
+npm run build
 
 # Start production server
 npm start
@@ -85,7 +85,7 @@ The contact form uses configurable rate limiting with two layers:
 - **Next.js 15.3.4** with Pages Router (not App Router)
 - **React 19** with TypeScript
 - **Tailwind CSS 4** for styling
-- **Static export** configuration for Netlify deployment
+- **Server-side rendering** support for API routes and dynamic content
 
 ### Project Structure
 
@@ -118,7 +118,8 @@ src/
 
 - `next.config.ts` - Next.js configuration with React Strict Mode
 - `tsconfig.json` - TypeScript config with `@/*` path mapping to `./src/*`
-- `package.json` - Contains `static` script for Netlify deployment
+- `package.json` - Contains build scripts for Netlify deployment
+- `netlify.toml` - Netlify deployment configuration
 - `eslint.config.mjs` - ESLint configuration with Prettier integration
 - `.prettierrc` - Prettier formatting configuration
 
@@ -132,9 +133,9 @@ src/
 ## Deployment
 
 - **Platform**: Netlify
-- **Build command**: `npm run static`
-- **Publish directory**: `out/`
-- Static export is configured for optimal performance
+- **Build command**: `npm run build`
+- **Publish directory**: `.next/`
+- Uses Netlify's Next.js runtime for server-side rendering and API routes
 
 ## SEO Considerations
 

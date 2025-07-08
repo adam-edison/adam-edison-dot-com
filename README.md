@@ -1,6 +1,6 @@
 # adam-edison-dot-com
 
-Source code for [adamedison.com](https://adamedison.com) - a personal portfolio website built with Next.js.
+Source code for [adamedison.com](https://adamedison.com) - a personal website built with Next.js.
 
 ## Quick Start
 

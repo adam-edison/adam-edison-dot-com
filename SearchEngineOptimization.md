@@ -1,4 +1,4 @@
-Great move using Next.js for a static site — it gives you both performance and flexibility, which are critical for SEO. Here's a breakdown of **best practices for SEO on a static Next.js site**:
+Great move using Next.js for your site — it gives you both performance and flexibility, which are critical for SEO. Here's a breakdown of **best practices for SEO on a Next.js site**:
 
 ---
 
