@@ -120,14 +120,16 @@ describe('RateLimiter Integration Tests', () => {
   test('should handle Redis errors gracefully (fail open)', async () => {
     // Create a rate limiter with invalid Redis config to simulate failure
     const invalidRedis = new Redis({ url: 'https://invalid-url.invalid', token: 'invalid-token' });
+    const prefix = `${testPrefix}-fail-test`;
+
     const failingRateLimiter = new RateLimiter({
       redis: invalidRedis,
       limit: 5,
       window: '10 m',
-      prefix: 'fail-test'
+      prefix
     });
 
-    const identifier = generateUniqueIdentifier('fail-test');
+    const identifier = generateUniqueIdentifier(prefix);
     const result = await failingRateLimiter.checkLimit(identifier);
 
     // Should fail open (allow the request)
