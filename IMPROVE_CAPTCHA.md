@@ -42,7 +42,7 @@ export interface RecaptchaVerificationResult {
 
 // Enhanced verification function
 export async function verifyRecaptcha(
-  token: string, 
+  token: string,
   version: 'v2' | 'v3' = 'v3'
 ): Promise<RecaptchaVerificationResult> {
   // Skip verification in test mode
@@ -50,8 +50,8 @@ export async function verifyRecaptcha(
     return { success: true, version };
   }
 
-  const secretKey = version === 'v3' 
-    ? process.env.RECAPTCHA_V3_SECRET_KEY 
+  const secretKey = version === 'v3'
+    ? process.env.RECAPTCHA_V3_SECRET_KEY
     : process.env.RECAPTCHA_V2_SECRET_KEY;
 
   if (!secretKey) {
@@ -85,11 +85,11 @@ export async function verifyRecaptcha(
 
     if (score < scoreThreshold) {
       console.log(`reCAPTCHA v3 score too low (${score}), fallback to v2 recommended`);
-      return { 
-        success: false, 
-        score, 
-        requiresFallback: true, 
-        version 
+      return {
+        success: false,
+        score,
+        requiresFallback: true,
+        version
       };
     }
 
@@ -115,15 +115,15 @@ const recaptchaResult = await verifyRecaptcha(recaptchaToken, recaptchaVersion);
 
 if (!recaptchaResult.success) {
   console.error('reCAPTCHA verification failed:', recaptchaResult);
-  
+
   // If v3 failed and fallback is recommended, tell the frontend
   if (recaptchaResult.requiresFallback) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       message: 'reCAPTCHA verification failed',
-      requiresFallback: true 
+      requiresFallback: true
     });
   }
-  
+
   return res.status(400).json({ message: 'reCAPTCHA verification failed' });
 }
 
@@ -167,7 +167,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [showV2Challenge, setShowV2Challenge] = useState(false);
   const [v2Token, setV2Token] = useState<string | null>(null);
-  
+
   const { executeRecaptcha } = useGoogleReCaptcha();
   const recaptchaV2Ref = useRef<ReCAPTCHA>(null);
 
@@ -216,7 +216,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        
+
         // If v3 failed and fallback is recommended, show v2 challenge
         if (errorData.requiresFallback && !showV2Challenge) {
           setShowV2Challenge(true);
@@ -224,7 +224,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
           setIsSubmitting(false);
           return;
         }
-        
+
         setSubmitStatus('error');
         let friendlyMessage = errorData.message || 'Failed to send message';
         if (friendlyMessage.includes('reCAPTCHA')) {
@@ -334,7 +334,7 @@ export function ContactForm({ className }: ContactFormProps) {
 
 2. **Update Environment**: Add the new environment variables to your `.env.local`.
 
-3. **Test the Flow**: 
+3. **Test the Flow**:
    - Use 1Password to autofill (should trigger v2 fallback)
    - Complete the image challenge
    - Form should submit successfully

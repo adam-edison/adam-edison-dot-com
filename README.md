@@ -89,6 +89,7 @@ UPSTASH_REDIS_REST_TOKEN=your-redis-token
 ```
 
 Optional rate limit configuration:
+
 ```env
 RATE_LIMIT_REQUESTS=5
 RATE_LIMIT_WINDOW=10 m

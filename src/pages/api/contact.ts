@@ -69,7 +69,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       firstName: sanitizeInput(formData.firstName),
       lastName: sanitizeInput(formData.lastName),
       email: sanitizeInput(formData.email),
-      confirmEmail: sanitizeInput(formData.confirmEmail),
       message: sanitizeInput(formData.message)
     };
 

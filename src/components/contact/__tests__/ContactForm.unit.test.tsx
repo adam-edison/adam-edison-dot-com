@@ -48,7 +48,6 @@ describe('ContactForm', () => {
     await user.type(screen.getByLabelText(/first name/i), 'John');
     await user.type(screen.getByLabelText(/last name/i), 'Doe');
     await user.type(screen.getByLabelText(/^email address/i), 'john@example.com');
-    await user.type(screen.getByLabelText(/confirm email/i), 'john@example.com');
     await user.type(
       screen.getByLabelText(/message/i),
       'This is a test message with enough characters to meet the minimum requirement.'
@@ -64,7 +63,6 @@ describe('ContactForm', () => {
 
     expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^email address/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/confirm email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/message/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /send message/i })).toBeInTheDocument();
   });
@@ -94,7 +92,6 @@ describe('ContactForm', () => {
           firstName: 'John',
           lastName: 'Doe',
           email: 'john@example.com',
-          confirmEmail: 'john@example.com',
           message: 'This is a test message with enough characters to meet the minimum requirement.',
           recaptchaToken: 'test-recaptcha-token'
         })
@@ -211,27 +208,6 @@ describe('ContactForm', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/first name must be at least 2 characters/i)).toBeInTheDocument();
-    });
-  });
-
-  test('should show validation error for mismatched email addresses', async () => {
-    const user = userEvent.setup();
-    render(<ContactForm />);
-
-    await waitFor(() => {
-      expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
-    });
-
-    await user.type(screen.getByLabelText(/first name/i), 'John');
-    await user.type(screen.getByLabelText(/last name/i), 'Doe');
-    await user.type(screen.getByLabelText(/^email address/i), 'john@example.com');
-    await user.type(screen.getByLabelText(/confirm email/i), 'different@example.com');
-    await user.type(screen.getByLabelText(/message/i), 'This is a test message with enough characters.');
-
-    await user.click(screen.getByRole('button', { name: /send message/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/email addresses must match/i)).toBeInTheDocument();
     });
   });
 
