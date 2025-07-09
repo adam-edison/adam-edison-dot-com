@@ -11,7 +11,7 @@
   - Add fallback captcha for when the main one gets denied [see guide](./IMPROVE_CAPTCHA.md)
 
 - Landing Page Load Jank Removal
-  - Use image dimensions to prevent layout shift
+  - ✅ Use image dimensions to prevent layout shift
   - Preload main avatar image
 
 - Refactoring

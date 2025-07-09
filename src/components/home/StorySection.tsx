@@ -12,6 +12,17 @@ interface StorySectionProps {
 export function StorySection({ step, isFirst = false, isLast = false }: StorySectionProps) {
   const isImageLeft = step.imagePosition === 'left';
 
+  // Get actual image dimensions based on the image source
+  const getImageDimensions = (imageSrc: string) => {
+    if (imageSrc.includes('circle_cropped_anime_avatar.webp')) {
+      return { width: 618, height: 638 };
+    }
+    // All other story images are 1024x1536
+    return { width: 1024, height: 1536 };
+  };
+
+  const { width, height } = getImageDimensions(step.imageSrc);
+
   return (
     <>
       <section className={`${isFirst ? '' : 'mt-6 md:mt-8'}`}>
@@ -23,8 +34,8 @@ export function StorySection({ step, isFirst = false, isLast = false }: StorySec
             <Image
               src={step.imageSrc}
               alt={step.imageAlt}
-              width={256}
-              height={256}
+              width={width}
+              height={height}
               className="w-64 h-auto rounded-lg"
             />
           </div>
