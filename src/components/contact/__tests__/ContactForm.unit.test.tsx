@@ -47,7 +47,6 @@ describe('ContactForm', () => {
     });
   });
 
-
   const fillOutForm = async (user: ReturnType<typeof userEvent.setup>) => {
     await user.type(screen.getByLabelText(/first name/i), 'John');
     await user.type(screen.getByLabelText(/last name/i), 'Doe');
