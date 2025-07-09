@@ -10,7 +10,7 @@
 - Captcha Improvements
   - Add fallback captcha for when the main one gets denied [see guide](./IMPROVE_CAPTCHA.md)
 
-- Add favicon (avatar logo)
+- ✅ Add favicon (avatar logo)
 
 - ✅ Landing Page Load Jank Removal
   - ✅ Use image dimensions to prevent layout shift
