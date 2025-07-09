@@ -37,6 +37,7 @@ export function StorySection({ step, isFirst = false, isLast = false }: StorySec
               width={width}
               height={height}
               className="w-64 h-auto rounded-lg"
+              priority={step.imageSrc.includes('circle_cropped_anime_avatar.webp')}
             />
           </div>
 
