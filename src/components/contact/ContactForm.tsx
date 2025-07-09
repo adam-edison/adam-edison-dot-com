@@ -55,7 +55,13 @@ export function ContactForm({ className }: ContactFormProps) {
   }
 
   return (
-    <GoogleReCaptchaProvider reCaptchaKey={siteKey!}>
+    <GoogleReCaptchaProvider
+      reCaptchaKey={siteKey!}
+      scriptProps={{
+        async: true,
+        defer: true
+      }}
+    >
       <ContactFormErrorBoundary>
         <ContactFormInner className={className} />
       </ContactFormErrorBoundary>

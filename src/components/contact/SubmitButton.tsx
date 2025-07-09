@@ -1,12 +1,15 @@
 interface SubmitButtonProps {
   isSubmitting: boolean;
+  disabled?: boolean;
 }
 
-export function SubmitButton({ isSubmitting }: SubmitButtonProps) {
+export function SubmitButton({ isSubmitting, disabled = false }: SubmitButtonProps) {
+  const isDisabled = isSubmitting || disabled;
+
   return (
     <button
       type="submit"
-      disabled={isSubmitting}
+      disabled={isDisabled}
       className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
     >
       {isSubmitting ? (
@@ -21,6 +24,8 @@ export function SubmitButton({ isSubmitting }: SubmitButtonProps) {
           </svg>
           Sending...
         </div>
+      ) : disabled ? (
+        'Loading security verification...'
       ) : (
         'Send Message'
       )}
