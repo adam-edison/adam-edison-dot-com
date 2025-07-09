@@ -19,7 +19,7 @@ export default function Contact() {
       </Head>
 
       <PageLayout>
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl">
           <ContactHeader />
 
           <div className="grid md:grid-cols-2 gap-12 mb-16">
