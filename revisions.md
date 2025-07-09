@@ -3,6 +3,13 @@
   - ✅ Centering on Contact page looks bad — make it left-aligned
   - ✅ Header on contact page is too big and overshadows the rest of the content
 
+- Contact Form Improvements
+  - Use only one email address field
+  - Improve validation for email on frontend
+
+- Captcha Improvements
+  - Add fallback captcha for when the main one gets denied [see guide](./IMPROVE_CAPTCHA.md)
+
 - Landing Page Load Jank Removal
   - Use image dimensions to prevent layout shift
   - Preload main avatar image
@@ -23,6 +30,3 @@
 
 - SEO
   - Add some basic SEO using [this guide](./SearchEngineOptimization.md)
-
-- Captcha Improvements
-  - Add fallback captcha for when the main one gets denied [see guide](./IMPROVE_CAPTCHA.md)
