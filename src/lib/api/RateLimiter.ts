@@ -1,5 +1,6 @@
 import { Duration, Ratelimit } from '@upstash/ratelimit';
 import type { Redis } from '@upstash/redis';
+import { logger } from '@/lib/logger';
 
 export interface RateLimiterConfig {
   redis: Redis;
@@ -50,7 +51,7 @@ export class RateLimiter {
         }
       };
     } catch (error) {
-      console.error('Rate limiting error:', error);
+      logger.error('Rate limiting error:', error);
       // Fail open - allow request if rate limiting fails
       return {
         success: true,
@@ -69,7 +70,7 @@ export class RateLimiter {
         await this.redis.del(...keys);
       }
     } catch (error) {
-      console.error('Redis cleanup error:', error);
+      logger.error('Redis cleanup error:', error);
     }
   }
 }

@@ -1,6 +1,7 @@
 import { Redis } from '@upstash/redis';
 import { config } from 'dotenv';
 import { join } from 'path';
+import { logger } from '@/lib/logger';
 
 // Load environment variables from .env.local for Redis access
 config({ path: join(process.cwd(), '.env.local') });
@@ -17,7 +18,7 @@ export async function cleanupRedisKeys(pattern: string): Promise<void> {
       await redis.del(...keys);
     }
   } catch (error) {
-    console.error('Redis cleanup error:', error);
+    logger.error('Redis cleanup error:', error);
   }
 }
 

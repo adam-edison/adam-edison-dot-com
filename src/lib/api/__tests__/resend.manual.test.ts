@@ -23,7 +23,6 @@ describe('Resend Email Integration (Manual)', () => {
       firstName: 'Test',
       lastName: 'User',
       email: 'test@example.com',
-      confirmEmail: 'test@example.com',
       message: 'This is a manual integration test for email sending functionality.'
     };
 

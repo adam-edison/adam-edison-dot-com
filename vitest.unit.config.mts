@@ -8,6 +8,7 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['**/*.unit.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: ['**/tests/e2e/**', '**/node_modules/**'],
-    globals: true
+    globals: true,
+    setupFiles: ['./tests/setup/logger.ts']
   }
 });

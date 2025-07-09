@@ -2,6 +2,7 @@ import { sendEmail, sanitizeInput } from '@/lib/api/email';
 import { checkRateLimit, checkGlobalRateLimit } from '@/lib/api/rateLimit';
 import { verifyRecaptcha } from '@/lib/api/recaptcha';
 import { contactFormServerSchema, contactFormSubmissionSchema } from '@/lib/validations/contact';
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -48,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Validate request body structure
     const validationResult = contactFormSubmissionSchema.safeParse(req.body);
     if (!validationResult.success) {
-      console.error('Contact form validation failed:', validationResult.error.errors);
+      logger.error('Contact form validation failed:', validationResult.error.errors);
       return res.status(400).json({
         message: 'Invalid form data',
         errors: validationResult.error.errors
@@ -60,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Verify reCAPTCHA
     const isValidRecaptcha = await verifyRecaptcha(recaptchaToken);
     if (!isValidRecaptcha) {
-      console.error('reCAPTCHA verification failed');
+      logger.error('reCAPTCHA verification failed');
       return res.status(400).json({ message: 'reCAPTCHA verification failed' });
     }
 
@@ -75,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Validate sanitized data
     const serverValidationResult = contactFormServerSchema.safeParse(sanitizedData);
     if (!serverValidationResult.success) {
-      console.error('Server validation failed after sanitization:', serverValidationResult.error.errors);
+      logger.error('Server validation failed after sanitization:', serverValidationResult.error.errors);
       return res.status(400).json({
         message: 'Invalid form data after sanitization',
         errors: serverValidationResult.error.errors
@@ -87,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json({ message: 'Message sent successfully' });
   } catch (error) {
-    console.error('Contact form error:', error);
+    logger.error('Contact form error:', error);
 
     if (error instanceof Error) {
       // Don't expose internal error details to client

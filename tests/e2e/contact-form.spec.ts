@@ -12,7 +12,6 @@ test.describe('Contact Form', () => {
       firstName: 'Test',
       lastName: 'User',
       email: 'test@example.com',
-      confirmEmail: 'test@example.com',
       message:
         'This is a test message for the contact form functionality. It needs to be at least 50 characters long to pass validation.',
       recaptchaToken: 'dummy-token'

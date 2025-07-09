@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { ContactForm } from '../ContactForm';
+import { logger, InMemoryLogger } from '@/lib/logger';
 
 // Mock the reCAPTCHA hook
 const mockExecuteRecaptcha = vi.fn();
@@ -15,6 +16,8 @@ vi.mock('react-google-recaptcha-v3', () => ({
 
 // Mock fetch
 global.fetch = vi.fn() as unknown as typeof fetch;
+
+// No mocking needed - InMemoryLogger is used automatically in tests
 
 describe('ContactForm', () => {
   beforeEach(() => {
@@ -165,6 +168,10 @@ describe('ContactForm', () => {
     });
   });
 
+  // TODO: Add tests for reCAPTCHA warning scenarios
+  // These require more complex mocking due to the module system
+  // For now, we have verified that the logger is working in error scenarios
+
   // Note: Testing reCAPTCHA "not ready" state requires more complex mocking
   // This scenario is better tested manually by commenting out NEXT_PUBLIC_RECAPTCHA_SITE_KEY
 
@@ -193,6 +200,13 @@ describe('ContactForm', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/network error/i)).toBeInTheDocument();
+    });
+
+    // Verify that error was logged
+    await waitFor(() => {
+      const errorLogs = (logger as InMemoryLogger).getErrorLogs();
+      expect(errorLogs.length).toBeGreaterThan(0);
+      expect(errorLogs[0].message).toContain('Contact form submission error');
     });
   });
 
@@ -260,5 +274,31 @@ describe('ContactForm', () => {
 
     // Should not expose configuration details to frontend
     expect(screen.queryByText(/missing configuration/i)).not.toBeInTheDocument();
+  });
+
+  test('should log error when config check fails', async () => {
+    vi.mocked(fetch).mockImplementation(async (url) => {
+      if (typeof url === 'string' && url.includes('/api/config-check')) {
+        throw new Error('Config check failed');
+      }
+
+      return new Response(JSON.stringify({ message: 'Should not reach here' }), {
+        status: 200,
+        statusText: 'OK'
+      });
+    });
+
+    render(<ContactForm />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/contact form is not available/i)).toBeInTheDocument();
+    });
+
+    // Verify that error was logged
+    await waitFor(() => {
+      const errorLogs = (logger as InMemoryLogger).getErrorLogs();
+      expect(errorLogs.length).toBeGreaterThan(0);
+      expect(errorLogs[0].message).toContain('Failed to check server configuration');
+    });
   });
 });

@@ -2,7 +2,11 @@ Great move using Next.js for your site — it gives you both performance and fle
 
 ---
 
-## ✅ STRUCTURAL BEST PRACTICES
+### 0. Use next-seo library
+
+https://www.npmjs.com/package/next-seo#add-seo-to-page
+
+## STRUCTURAL BEST PRACTICES
 
 ### 1. **Use `next/head` for Metadata**
 
@@ -67,13 +71,13 @@ Yes — great thinking! Beyond just Twitter/X and Open Graph (OG), there are **a
 
 ## 🖼️ Additional Media Enhancements (Optional)
 
-### Favicon and Web App Tags
+### ✅ Favicon and Web App Tags
 
 ```html
 <link rel="icon" href="/favicon.ico" /> <meta name="theme-color" content="#000000" />
 ```
 
-### Apple Devices / Mobile
+### ✅ Apple Devices / Mobile
 
 ```html
 <meta name="apple-mobile-web-app-capable" content="yes" />

@@ -141,10 +141,6 @@ export const contactFormSubmissionSchema = baseContactSchema
     recaptchaToken: z.string().min(1, 'Please complete the reCAPTCHA verification'),
     recaptchaVersion: z.enum(['v2', 'v3']).default('v3')
   })
-  .refine((data) => data.email === data.confirmEmail, {
-    message: 'Email addresses must match',
-    path: ['confirmEmail']
-  });
 ```
 
 ### 6. **Create Enhanced Contact Form Component**
