@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 export class Logger {
   protected formatMessage(level: string, message: string): string {
     const timestamp = new Date().toISOString();

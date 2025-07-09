@@ -15,7 +15,8 @@ const eslintConfig = [
   ...compat.plugins('prettier'),
   {
     rules: {
-      'prettier/prettier': 'error'
+      'prettier/prettier': 'error',
+      'no-console': 'error'
     }
   }
 ];
