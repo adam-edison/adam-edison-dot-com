@@ -2,6 +2,11 @@ Great move using Next.js for your site — it gives you both performance and fle
 
 ---
 
+### 0. Use next-seo library**
+
+https://www.npmjs.com/package/next-seo#add-seo-to-page
+
+
 ## ✅ STRUCTURAL BEST PRACTICES
 
 ### 1. **Use `next/head` for Metadata**
@@ -225,3 +230,5 @@ Make sure:
 - Color contrast is high
 - Buttons and links are keyboard navigable
 - Alt text on images is meaningful
+
+
