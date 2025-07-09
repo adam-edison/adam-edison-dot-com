@@ -16,7 +16,7 @@
 - 🚧 Refactoring
   - ✅ Logger (log)
   - DI classes for all API stuff
-  - Remove outdated comments
+  - Remove outdated comments and unnecessary comments
   - Extract lots of hardcoded variables as env values
   - Encapsulate all boundaries
   - Organize tests better (all in separate root tests folder next to src)
