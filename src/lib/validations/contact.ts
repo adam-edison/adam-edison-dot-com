@@ -16,40 +16,76 @@ const baseContactSchema = z.object({
     .string()
     .min(2, 'First name must be at least 2 characters')
     .max(50, 'First name must be at most 50 characters')
-    .regex(/^[a-zA-Z\s'-]+$/, 'First name can only contain letters, spaces, apostrophes, and hyphens'),
+    .refine((val) => {
+      // Must contain at least one letter (Unicode letter category)
+      return /\p{L}/u.test(val);
+    }, 'First name must contain at least one letter')
+    .refine((val) => {
+      // Cannot be purely numbers
+      return !/^\d+$/.test(val);
+    }, 'First name cannot be only numbers')
+    .refine((val) => {
+      // Cannot be purely symbols/punctuation
+      return !/^[\p{P}\p{S}]+$/u.test(val);
+    }, 'First name cannot be only symbols'),
   lastName: z
     .string()
     .min(2, 'Last name must be at least 2 characters')
     .max(50, 'Last name must be at most 50 characters')
-    .regex(/^[a-zA-Z\s'-]+$/, 'Last name can only contain letters, spaces, apostrophes, and hyphens'),
-  email: z.string().email('Please enter a valid email address').max(100, 'Email must be at most 100 characters'),
-  confirmEmail: z.string().email('Please enter a valid email address').max(100, 'Email must be at most 100 characters'),
+    .refine((val) => {
+      // Must contain at least one letter (Unicode letter category)
+      return /\p{L}/u.test(val);
+    }, 'Last name must contain at least one letter')
+    .refine((val) => {
+      // Cannot be purely numbers
+      return !/^\d+$/.test(val);
+    }, 'Last name cannot be only numbers')
+    .refine((val) => {
+      // Cannot be purely symbols/punctuation
+      return !/^[\p{P}\p{S}]+$/u.test(val);
+    }, 'Last name cannot be only symbols'),
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address')
+    .max(100, 'Email must be at most 100 characters')
+    .refine((email) => {
+      // Additional validation: check for common email patterns
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return emailRegex.test(email);
+    }, 'Please enter a valid email address')
+    .refine((email) => {
+      // Prevent obvious fake emails
+      const fakePatterns = ['test@test', 'example@example', 'user@user', 'admin@admin'];
+      return !fakePatterns.some((pattern) => email.toLowerCase().includes(pattern));
+    }, 'Please enter a valid email address')
+    .refine((email) => {
+      // Check for consecutive dots
+      return !email.includes('..');
+    }, 'Please enter a valid email address')
+    .refine((email) => {
+      // Check for valid TLD (at least 2 characters)
+      const parts = email.split('@');
+      if (parts.length !== 2) return false;
+      const domain = parts[1];
+      const domainParts = domain.split('.');
+      return domainParts.length >= 2 && domainParts[domainParts.length - 1].length >= 2;
+    }, 'Please enter a valid email address'),
   message: nonWhitespaceString(50, 1000)
 });
 
 // Client-side form schema (without reCAPTCHA token for form validation)
-export const contactFormSchema = baseContactSchema.refine((data) => data.email === data.confirmEmail, {
-  message: 'Email addresses must match',
-  path: ['confirmEmail']
-});
+export const contactFormSchema = baseContactSchema;
 
 // Full schema with reCAPTCHA token for API submission
-export const contactFormSubmissionSchema = baseContactSchema
-  .extend({
-    recaptchaToken: z.string().min(1, 'Please complete the reCAPTCHA verification')
-  })
-  .refine((data) => data.email === data.confirmEmail, {
-    message: 'Email addresses must match',
-    path: ['confirmEmail']
-  });
+export const contactFormSubmissionSchema = baseContactSchema.extend({
+  recaptchaToken: z.string().min(1, 'Please complete the reCAPTCHA verification')
+});
 
 export type ContactFormData = z.infer<typeof contactFormSchema>;
 export type ContactFormSubmissionData = z.infer<typeof contactFormSubmissionSchema>;
 
-// Server-side schema without reCAPTCHA token (but with email matching validation)
-export const contactFormServerSchema = baseContactSchema.refine((data) => data.email === data.confirmEmail, {
-  message: 'Email addresses must match',
-  path: ['confirmEmail']
-});
+// Server-side schema without reCAPTCHA token
+export const contactFormServerSchema = baseContactSchema;
 
 export type ContactFormServerData = z.infer<typeof contactFormServerSchema>;

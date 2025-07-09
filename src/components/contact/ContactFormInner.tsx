@@ -126,16 +126,6 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         error={errors.email}
       />
 
-      <InputField
-        id="confirmEmail"
-        label="Confirm Email Address"
-        type="email"
-        placeholder="Confirm your email address"
-        required
-        register={register}
-        error={errors.confirmEmail}
-      />
-
       <TextareaField
         id="message"
         label="Message"
