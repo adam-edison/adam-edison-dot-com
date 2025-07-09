@@ -3,6 +3,10 @@
   - ✅ Centering on Contact page looks bad — make it left-aligned
   - ✅ Header on contact page is too big and overshadows the rest of the content
 
+- Landing Page Load Jank Removal
+  - Use image dimensions to prevent layout shift
+  - Preload main avatar image
+
 - Refactoring
   - Logger (log)
   - DI classes for all API stuff
