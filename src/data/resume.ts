@@ -9,20 +9,6 @@ export interface Experience {
 
 export const experiences: Experience[] = [
   {
-    company: 'Trust and Will',
-    position: 'Lead Full-Stack Engineer',
-    location: 'Remote',
-    period: '03/2024 — Present',
-    achievements: [
-      'Launched a tiered membership model with accompanying administrative tools, achieving a 20% increase in annual recurring revenue within the second quarter',
-      'Integrated a real-time data pipeline utilizing Segment and Iterable, replacing Klaviyo and enabling more personalized marketing campaigns that grew user engagement by 10%',
-      'Filtered out test users to reduce cost for Segment MTU, saving 60% of marketing budget for analytics tools',
-      'Upgraded GitHub Actions workflows to automate Git flow, saving 1 hour average daily for all developers',
-      'Instituted use of AWS Lambda Layers in Serverless deployment, speeding up average deployment by 90%'
-    ],
-    technologies: ['AWS', 'Node.js', 'React', 'TypeScript', 'Docker', 'GitHub']
-  },
-  {
     company: 'Funky Goblin Software, LLC',
     position: 'Founder, Principal Developer',
     location: 'Remote',
@@ -33,6 +19,20 @@ export const experiences: Experience[] = [
       'Developed virtual assistant with text-to-speech feedback and prompting using Google Journey TTS API, with capability for 100% screen and hands-free usage'
     ],
     technologies: ['TypeScript', 'React', 'Node.js', 'PostgreSQL', 'GitHub']
+  },
+  {
+    company: 'Trust and Will',
+    position: 'Lead Full-Stack Engineer',
+    location: 'Remote',
+    period: '03/2024 — 06/2025',
+    achievements: [
+      'Launched a tiered membership model with accompanying administrative tools, achieving a 20% increase in annual recurring revenue within the second quarter',
+      'Integrated a real-time data pipeline utilizing Segment and Iterable, replacing Klaviyo and enabling more personalized marketing campaigns that grew user engagement by 10%',
+      'Filtered out test users to reduce cost for Segment MTU, saving 60% of marketing budget for analytics tools',
+      'Upgraded GitHub Actions workflows to automate Git flow, saving 1 hour average daily for all developers',
+      'Instituted use of AWS Lambda Layers in Serverless deployment, speeding up average deployment by 90%'
+    ],
+    technologies: ['AWS', 'Node.js', 'React', 'TypeScript', 'Docker', 'GitHub']
   },
   {
     company: 'Curastory',
