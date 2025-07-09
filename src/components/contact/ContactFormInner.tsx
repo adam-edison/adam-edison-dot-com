@@ -34,17 +34,28 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   const watchedMessage = useWatch({ control, name: 'message' });
 
   const onSubmit = async (data: ContactFormData) => {
-    if (!executeRecaptcha) {
-      setErrorMessage('reCAPTCHA not ready. Please try again.');
-      return;
-    }
-
     setIsSubmitting(true);
     setSubmitStatus('idle');
     setErrorMessage('');
 
     try {
-      const recaptchaToken = await executeRecaptcha('contact_form');
+      // Try to get reCAPTCHA token, but proceed even if it fails (fail-open)
+      let recaptchaToken = '';
+
+      if (executeRecaptcha) {
+        try {
+          recaptchaToken = await Promise.race([
+            executeRecaptcha('contact_form'),
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error('reCAPTCHA timeout')), 10000))
+          ]);
+        } catch (error) {
+          console.warn('reCAPTCHA failed, proceeding anyway (fail-open):', error);
+          recaptchaToken = ''; // Empty token will be handled gracefully on the server
+        }
+      } else {
+        console.warn('reCAPTCHA not ready, proceeding anyway (fail-open)');
+        recaptchaToken = ''; // Empty token will be handled gracefully on the server
+      }
 
       const response = await fetch('/api/contact', {
         method: 'POST',
@@ -76,7 +87,12 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
     } catch (error) {
       console.error('Contact form submission error:', error);
       setSubmitStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : 'An unexpected error occurred');
+
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }

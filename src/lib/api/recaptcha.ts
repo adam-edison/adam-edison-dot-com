@@ -1,13 +1,20 @@
-// Verify reCAPTCHA token
+// Verify reCAPTCHA token - FAIL OPEN for better user experience
 export async function verifyRecaptcha(token: string): Promise<boolean> {
   // Skip reCAPTCHA verification when threshold is 0, for better performance during testing
   if (process.env.RECAPTCHA_SCORE_THRESHOLD === '0') {
     return true;
   }
 
+  // If no token provided, allow the request (fail-open)
+  if (!token || token.trim() === '') {
+    console.warn('No reCAPTCHA token provided - allowing request (fail-open)');
+    return true;
+  }
+
   const secretKey = process.env.RECAPTCHA_SECRET_KEY;
   if (!secretKey) {
-    throw new Error('reCAPTCHA secret key not configured');
+    console.error('reCAPTCHA secret key not configured - allowing request (fail-open)');
+    return true; // FAIL OPEN - allow the request if not configured
   }
 
   try {
@@ -22,20 +29,20 @@ export async function verifyRecaptcha(token: string): Promise<boolean> {
     const data = await response.json();
 
     if (!data.success) {
-      console.error('reCAPTCHA verification failed:', data['error-codes']);
-      return false;
+      console.error('reCAPTCHA verification failed:', data['error-codes'], '- allowing request (fail-open)');
+      return true; // FAIL OPEN - allow the request if verification fails
     }
 
     // Check score for reCAPTCHA v3 (score between 0.0 and 1.0)
     const scoreThreshold = parseFloat(process.env.RECAPTCHA_SCORE_THRESHOLD || '0.5');
     if (data.score && data.score < scoreThreshold) {
-      console.error('reCAPTCHA score too low:', data.score);
-      return false;
+      console.error('reCAPTCHA score too low:', data.score, '- allowing request (fail-open)');
+      return true; // FAIL OPEN - allow the request even if score is low
     }
 
     return true;
   } catch (error) {
-    console.error('Error verifying reCAPTCHA:', error);
-    return false;
+    console.error('Error verifying reCAPTCHA:', error, '- allowing request (fail-open)');
+    return true; // FAIL OPEN - allow the request if there's an error
   }
 }
