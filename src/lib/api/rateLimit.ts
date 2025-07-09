@@ -1,17 +1,36 @@
 import { Redis } from '@upstash/redis';
-import { RateLimiter } from './RateLimiter';
+import { RateLimiter, RateLimiterConfig } from './RateLimiter';
 
-// Create rate limiter instance with environment configuration
+// Factory function for creating RateLimiter instances
+export function createRateLimiter(config: RateLimiterConfig): RateLimiter {
+  return new RateLimiter(config);
+}
+
+// Factory function for creating RateLimiter with environment config
+export function createRateLimiterFromEnv(options: {
+  limitEnvVar: string;
+  windowEnvVar: string;
+  redis?: Redis;
+}): RateLimiter {
+  const redis = options.redis || Redis.fromEnv();
+  return createRateLimiter({
+    redis,
+    limit: parseInt(process.env[options.limitEnvVar]!),
+    window: process.env[options.windowEnvVar]!,
+    prefix: process.env.REDIS_PREFIX!
+  });
+}
+
+// Create rate limiter instances using factory functions
 const redis = Redis.fromEnv();
-const rateLimiter = new RateLimiter({
+const rateLimiter = createRateLimiter({
   redis,
   limit: parseInt(process.env.RATE_LIMIT_REQUESTS!),
   window: process.env.RATE_LIMIT_WINDOW!,
   prefix: process.env.REDIS_PREFIX!
 });
 
-// Create global rate limiter instance for site-wide limits
-const globalRateLimiter = new RateLimiter({
+const globalRateLimiter = createRateLimiter({
   redis,
   limit: parseInt(process.env.GLOBAL_RATE_LIMIT_REQUESTS!),
   window: process.env.GLOBAL_RATE_LIMIT_WINDOW!,

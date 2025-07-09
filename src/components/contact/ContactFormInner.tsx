@@ -9,6 +9,7 @@ import { InputField } from './InputField';
 import { TextareaField } from './TextareaField';
 import { SubmitButton } from './SubmitButton';
 import { RecaptchaNotice } from './RecaptchaNotice';
+import { logger } from '@/lib/logger';
 
 interface ContactFormInnerProps {
   className?: string;
@@ -49,11 +50,11 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
             new Promise<never>((_, reject) => setTimeout(() => reject(new Error('reCAPTCHA timeout')), 10000))
           ]);
         } catch (error) {
-          console.warn('reCAPTCHA failed, proceeding anyway (fail-open):', error);
+          logger.warn('reCAPTCHA failed, proceeding anyway (fail-open):', error);
           recaptchaToken = ''; // Empty token will be handled gracefully on the server
         }
       } else {
-        console.warn('reCAPTCHA not ready, proceeding anyway (fail-open)');
+        logger.warn('reCAPTCHA not ready, proceeding anyway (fail-open)');
         recaptchaToken = ''; // Empty token will be handled gracefully on the server
       }
 
@@ -85,7 +86,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
       setSubmitStatus('success');
       reset();
     } catch (error) {
-      console.error('Contact form submission error:', error);
+      logger.error('Contact form submission error:', error);
       setSubmitStatus('error');
 
       if (error instanceof Error) {

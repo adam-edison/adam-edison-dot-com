@@ -1,5 +1,6 @@
 import React from 'react';
 import { StatusCard } from '@/components/ui/StatusCard';
+import { logger } from '@/lib/logger';
 
 interface ContactFormErrorBoundaryState {
   hasError: boolean;
@@ -24,7 +25,7 @@ export class ContactFormErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Contact form error boundary caught an error:', error, errorInfo);
+    logger.error('Contact form error boundary caught an error:', error, errorInfo);
   }
 
   render() {

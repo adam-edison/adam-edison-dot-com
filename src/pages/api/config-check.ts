@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { logger } from '@/lib/logger';
 
 interface ConfigCheckResponse {
   configured: boolean;
@@ -20,7 +21,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Config
 
   if (missing.length > 0) {
     // Log missing configuration server-side only
-    console.error('Contact form configuration incomplete. Missing environment variables:', missing);
+    logger.error('Contact form configuration incomplete. Missing environment variables:', missing);
 
     return res.status(200).json({
       configured: false
