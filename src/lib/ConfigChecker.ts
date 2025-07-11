@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'dotenv';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/logger/Logger';
 
 export interface ConfigCheckResult {
   configured: boolean;

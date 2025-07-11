@@ -1,4 +1,4 @@
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/logger/Logger';
 
 // Verify reCAPTCHA token - FAIL OPEN for better user experience
 export async function verifyRecaptcha(token: string): Promise<boolean> {

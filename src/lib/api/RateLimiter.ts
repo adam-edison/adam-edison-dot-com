@@ -1,6 +1,6 @@
 import { Duration, Ratelimit } from '@upstash/ratelimit';
 import type { Redis } from '@upstash/redis';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/logger/Logger';
 import { DataStore } from '@/lib/data/DataStore';
 
 export interface RateLimiterConfig {

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ConfigChecker } from '@/lib/ConfigChecker';
-import { logger, InMemoryLogger } from '@/lib/logger';
+import { logger, InMemoryLogger } from '@/lib/logger/Logger';
 
 describe('ConfigChecker', () => {
   let testLogger: InMemoryLogger;

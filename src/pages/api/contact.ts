@@ -2,7 +2,7 @@ import { sendEmail, sanitizeInput } from '@/lib/api/email';
 import { contactRateLimiter } from '@/lib/api/ContactRateLimiter';
 import { verifyRecaptcha } from '@/lib/api/recaptcha';
 import { contactFormServerSchema, contactFormSubmissionSchema } from '@/lib/validations/contact';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/logger/Logger';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

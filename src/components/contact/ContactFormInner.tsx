@@ -9,7 +9,7 @@ import { InputField } from './InputField';
 import { TextareaField } from './TextareaField';
 import { SubmitButton } from './SubmitButton';
 import { RecaptchaNotice } from './RecaptchaNotice';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/logger/Logger';
 
 interface ContactFormInnerProps {
   className?: string;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StatusCard } from '@/components/ui/StatusCard';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/logger/Logger';
 
 interface ContactFormErrorBoundaryState {
   hasError: boolean;
