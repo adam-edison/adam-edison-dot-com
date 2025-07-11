@@ -1,6 +1,7 @@
 import { Duration, Ratelimit } from '@upstash/ratelimit';
 import type { Redis } from '@upstash/redis';
 import { logger } from '@/lib/logger';
+import { DataStore } from '@/lib/data/DataStore';
 
 export interface RateLimiterConfig {
   redis: Redis;
@@ -19,19 +20,18 @@ export interface RateLimitResult {
 
 export class RateLimiter {
   private ratelimit: Ratelimit;
-  private redis: Redis;
+  private dataStore: DataStore;
 
-  constructor(config: RateLimiterConfig) {
-    this.redis = config.redis;
+  constructor(redis: Redis, limit: number, window: string, prefix?: string) {
+    this.dataStore = { keys: redis.keys.bind(redis), del: redis.del.bind(redis) };
 
-    const window = config.window as Duration;
-    const tokens = config.limit;
+    const windowDuration = window as Duration;
 
     this.ratelimit = new Ratelimit({
-      redis: config.redis,
-      limiter: Ratelimit.slidingWindow(tokens, window),
+      redis,
+      limiter: Ratelimit.slidingWindow(limit, windowDuration),
       analytics: true,
-      prefix: config.prefix
+      prefix
     });
   }
 
@@ -65,9 +65,9 @@ export class RateLimiter {
 
   async clearKeys(pattern: string): Promise<void> {
     try {
-      const keys = await this.redis.keys(pattern);
+      const keys = await this.dataStore.keys(pattern);
       if (keys.length > 0) {
-        await this.redis.del(...keys);
+        await this.dataStore.del(...keys);
       }
     } catch (error) {
       logger.error('Redis cleanup error:', error);
