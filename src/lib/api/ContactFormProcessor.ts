@@ -24,7 +24,6 @@ interface ValidationResult {
 
 export class ContactFormProcessor {
   static async processForm(formData: unknown): Promise<ProcessFormResult> {
-    // Validate form data
     const validationResult = this.validateFormData(formData);
     if (!validationResult.success || !validationResult.data) {
       return {
@@ -33,23 +32,19 @@ export class ContactFormProcessor {
       };
     }
 
-    // Verify reCAPTCHA
     const { recaptchaToken, ...formDataOnly } = validationResult.data;
     const recaptchaResult = await this.verifyRecaptcha(recaptchaToken);
     if (!recaptchaResult.success) {
       return recaptchaResult;
     }
 
-    // Sanitize data
     const sanitizedData = this.sanitizeFormData(formDataOnly);
 
-    // Validate sanitized data
     const sanitizationResult = this.validateSanitizedData(sanitizedData);
     if (!sanitizationResult.success) {
       return sanitizationResult;
     }
 
-    // Send email
     return this.attemptEmailSend(sanitizedData);
   }
 
