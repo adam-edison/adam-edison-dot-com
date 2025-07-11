@@ -5,9 +5,14 @@ interface ConfigCheckResponse {
   configured: boolean;
 }
 
-export default function handler(req: NextApiRequest, res: NextApiResponse<ConfigCheckResponse>) {
+interface ErrorResponse {
+  error: string;
+}
+
+export default function handler(req: NextApiRequest, res: NextApiResponse<ConfigCheckResponse | ErrorResponse>) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ configured: false });
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const requiredEnvVars = [
