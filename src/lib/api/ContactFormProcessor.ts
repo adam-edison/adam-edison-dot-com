@@ -1,0 +1,156 @@
+import { sendEmail, sanitizeInput } from '@/lib/api/email';
+import { verifyRecaptcha } from '@/lib/api/recaptcha';
+import {
+  contactFormServerSchema,
+  contactFormSubmissionSchema,
+  ContactFormSubmissionData
+} from '@/lib/validations/contact';
+import { logger } from '@/lib/logger/Logger';
+
+export interface ProcessFormResult {
+  success: boolean;
+  error?: {
+    type: 'validation' | 'recaptcha' | 'sanitization' | 'email' | 'server';
+    message: string;
+    errors?: unknown[];
+  };
+}
+
+interface ValidationResult {
+  success: boolean;
+  data?: ContactFormSubmissionData;
+  error?: ProcessFormResult['error'];
+}
+
+export class ContactFormProcessor {
+  static async processForm(formData: unknown): Promise<ProcessFormResult> {
+    // Validate form data
+    const validationResult = this.validateFormData(formData);
+    if (!validationResult.success || !validationResult.data) {
+      return {
+        success: false,
+        error: validationResult.error
+      };
+    }
+
+    // Verify reCAPTCHA
+    const { recaptchaToken, ...formDataOnly } = validationResult.data;
+    const recaptchaResult = await this.verifyRecaptcha(recaptchaToken);
+    if (!recaptchaResult.success) {
+      return recaptchaResult;
+    }
+
+    // Sanitize data
+    const sanitizedData = this.sanitizeFormData(formDataOnly);
+
+    // Validate sanitized data
+    const sanitizationResult = this.validateSanitizedData(sanitizedData);
+    if (!sanitizationResult.success) {
+      return sanitizationResult;
+    }
+
+    // Send email
+    return this.attemptEmailSend(sanitizedData);
+  }
+
+  private static validateFormData(formData: unknown): ValidationResult {
+    const validationResult = contactFormSubmissionSchema.safeParse(formData);
+    if (!validationResult.success) {
+      logger.error('Contact form validation failed:', validationResult.error.errors);
+      return {
+        success: false,
+        error: {
+          type: 'validation',
+          message: 'Invalid form data',
+          errors: validationResult.error.errors
+        }
+      };
+    }
+
+    return { success: true, data: validationResult.data };
+  }
+
+  private static async verifyRecaptcha(recaptchaToken: string): Promise<ProcessFormResult> {
+    const isValidRecaptcha = await verifyRecaptcha(recaptchaToken);
+
+    if (!isValidRecaptcha) {
+      logger.error('reCAPTCHA verification failed');
+      return {
+        success: false,
+        error: {
+          type: 'recaptcha',
+          message: 'reCAPTCHA verification failed'
+        }
+      };
+    }
+
+    return { success: true };
+  }
+
+  private static sanitizeFormData(formData: Omit<ContactFormSubmissionData, 'recaptchaToken'>) {
+    return {
+      firstName: sanitizeInput(formData.firstName),
+      lastName: sanitizeInput(formData.lastName),
+      email: sanitizeInput(formData.email),
+      message: sanitizeInput(formData.message)
+    };
+  }
+
+  private static validateSanitizedData(sanitizedData: ReturnType<typeof this.sanitizeFormData>): ProcessFormResult {
+    const serverValidationResult = contactFormServerSchema.safeParse(sanitizedData);
+
+    if (!serverValidationResult.success) {
+      logger.error('Server validation failed after sanitization:', serverValidationResult.error.errors);
+
+      return {
+        success: false,
+        error: {
+          type: 'sanitization',
+          message: 'Invalid form data after sanitization',
+          errors: serverValidationResult.error.errors
+        }
+      };
+    }
+
+    return { success: true };
+  }
+
+  private static async attemptEmailSend(
+    sanitizedData: ReturnType<typeof this.sanitizeFormData>
+  ): Promise<ProcessFormResult> {
+    try {
+      await sendEmail(sanitizedData);
+      return { success: true };
+    } catch (error) {
+      return this.handleEmailError(error);
+    }
+  }
+
+  private static handleEmailError(error: unknown): ProcessFormResult {
+    logger.error('Contact form processing error:', error);
+
+    if (this.isConfigurationError(error)) {
+      return {
+        success: false,
+        error: {
+          type: 'server',
+          message: 'Server configuration error'
+        }
+      };
+    }
+
+    return {
+      success: false,
+      error: {
+        type: 'server',
+        message: 'Failed to send message. Please try again later.'
+      }
+    };
+  }
+
+  private static isConfigurationError(error: unknown): boolean {
+    return (
+      error instanceof Error && (error.message.includes('configuration') || error.message.includes('not configured'))
+    );
+  }
+}
