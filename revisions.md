@@ -21,7 +21,7 @@
   - Encapsulate all boundaries
   - Get rid of unnecessary nesting and simplify code logic
   - Organize tests better (all in separate root tests folder next to src)
-  - Make top-level error handler reused across API endpoints
+  - Make top-level error handler reused across API endpoints if possible, and simplify error handling
 
 - Captcha Improvements
   - Add fallback captcha for when the main one gets denied [see guide](./IMPROVE_CAPTCHA.md)
