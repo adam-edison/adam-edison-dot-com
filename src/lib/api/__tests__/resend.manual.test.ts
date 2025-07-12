@@ -3,6 +3,10 @@ import { emailService } from '../EmailService';
 import { ContactFormServerData } from '@/lib/validations/contact';
 import { fail } from 'assert';
 
+/* Run this test with:
+  npm run test:manual -- --testNamePattern "Resend Email Integration"
+*/
+
 describe('Resend Email Integration (Manual)', () => {
   beforeEach(() => {
     // Check if required environment variables are present
