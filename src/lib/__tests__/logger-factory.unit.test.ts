@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { logger, InMemoryLogger } from '@/lib/logger';
+import { logger, InMemoryLogger } from '@/lib/logger/Logger';
 
 describe('Logger', () => {
   let testLogger: InMemoryLogger;

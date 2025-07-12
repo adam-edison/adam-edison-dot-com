@@ -5,6 +5,13 @@ export class Logger {
     return `${timestamp} ${level} ${message}`;
   }
 
+  static create(): Logger {
+    if (process.env.NODE_ENV === 'test') {
+      return new InMemoryLogger();
+    }
+    return new Logger();
+  }
+
   error(message: string, ...args: unknown[]): void {
     console.error(this.formatMessage('ERROR', message), ...args);
   }
@@ -87,13 +94,4 @@ export class InMemoryLogger extends Logger {
   }
 }
 
-// Factory function that creates appropriate logger based on environment
-function createLogger(): Logger {
-  if (process.env.NODE_ENV === 'test') {
-    return new InMemoryLogger();
-  }
-  return new Logger();
-}
-
-// Single logger instance used everywhere
-export const logger = createLogger();
+export const logger = Logger.create();

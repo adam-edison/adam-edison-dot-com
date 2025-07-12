@@ -15,15 +15,19 @@
 
 - 🚧 Refactoring
   - ✅ Logger (log)
-  - DI classes for all API stuff
+  - ✅ DI classes for all API stuff
+  - ✅ Encapsulate all boundaries
+  - Externalize email templates
+  - Make all imports absolute references (no ../)
+  - Organize files and tests better (all in separate root tests folder next to src)
   - Remove outdated comments and unnecessary comments
   - Extract lots of hardcoded variables as env values
-  - Encapsulate all boundaries
-  - Organize tests better (all in separate root tests folder next to src)
-  - Make top-level error handler reused across API endpoints
+  - Get rid of unnecessary nesting and simplify code logic
+  - Make top-level error handler reused across API endpoints if possible, and simplify error handling
 
 - Captcha Improvements
-  - Add fallback captcha for when the main one gets denied [see guide](./IMPROVE_CAPTCHA.md)
+  - Fix unconditional skipping of recaptcha, might as well not be there
+  - Add fallback captcha for when the main one gets denied [see guide](./IMPROVE_CAPTCHA.md) - maybe just use v2 instead?
 
 - Add Claude Learnings
   - Prefer this style of working with DI and factories

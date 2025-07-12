@@ -1,7 +1,7 @@
 import { Redis } from '@upstash/redis';
 import { config } from 'dotenv';
 import { join } from 'path';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/logger/Logger';
 
 // Load environment variables from .env.local for Redis access
 config({ path: join(process.cwd(), '.env.local') });
@@ -24,8 +24,9 @@ export async function cleanupRedisKeys(pattern: string): Promise<void> {
 
 /**
  * Clean up all E2E test keys
- * This removes all keys matching the personal-website-e2e prefix
+ * This removes all keys matching the e2e test prefix
  */
 export async function cleanupE2EKeys(): Promise<void> {
-  await cleanupRedisKeys('personal-website-e2e:*');
+  const basePrefix = process.env.REDIS_PREFIX;
+  await cleanupRedisKeys(`${basePrefix}-e2e:*`);
 }

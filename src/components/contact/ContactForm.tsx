@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import { ContactFormInner } from './ContactFormInner';
 import { ContactFormErrorBoundary } from './ContactFormErrorBoundary';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/logger/Logger';
 
 interface ContactFormProps {
   className?: string;
