@@ -1,0 +1,9 @@
+New Contact Form Submission
+
+Name: {{firstName}} {{lastName}}
+Email: {{email}}
+
+Message:
+{{message}}
+
+Submitted: {{submittedAt}}
