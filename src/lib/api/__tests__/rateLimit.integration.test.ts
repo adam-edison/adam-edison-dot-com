@@ -9,17 +9,16 @@
  */
 import { Redis } from '@upstash/redis';
 import { RateLimiter } from '../RateLimiter';
+import { RateLimiterDataStore } from '../../data/RateLimiterDataStore';
 import { describe, test, expect, beforeAll, afterEach } from 'vitest';
 import { generateUniqueIdentifier } from '../../../../tests/utils/testHelpers';
 
 describe('RateLimiter Integration Tests', () => {
   let rateLimiter: RateLimiter;
-  let redis: Redis;
   const testPrefix = `test-ratelimit-${Date.now()}`;
 
   beforeAll(() => {
-    redis = Redis.fromEnv();
-    rateLimiter = new RateLimiter({ redis, limit: 5, window: '10 m', prefix: testPrefix });
+    rateLimiter = RateLimiter.fromEnv({ limit: 5, window: '10 m' });
   });
 
   afterEach(async () => {
@@ -115,11 +114,11 @@ describe('RateLimiter Integration Tests', () => {
   test('should handle Redis errors gracefully (fail open)', async () => {
     // Create a rate limiter with invalid Redis config to simulate failure
     const invalidRedis = new Redis({ url: 'https://invalid-url.invalid', token: 'invalid-token' });
-    const prefix = `${testPrefix}-fail-test`;
+    const invalidDataStore = new RateLimiterDataStore(invalidRedis, `${testPrefix}-fail-test`);
 
-    const failingRateLimiter = new RateLimiter({ redis: invalidRedis, limit: 5, window: '10 m', prefix });
+    const failingRateLimiter = new RateLimiter(invalidDataStore, { limit: 5, window: '10 m' });
 
-    const identifier = generateUniqueIdentifier(prefix);
+    const identifier = generateUniqueIdentifier(`${testPrefix}-fail-test`);
     const result = await failingRateLimiter.checkLimit(identifier);
 
     // Should fail open (allow the request)

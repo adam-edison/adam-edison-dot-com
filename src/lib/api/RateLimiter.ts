@@ -1,13 +1,9 @@
-import { Duration, Ratelimit } from '@upstash/ratelimit';
-import type { Redis } from '@upstash/redis';
 import { logger } from '@/lib/logger/Logger';
-import { DataStore } from '@/lib/data/DataStore';
+import { RateLimiterDataStore } from '@/lib/data/RateLimiterDataStore';
 
 export interface RateLimiterOptions {
-  redis: Redis;
   limit: number;
   window: string;
-  prefix?: string;
 }
 
 export interface RateLimitResult {
@@ -19,25 +15,24 @@ export interface RateLimitResult {
 }
 
 export class RateLimiter {
-  private ratelimit: Ratelimit;
-  private dataStore: DataStore;
+  private dataStore: RateLimiterDataStore;
+  private limit: number;
+  private window: string;
 
-  constructor({ redis, limit, window, prefix }: RateLimiterOptions) {
-    this.dataStore = { keys: redis.keys.bind(redis), del: redis.del.bind(redis) };
+  constructor(dataStore: RateLimiterDataStore, { limit, window }: RateLimiterOptions) {
+    this.dataStore = dataStore;
+    this.limit = limit;
+    this.window = window;
+  }
 
-    const windowDuration = window as Duration;
-
-    this.ratelimit = new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(limit, windowDuration),
-      analytics: true,
-      prefix
-    });
+  static fromEnv(options: RateLimiterOptions): RateLimiter {
+    const dataStore = RateLimiterDataStore.fromEnv();
+    return new RateLimiter(dataStore, options);
   }
 
   async checkLimit(identifier: string): Promise<RateLimitResult> {
     try {
-      const result = await this.ratelimit.limit(identifier);
+      const result = await this.dataStore.checkRateLimit(identifier, this.limit, this.window);
 
       return {
         success: result.success,
@@ -65,12 +60,12 @@ export class RateLimiter {
 
   async clearKeys(pattern: string): Promise<void> {
     try {
-      const keys = await this.dataStore.keys(pattern);
+      const keys = await this.dataStore.getKeys(pattern);
       if (keys.length > 0) {
-        await this.dataStore.del(...keys);
+        await this.dataStore.deleteKeys(...keys);
       }
     } catch (error) {
-      logger.error('Redis cleanup error:', error);
+      logger.error('Rate limiter cleanup error:', error);
     }
   }
 }

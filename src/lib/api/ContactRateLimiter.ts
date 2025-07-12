@@ -1,4 +1,3 @@
-import { Redis } from '@upstash/redis';
 import { RateLimiter, RateLimitResult } from './RateLimiter';
 
 export interface ContactRateLimitResult {
@@ -18,21 +17,14 @@ export class ContactRateLimiter {
   }
 
   static fromEnv(): ContactRateLimiter {
-    const redis = Redis.fromEnv();
-    const prefix = process.env.REDIS_PREFIX!;
-
-    const globalRateLimiter = new RateLimiter({
-      redis,
+    const globalRateLimiter = RateLimiter.fromEnv({
       limit: parseInt(process.env.GLOBAL_RATE_LIMIT_REQUESTS!),
-      window: process.env.GLOBAL_RATE_LIMIT_WINDOW!,
-      prefix
+      window: process.env.GLOBAL_RATE_LIMIT_WINDOW!
     });
 
-    const ipRateLimiter = new RateLimiter({
-      redis,
+    const ipRateLimiter = RateLimiter.fromEnv({
       limit: parseInt(process.env.RATE_LIMIT_REQUESTS!),
-      window: process.env.RATE_LIMIT_WINDOW!,
-      prefix
+      window: process.env.RATE_LIMIT_WINDOW!
     });
 
     return new ContactRateLimiter(globalRateLimiter, ipRateLimiter);
