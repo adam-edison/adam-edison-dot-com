@@ -103,9 +103,14 @@ export class EmailService {
   }
 
   private renderTemplate(template: string, data: Record<string, string>): string {
-    return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-      return data[key] || match;
-    });
+    let result = template;
+
+    for (const [key, value] of Object.entries(data)) {
+      const placeholder = `{{${key}}}`;
+      result = result.replaceAll(placeholder, value);
+    }
+
+    return result;
   }
 }
 
