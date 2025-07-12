@@ -15,8 +15,8 @@
 
 - 🚧 Refactoring
   - ✅ Logger (log)
-  - 🚧 DI classes for all API stuff
-  - 🚧 Encapsulate all boundaries
+  - ✅ DI classes for all API stuff
+  - ✅ Encapsulate all boundaries
   - Externalize email templates
   - Make all imports absolute references (no ../)
   - Organize files and tests better (all in separate root tests folder next to src)
