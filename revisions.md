@@ -16,6 +16,7 @@
 - 🚧 Refactoring
   - ✅ Logger (log)
   - 🚧 DI classes for all API stuff
+  - Fix unconditional skipping of recaptcha, might as well not be there
   - Organize files and tests better (all in separate root tests folder next to src)
   - Remove outdated comments and unnecessary comments
   - Extract lots of hardcoded variables as env values
