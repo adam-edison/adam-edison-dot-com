@@ -216,3 +216,16 @@ The project includes `SearchEngineOptimization.md` with comprehensive SEO guidel
 - Resume PDF available in `/public/resume.pdf`
 - Run `npm run lint` to check for code quality issues
 - Run `npm run format` to auto-format code before commits
+
+## Stable State Verification
+
+After making a set of changes, always verify stable state by running these commands in order:
+
+1. `npm run format` - Auto-format code
+2. `npm run lint` - Check for linting issues
+3. `npm run build` - Ensure project builds successfully
+4. `npm run test:unit` - Run unit tests
+5. `npm run test:integration` - Run integration tests
+6. `npm run test:e2e` - Run end-to-end tests
+
+All commands must pass before considering changes complete and ready for commit.
