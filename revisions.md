@@ -17,8 +17,8 @@
   - ✅ Logger (log)
   - ✅ DI classes for all API stuff
   - ✅ Encapsulate all boundaries
-  - Externalize email templates
-  - Make all imports absolute references (no ../)
+  - ✅ Externalize email templates
+  - 🚧 Make all imports absolute references (no ../)
   - Organize files and tests better (all in separate root tests folder next to src)
   - Remove outdated comments and unnecessary comments
   - Extract lots of hardcoded variables as env values
