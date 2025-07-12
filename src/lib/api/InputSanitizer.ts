@@ -5,5 +5,3 @@ export class InputSanitizer {
     return validator.escape(input.trim());
   }
 }
-
-export const inputSanitizer = InputSanitizer;
