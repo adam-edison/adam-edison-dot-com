@@ -17,13 +17,13 @@
   - ✅ Logger (log)
   - 🚧 DI classes for all API stuff
   - 🚧 Encapsulate all boundaries
+  - 🚧 Make all imports absolute references (no ../)
   - Fix unconditional skipping of recaptcha, might as well not be there
   - Organize files and tests better (all in separate root tests folder next to src)
   - Remove outdated comments and unnecessary comments
   - Extract lots of hardcoded variables as env values
   - Get rid of unnecessary nesting and simplify code logic
   - Make top-level error handler reused across API endpoints if possible, and simplify error handling
-  - Make all imports absolute references (no ../)
 
 - Captcha Improvements
   - Add fallback captcha for when the main one gets denied [see guide](./IMPROVE_CAPTCHA.md)
