@@ -21,19 +21,19 @@ export class ContactRateLimiter {
     const redis = Redis.fromEnv();
     const prefix = process.env.REDIS_PREFIX!;
 
-    const globalRateLimiter = new RateLimiter(
+    const globalRateLimiter = new RateLimiter({
       redis,
-      parseInt(process.env.GLOBAL_RATE_LIMIT_REQUESTS!),
-      process.env.GLOBAL_RATE_LIMIT_WINDOW!,
+      limit: parseInt(process.env.GLOBAL_RATE_LIMIT_REQUESTS!),
+      window: process.env.GLOBAL_RATE_LIMIT_WINDOW!,
       prefix
-    );
+    });
 
-    const ipRateLimiter = new RateLimiter(
+    const ipRateLimiter = new RateLimiter({
       redis,
-      parseInt(process.env.RATE_LIMIT_REQUESTS!),
-      process.env.RATE_LIMIT_WINDOW!,
+      limit: parseInt(process.env.RATE_LIMIT_REQUESTS!),
+      window: process.env.RATE_LIMIT_WINDOW!,
       prefix
-    );
+    });
 
     return new ContactRateLimiter(globalRateLimiter, ipRateLimiter);
   }

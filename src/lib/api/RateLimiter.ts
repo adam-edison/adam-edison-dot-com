@@ -3,7 +3,7 @@ import type { Redis } from '@upstash/redis';
 import { logger } from '@/lib/logger/Logger';
 import { DataStore } from '@/lib/data/DataStore';
 
-export interface RateLimiterConfig {
+export interface RateLimiterOptions {
   redis: Redis;
   limit: number;
   window: string;
@@ -22,7 +22,7 @@ export class RateLimiter {
   private ratelimit: Ratelimit;
   private dataStore: DataStore;
 
-  constructor(redis: Redis, limit: number, window: string, prefix?: string) {
+  constructor({ redis, limit, window, prefix }: RateLimiterOptions) {
     this.dataStore = { keys: redis.keys.bind(redis), del: redis.del.bind(redis) };
 
     const windowDuration = window as Duration;

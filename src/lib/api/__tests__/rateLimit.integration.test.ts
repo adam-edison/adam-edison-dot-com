@@ -19,7 +19,7 @@ describe('RateLimiter Integration Tests', () => {
 
   beforeAll(() => {
     redis = Redis.fromEnv();
-    rateLimiter = new RateLimiter(redis, 5, '10 m', testPrefix);
+    rateLimiter = new RateLimiter({ redis, limit: 5, window: '10 m', prefix: testPrefix });
   });
 
   afterEach(async () => {
@@ -117,7 +117,7 @@ describe('RateLimiter Integration Tests', () => {
     const invalidRedis = new Redis({ url: 'https://invalid-url.invalid', token: 'invalid-token' });
     const prefix = `${testPrefix}-fail-test`;
 
-    const failingRateLimiter = new RateLimiter(invalidRedis, 5, '10 m', prefix);
+    const failingRateLimiter = new RateLimiter({ redis: invalidRedis, limit: 5, window: '10 m', prefix });
 
     const identifier = generateUniqueIdentifier(prefix);
     const result = await failingRateLimiter.checkLimit(identifier);
