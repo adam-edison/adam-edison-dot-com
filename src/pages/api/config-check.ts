@@ -15,7 +15,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Config
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const result = ConfigChecker.checkConfigurationFromFile();
+  const result = ConfigChecker.checkContactFormRequirements();
 
   return res.status(200).json({
     configured: result.configured

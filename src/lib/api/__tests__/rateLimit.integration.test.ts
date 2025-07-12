@@ -15,7 +15,8 @@ import { generateUniqueIdentifier } from '../../../../tests/utils/testHelpers';
 
 describe('RateLimiter Integration Tests', () => {
   let rateLimiter: RateLimiter;
-  const testPrefix = `test-ratelimit-${Date.now()}`;
+  const basePrefix = process.env.REDIS_PREFIX;
+  const testPrefix = `${basePrefix}-integration-rate-limit`;
 
   beforeAll(() => {
     rateLimiter = RateLimiter.fromEnv({ limit: 5, window: '10 m' });

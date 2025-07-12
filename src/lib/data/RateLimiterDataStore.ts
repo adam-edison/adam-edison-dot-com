@@ -12,14 +12,14 @@ export class RateLimiterDataStore {
   private redis: Redis;
   private prefix: string;
 
-  constructor(redis: Redis, prefix?: string) {
+  constructor(redis: Redis, prefix: string) {
     this.redis = redis;
-    this.prefix = prefix || process.env.REDIS_PREFIX || 'ratelimit';
+    this.prefix = prefix;
   }
 
   static fromEnv(): RateLimiterDataStore {
     const redis = Redis.fromEnv();
-    const prefix = process.env.REDIS_PREFIX;
+    const prefix = process.env.REDIS_PREFIX!;
     return new RateLimiterDataStore(redis, prefix);
   }
 

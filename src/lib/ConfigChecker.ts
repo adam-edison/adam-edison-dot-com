@@ -9,6 +9,15 @@ export interface ConfigCheckResult {
 }
 
 export class ConfigChecker {
+  // Essential variables required for contact form functionality at runtime
+  private static readonly CONTACT_FORM_REQUIRED_VARS = [
+    'RESEND_API_KEY',
+    'FROM_EMAIL',
+    'TO_EMAIL',
+    'UPSTASH_REDIS_REST_URL',
+    'UPSTASH_REDIS_REST_TOKEN'
+  ];
+
   public static checkConfiguration(
     requiredVars: string[],
     currentEnv: Record<string, string | undefined>
@@ -28,7 +37,12 @@ export class ConfigChecker {
     };
   }
 
-  // Convenience method that reads from filesystem
+  // Runtime check for essential contact form variables only
+  public static checkContactFormRequirements(): ConfigCheckResult {
+    return ConfigChecker.checkConfiguration(ConfigChecker.CONTACT_FORM_REQUIRED_VARS, process.env);
+  }
+
+  // Build-time check that reads from filesystem (checks ALL variables from .env.example)
   public static checkConfigurationFromFile(): ConfigCheckResult {
     try {
       const envExamplePath = join(process.cwd(), '.env.example');
