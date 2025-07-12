@@ -1,6 +1,6 @@
 import { emailService } from '@/lib/api/EmailService';
 import { InputSanitizer } from '@/lib/api/InputSanitizer';
-import { verifyRecaptcha } from '@/lib/api/recaptcha';
+import { recaptchaService } from '@/lib/api/RecaptchaService';
 import {
   contactFormServerSchema,
   contactFormSubmissionSchema,
@@ -67,7 +67,7 @@ export class ContactFormProcessor {
   }
 
   private static async verifyRecaptcha(recaptchaToken: string): Promise<ProcessFormResult> {
-    const isValidRecaptcha = await verifyRecaptcha(recaptchaToken);
+    const isValidRecaptcha = await recaptchaService.verifyToken(recaptchaToken);
 
     if (!isValidRecaptcha) {
       logger.error('reCAPTCHA verification failed');
