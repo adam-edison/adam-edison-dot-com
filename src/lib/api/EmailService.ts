@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import { ContactFormServerData } from '@/lib/validations/contact';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { TemplateRenderer } from './TemplateRenderer';
 
 export interface EmailConfiguration {
   apiKey: string;
@@ -83,7 +84,7 @@ export class EmailService {
   }
 
   private createEmailHTML(data: ContactFormServerData): string {
-    return this.renderTemplate(this.htmlTemplate, {
+    return TemplateRenderer.render(this.htmlTemplate, {
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
@@ -93,24 +94,13 @@ export class EmailService {
   }
 
   private createEmailText(data: ContactFormServerData): string {
-    return this.renderTemplate(this.textTemplate, {
+    return TemplateRenderer.render(this.textTemplate, {
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
       message: data.message,
       submittedAt: new Date().toLocaleString()
     });
-  }
-
-  private renderTemplate(template: string, data: Record<string, string>): string {
-    let result = template;
-
-    for (const [key, value] of Object.entries(data)) {
-      const placeholder = `{{${key}}}`;
-      result = result.replaceAll(placeholder, value);
-    }
-
-    return result;
   }
 }
 
