@@ -1,4 +1,5 @@
-import { sendEmail, sanitizeInput } from '@/lib/api/email';
+import { emailService } from '@/lib/api/EmailService';
+import { InputSanitizer } from '@/lib/api/InputSanitizer';
 import { verifyRecaptcha } from '@/lib/api/recaptcha';
 import {
   contactFormServerSchema,
@@ -84,10 +85,10 @@ export class ContactFormProcessor {
 
   private static sanitizeFormData(formData: Omit<ContactFormSubmissionData, 'recaptchaToken'>) {
     return {
-      firstName: sanitizeInput(formData.firstName),
-      lastName: sanitizeInput(formData.lastName),
-      email: sanitizeInput(formData.email),
-      message: sanitizeInput(formData.message)
+      firstName: InputSanitizer.sanitize(formData.firstName),
+      lastName: InputSanitizer.sanitize(formData.lastName),
+      email: InputSanitizer.sanitize(formData.email),
+      message: InputSanitizer.sanitize(formData.message)
     };
   }
 
@@ -114,7 +115,7 @@ export class ContactFormProcessor {
     sanitizedData: ReturnType<typeof this.sanitizeFormData>
   ): Promise<ProcessFormResult> {
     try {
-      await sendEmail(sanitizedData);
+      await emailService.sendContactEmail(sanitizedData);
       return { success: true };
     } catch (error) {
       return this.handleEmailError(error);
