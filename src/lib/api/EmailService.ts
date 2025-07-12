@@ -9,8 +9,8 @@ export interface EmailConfiguration {
 }
 
 export interface EmailSendResult {
-  data: { id: string };
-  error: null | Error;
+  data: { id: string } | null;
+  error: Error | null;
 }
 
 export class EmailService {
