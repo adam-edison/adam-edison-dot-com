@@ -1,5 +1,7 @@
 import { Resend } from 'resend';
 import { ContactFormServerData } from '@/lib/validations/contact';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 export interface EmailConfiguration {
   apiKey: string;
@@ -16,10 +18,16 @@ export interface EmailSendResult {
 export class EmailService {
   private readonly resend: Resend;
   private readonly config: EmailConfiguration;
+  private readonly htmlTemplate: string;
+  private readonly textTemplate: string;
 
   private constructor(config: EmailConfiguration) {
     this.config = config;
     this.resend = new Resend(config.apiKey);
+
+    const templatesDir = join(process.cwd(), 'src', 'lib', 'templates');
+    this.htmlTemplate = readFileSync(join(templatesDir, 'contact-email.html'), 'utf-8');
+    this.textTemplate = readFileSync(join(templatesDir, 'contact-email.txt'), 'utf-8');
   }
 
   static fromEnv(): EmailService {
@@ -75,62 +83,29 @@ export class EmailService {
   }
 
   private createEmailHTML(data: ContactFormServerData): string {
-    return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <title>New Contact Form Submission</title>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background-color: #f4f4f4; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-          .field { margin-bottom: 15px; }
-          .field strong { color: #2563eb; }
-          .message { background-color: #f9f9f9; padding: 15px; border-left: 4px solid #2563eb; border-radius: 3px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h2>New Contact Form Submission</h2>
-            <p>You've received a new message from your website contact form.</p>
-          </div>
-          
-          <div class="field">
-            <strong>Name:</strong> ${data.firstName} ${data.lastName}
-          </div>
-          
-          <div class="field">
-            <strong>Email:</strong> ${data.email}
-          </div>
-          
-          <div class="field">
-            <strong>Message:</strong>
-            <div class="message">${data.message.replace(/\n/g, '<br>')}</div>
-          </div>
-          
-          <div class="field">
-            <strong>Submitted:</strong> ${new Date().toLocaleString()}
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+    return this.renderTemplate(this.htmlTemplate, {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      message: data.message.replace(/\n/g, '<br>'),
+      submittedAt: new Date().toLocaleString()
+    });
   }
 
   private createEmailText(data: ContactFormServerData): string {
-    return `
-    New Contact Form Submission
-    
-    Name: ${data.firstName} ${data.lastName}
-    Email: ${data.email}
-    
-    Message:
-    ${data.message}
-    
-    Submitted: ${new Date().toLocaleString()}
-  `;
+    return this.renderTemplate(this.textTemplate, {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      message: data.message,
+      submittedAt: new Date().toLocaleString()
+    });
+  }
+
+  private renderTemplate(template: string, data: Record<string, string>): string {
+    return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+      return data[key] || match;
+    });
   }
 }
 
