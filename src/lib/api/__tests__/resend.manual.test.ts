@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import { emailService } from '../EmailService';
+import { emailService } from '@/lib/api/EmailService';
 import { ContactFormServerData } from '@/lib/validations/contact';
 import { fail } from 'assert';
 

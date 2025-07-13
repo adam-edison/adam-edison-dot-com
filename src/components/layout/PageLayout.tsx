@@ -1,6 +1,6 @@
 import { HeaderBanner } from './HeaderBanner';
 import { MainHeader } from './MainHeader';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 
 interface PageLayoutProps {
   children: React.ReactNode;

@@ -2,7 +2,7 @@ import { expect, test, describe, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { ContactForm } from '../ContactForm';
+import { ContactForm } from '@/components/contact/ContactForm';
 import { logger, InMemoryLogger } from '@/lib/logger/Logger';
 
 // Mock the reCAPTCHA hook
