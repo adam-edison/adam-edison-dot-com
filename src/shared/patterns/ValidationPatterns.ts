@@ -1,6 +1,6 @@
 /**
  * Regex patterns for validation operations.
- * Contains commonly used patterns for form validation, data sanitization, and input checking.
+ * Contains patterns for form validation and input checking.
  */
 export class ValidationPatterns {
   /**
@@ -32,22 +32,4 @@ export class ValidationPatterns {
    * Used to detect invalid email formats with double periods
    */
   static readonly CONSECUTIVE_DOTS = /\.\./;
-
-  /**
-   * Matches whitespace-only strings (spaces, tabs, newlines)
-   * Used to ensure required fields contain non-whitespace content
-   */
-  static readonly WHITESPACE_ONLY = /^\s*$/;
-
-  /**
-   * Matches valid URL format (http/https)
-   * Used for URL validation in forms
-   */
-  static readonly URL = /^https?:\/\/[^\s/$.?#].[^\s]*$/i;
-
-  /**
-   * Matches valid phone number formats
-   * Supports: (123) 456-7890, 123-456-7890, 123.456.7890, +1 123 456 7890
-   */
-  static readonly PHONE = /^(\+\d{1,3}\s?)?(\(?\d{3}\)?[\s.-]?)?\d{3}[\s.-]?\d{4}$/;
 }
