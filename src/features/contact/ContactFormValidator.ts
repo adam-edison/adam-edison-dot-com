@@ -1,6 +1,6 @@
 import { z } from 'zod';
+import { ValidationPatterns } from '@/shared/patterns/ValidationPatterns';
 
-// Custom validator for non-whitespace content
 const nonWhitespaceString = (minLength: number, maxLength: number) =>
   z
     .string()
@@ -10,7 +10,6 @@ const nonWhitespaceString = (minLength: number, maxLength: number) =>
       message: `Must contain at least ${minLength} non-whitespace characters`
     });
 
-// Base schema without reCAPTCHA token
 const baseContactSchema = z.object({
   firstName: z
     .string()
@@ -18,15 +17,15 @@ const baseContactSchema = z.object({
     .max(50, 'First name must be at most 50 characters')
     .refine((val) => {
       // Must contain at least one letter (Unicode letter category)
-      return /\p{L}/u.test(val);
+      return ValidationPatterns.UNICODE_LETTER.test(val);
     }, 'First name must contain at least one letter')
     .refine((val) => {
       // Cannot be purely numbers
-      return !/^\d+$/.test(val);
+      return !ValidationPatterns.ONLY_DIGITS.test(val);
     }, 'First name cannot be only numbers')
     .refine((val) => {
       // Cannot be purely symbols/punctuation
-      return !/^[\p{P}\p{S}]+$/u.test(val);
+      return !ValidationPatterns.ONLY_SYMBOLS.test(val);
     }, 'First name cannot be only symbols'),
   lastName: z
     .string()
@@ -34,15 +33,15 @@ const baseContactSchema = z.object({
     .max(50, 'Last name must be at most 50 characters')
     .refine((val) => {
       // Must contain at least one letter (Unicode letter category)
-      return /\p{L}/u.test(val);
+      return ValidationPatterns.UNICODE_LETTER.test(val);
     }, 'Last name must contain at least one letter')
     .refine((val) => {
       // Cannot be purely numbers
-      return !/^\d+$/.test(val);
+      return !ValidationPatterns.ONLY_DIGITS.test(val);
     }, 'Last name cannot be only numbers')
     .refine((val) => {
       // Cannot be purely symbols/punctuation
-      return !/^[\p{P}\p{S}]+$/u.test(val);
+      return !ValidationPatterns.ONLY_SYMBOLS.test(val);
     }, 'Last name cannot be only symbols'),
   email: z
     .string()
@@ -51,8 +50,7 @@ const baseContactSchema = z.object({
     .max(100, 'Email must be at most 100 characters')
     .refine((email) => {
       // Additional validation: check for common email patterns
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      return emailRegex.test(email);
+      return ValidationPatterns.EMAIL_FORMAT.test(email);
     }, 'Please enter a valid email address')
     .refine((email) => {
       // Prevent obvious fake emails
@@ -60,11 +58,9 @@ const baseContactSchema = z.object({
       return !fakePatterns.some((pattern) => email.toLowerCase().includes(pattern));
     }, 'Please enter a valid email address')
     .refine((email) => {
-      // Check for consecutive dots
-      return !email.includes('..');
+      return !ValidationPatterns.CONSECUTIVE_DOTS.test(email);
     }, 'Please enter a valid email address')
     .refine((email) => {
-      // Check for valid TLD (at least 2 characters)
       const parts = email.split('@');
       if (parts.length !== 2) return false;
       const domain = parts[1];
@@ -79,61 +75,58 @@ export type ContactFormSubmissionData = ContactFormData & { recaptchaToken: stri
 export type ContactFormServerData = ContactFormData;
 
 export class ContactFormValidator {
-  // Client-side form schema (without reCAPTCHA token for form validation)
-  static readonly contactFormSchema = baseContactSchema;
+  static readonly clientFormValidationSchema = baseContactSchema;
 
-  // Full schema with reCAPTCHA token for API submission
-  static readonly contactFormSubmissionSchema = baseContactSchema.extend({
+  static readonly clientSubmissionSchema = baseContactSchema.extend({
     recaptchaToken: z.string().min(1, 'Please complete the reCAPTCHA verification')
   });
 
-  // Server-side schema without reCAPTCHA token
-  static readonly contactFormServerSchema = baseContactSchema;
+  static readonly serverProcessingSchema = baseContactSchema;
 
   /**
    * Validates form data for client-side use (without reCAPTCHA)
    */
   static validateFormData(data: unknown): z.SafeParseReturnType<unknown, ContactFormData> {
-    return this.contactFormSchema.safeParse(data);
+    return this.clientFormValidationSchema.safeParse(data);
   }
 
   /**
    * Validates submission data including reCAPTCHA token
    */
   static validateSubmissionData(data: unknown): z.SafeParseReturnType<unknown, ContactFormSubmissionData> {
-    return this.contactFormSubmissionSchema.safeParse(data);
+    return this.clientSubmissionSchema.safeParse(data);
   }
 
   /**
    * Validates server-side data (without reCAPTCHA)
    */
   static validateServerData(data: unknown): z.SafeParseReturnType<unknown, ContactFormServerData> {
-    return this.contactFormServerSchema.safeParse(data);
+    return this.serverProcessingSchema.safeParse(data);
   }
 
   /**
    * Parses form data and throws on validation error
    */
   static parseFormData(data: unknown): ContactFormData {
-    return this.contactFormSchema.parse(data);
+    return this.clientFormValidationSchema.parse(data);
   }
 
   /**
    * Parses submission data and throws on validation error
    */
   static parseSubmissionData(data: unknown): ContactFormSubmissionData {
-    return this.contactFormSubmissionSchema.parse(data);
+    return this.clientSubmissionSchema.parse(data);
   }
 
   /**
    * Parses server data and throws on validation error
    */
   static parseServerData(data: unknown): ContactFormServerData {
-    return this.contactFormServerSchema.parse(data);
+    return this.serverProcessingSchema.parse(data);
   }
 }
 
 // Legacy exports for backward compatibility (to be removed after migration)
-export const contactFormSchema = ContactFormValidator.contactFormSchema;
-export const contactFormSubmissionSchema = ContactFormValidator.contactFormSubmissionSchema;
-export const contactFormServerSchema = ContactFormValidator.contactFormServerSchema;
+export const contactFormSchema = ContactFormValidator.clientFormValidationSchema;
+export const contactFormSubmissionSchema = ContactFormValidator.clientSubmissionSchema;
+export const contactFormServerSchema = ContactFormValidator.serverProcessingSchema;

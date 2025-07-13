@@ -28,7 +28,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
     reset,
     control
   } = useForm<ContactFormData>({
-    resolver: zodResolver(ContactFormValidator.contactFormSchema),
+    resolver: zodResolver(ContactFormValidator.clientFormValidationSchema),
     mode: 'onChange'
   });
 
@@ -40,7 +40,6 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
     setErrorMessage('');
 
     try {
-      // Try to get reCAPTCHA token, but proceed even if it fails (fail-open)
       let recaptchaToken = '';
 
       if (executeRecaptcha) {
@@ -73,7 +72,6 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         const errorData = await response.json();
         setSubmitStatus('error');
 
-        // Provide user-friendly error messages
         let friendlyMessage = errorData.message || 'Failed to send message';
         if (friendlyMessage.includes('reCAPTCHA')) {
           friendlyMessage = 'Security verification failed. Please refresh the page and try again.';

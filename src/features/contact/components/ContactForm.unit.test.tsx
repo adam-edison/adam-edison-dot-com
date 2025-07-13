@@ -5,7 +5,6 @@ import '@testing-library/jest-dom';
 import { ContactForm } from './ContactForm';
 import { logger, InMemoryLogger } from '@/shared/Logger';
 
-// Mock the reCAPTCHA hook
 const mockExecuteRecaptcha = vi.fn();
 vi.mock('react-google-recaptcha-v3', () => ({
   GoogleReCaptchaProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -14,23 +13,18 @@ vi.mock('react-google-recaptcha-v3', () => ({
   })
 }));
 
-// Mock fetch
 global.fetch = vi.fn() as unknown as typeof fetch;
-
-// No mocking needed - InMemoryLogger is used automatically in tests
 
 describe('ContactForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockExecuteRecaptcha.mockResolvedValue('test-recaptcha-token');
 
-    // Set environment variables for tests
     vi.stubEnv('NEXT_PUBLIC_RECAPTCHA_SITE_KEY', 'test-site-key');
     vi.stubEnv('RECAPTCHA_SECRET_KEY', 'test-secret-key');
     vi.stubEnv('RECAPTCHA_SCORE_THRESHOLD', '0');
     vi.stubEnv('SEND_EMAIL_ENABLED', 'false');
 
-    // Mock the config check API call to return success by default
     vi.mocked(fetch).mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/config-check')) {
         return new Response(JSON.stringify({ configured: true }), {
@@ -39,7 +33,6 @@ describe('ContactForm', () => {
         });
       }
 
-      // Default mock for contact form submission
       return new Response(JSON.stringify({ message: 'Message sent successfully' }), {
         status: 200,
         statusText: 'OK'
@@ -116,7 +109,6 @@ describe('ContactForm', () => {
         });
       }
 
-      // Mock reCAPTCHA failure for contact form submission
       return new Response(JSON.stringify({ message: 'reCAPTCHA verification failed' }), {
         status: 400,
         statusText: 'Bad Request'
@@ -147,7 +139,6 @@ describe('ContactForm', () => {
         });
       }
 
-      // Mock API error for contact form submission
       return new Response(JSON.stringify({ message: 'Failed to send message' }), {
         status: 500,
         statusText: 'Internal Server Error'
@@ -185,7 +176,6 @@ describe('ContactForm', () => {
         });
       }
 
-      // Mock network error for contact form submission
       throw new Error('Network error');
     });
 
@@ -202,7 +192,6 @@ describe('ContactForm', () => {
       expect(screen.getByText(/network error/i)).toBeInTheDocument();
     });
 
-    // Verify that error was logged
     await waitFor(() => {
       const errorLogs = (logger as InMemoryLogger).getErrorLogs();
       expect(errorLogs.length).toBeGreaterThan(0);
@@ -272,7 +261,6 @@ describe('ContactForm', () => {
       expect(screen.getByText(/contact form is not available/i)).toBeInTheDocument();
     });
 
-    // Should not expose configuration details to frontend
     expect(screen.queryByText(/missing configuration/i)).not.toBeInTheDocument();
   });
 
@@ -294,7 +282,6 @@ describe('ContactForm', () => {
       expect(screen.getByText(/contact form is not available/i)).toBeInTheDocument();
     });
 
-    // Verify that error was logged
     await waitFor(() => {
       const errorLogs = (logger as InMemoryLogger).getErrorLogs();
       expect(errorLogs.length).toBeGreaterThan(0);

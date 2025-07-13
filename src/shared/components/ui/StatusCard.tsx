@@ -71,7 +71,6 @@ export function StatusCard({ variant, children, message, showIcon = false, class
 
   const containerClasses = cn(variantClasses[variant], 'rounded-lg p-4', className);
 
-  // If message is provided, render with icon and message
   if (message) {
     return (
       <div className={containerClasses}>
@@ -83,6 +82,5 @@ export function StatusCard({ variant, children, message, showIcon = false, class
     );
   }
 
-  // Otherwise render with children
   return <div className={containerClasses}>{children}</div>;
 }

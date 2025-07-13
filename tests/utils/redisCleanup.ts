@@ -1,10 +1,5 @@
 import { Redis } from '@upstash/redis';
-import { config } from 'dotenv';
-import { join } from 'path';
 import { logger } from '@/shared/Logger';
-
-// Load environment variables from .env.local for Redis access
-config({ path: join(process.cwd(), '.env.local') });
 
 /**
  * Utility function to clean up Redis keys with a specific pattern

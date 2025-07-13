@@ -23,7 +23,6 @@ describe('RateLimiter Integration Tests', () => {
   });
 
   afterEach(async () => {
-    // Clean up test keys after each test
     await rateLimiter.clearKeys(`${testPrefix}:*`);
   });
 
@@ -43,7 +42,6 @@ describe('RateLimiter Integration Tests', () => {
     const identifier = generateUniqueIdentifier(testPrefix);
     const results = [];
 
-    // Make 6 requests sequentially
     for (let i = 0; i < 6; i++) {
       const result = await rateLimiter.checkLimit(identifier);
       results.push(result);
@@ -61,7 +59,6 @@ describe('RateLimiter Integration Tests', () => {
     expect(successful.length).toBe(5);
     expect(rateLimited.length).toBe(1);
 
-    // Check that the first request shows correct remaining count
     expect(successful[0].remaining).toBe(4);
   });
 

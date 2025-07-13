@@ -4,7 +4,6 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import { loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
-  // Load environment variables from .env files
   const env = loadEnv(mode, process.cwd(), '');
 
   return {

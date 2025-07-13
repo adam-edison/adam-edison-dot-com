@@ -4,7 +4,6 @@ import { cleanupE2EKeys } from '@tests/utils/redisCleanup';
 
 test.describe('Rate Limiting', () => {
   test.afterEach(async () => {
-    // Clean up Redis keys after each test to prevent interference
     await cleanupE2EKeys();
   });
   test('should rate limit after 5 requests in 10 minutes', async ({ request }) => {
@@ -20,7 +19,6 @@ test.describe('Rate Limiting', () => {
       recaptchaToken: 'dummy-token'
     };
 
-    // Use a unique IP to avoid interference with other tests
     const uniqueIP = generateUniqueIP();
 
     // Make 5 requests (should all succeed)

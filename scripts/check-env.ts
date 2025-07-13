@@ -16,7 +16,6 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 function checkEnvironmentVariables(): void {
-  // Load environment variables from .env.local first (dotenv respects existing process.env)
   config({ path: join(process.cwd(), '.env.local') });
 
   const envExamplePath = join(process.cwd(), '.env.example');
@@ -26,7 +25,6 @@ function checkEnvironmentVariables(): void {
     process.exit(1);
   }
 
-  // Parse .env.example to get required variables
   const envExampleContent = readFileSync(envExamplePath, 'utf8');
   const envExampleVars = parse(envExampleContent);
   const requiredVars = Object.keys(envExampleVars);
@@ -54,5 +52,4 @@ function checkEnvironmentVariables(): void {
   console.log('🚀 Proceeding with build...');
 }
 
-// Run the check
 checkEnvironmentVariables();

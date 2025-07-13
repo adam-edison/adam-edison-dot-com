@@ -23,7 +23,6 @@ export class RateLimiterDataStore {
     return new RateLimiterDataStore(redis, prefix);
   }
 
-  // Basic Redis operations
   async getKeys(pattern: string): Promise<string[]> {
     return this.redis.keys(pattern);
   }
@@ -32,7 +31,6 @@ export class RateLimiterDataStore {
     return this.redis.del(...keys);
   }
 
-  // Rate limiting operations - encapsulates Upstash Ratelimit
   async checkRateLimit(identifier: string, limit: number, window: string): Promise<RateLimitResult> {
     const windowDuration = window as Duration;
 
