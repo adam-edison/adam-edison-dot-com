@@ -29,68 +29,51 @@ export class Logger {
       console.debug(this.formatMessage('DEBUG', message), ...args);
     }
   }
-}
 
-export interface LogEntry {
-  level: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
-  message: string;
-  args: unknown[];
-  timestamp: Date;
+  clear(): void {
+    // No-op for console logger - can't clear console logs
+  }
+
+  getOutput(): string {
+    // Console logger doesn't store output, return empty string
+    return '';
+  }
 }
 
 export class InMemoryLogger extends Logger {
-  public logs: LogEntry[] = [];
+  private output: string = '';
+
+  private appendToOutput(level: string, message: string, ...args: unknown[]): void {
+    const formattedMessage = this.formatMessage(level, message);
+    const argsString =
+      args.length > 0
+        ? ' ' + args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ')
+        : '';
+    this.output += formattedMessage + argsString + '\n';
+  }
 
   error(message: string, ...args: unknown[]): void {
-    this.logs.push({
-      level: 'ERROR',
-      message,
-      args,
-      timestamp: new Date()
-    });
+    this.appendToOutput('ERROR', message, ...args);
   }
 
   warn(message: string, ...args: unknown[]): void {
-    this.logs.push({
-      level: 'WARN',
-      message,
-      args,
-      timestamp: new Date()
-    });
+    this.appendToOutput('WARN', message, ...args);
   }
 
   info(message: string, ...args: unknown[]): void {
-    this.logs.push({
-      level: 'INFO',
-      message,
-      args,
-      timestamp: new Date()
-    });
+    this.appendToOutput('INFO', message, ...args);
   }
 
   debug(message: string, ...args: unknown[]): void {
-    this.logs.push({
-      level: 'DEBUG',
-      message,
-      args,
-      timestamp: new Date()
-    });
+    this.appendToOutput('DEBUG', message, ...args);
   }
 
   clear(): void {
-    this.logs = [];
+    this.output = '';
   }
 
-  getLogsByLevel(level: LogEntry['level']): LogEntry[] {
-    return this.logs.filter((log) => log.level === level);
-  }
-
-  getErrorLogs(): LogEntry[] {
-    return this.getLogsByLevel('ERROR');
-  }
-
-  getWarnLogs(): LogEntry[] {
-    return this.getLogsByLevel('WARN');
+  getOutput(): string {
+    return this.output;
   }
 }
 

@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { ContactForm } from './ContactForm';
-import { logger, InMemoryLogger } from '@/shared/Logger';
+import { logger } from '@/shared/Logger';
 
 const mockExecuteRecaptcha = vi.fn();
 vi.mock('react-google-recaptcha-v3', () => ({
@@ -193,9 +193,8 @@ describe('ContactForm', () => {
     });
 
     await waitFor(() => {
-      const errorLogs = (logger as InMemoryLogger).getErrorLogs();
-      expect(errorLogs.length).toBeGreaterThan(0);
-      expect(errorLogs[0].message).toContain('Contact form submission error');
+      const output = logger.getOutput();
+      expect(output).toContain('ERROR Contact form submission error');
     });
   });
 
@@ -283,9 +282,8 @@ describe('ContactForm', () => {
     });
 
     await waitFor(() => {
-      const errorLogs = (logger as InMemoryLogger).getErrorLogs();
-      expect(errorLogs.length).toBeGreaterThan(0);
-      expect(errorLogs[0].message).toContain('Failed to check server configuration');
+      const output = logger.getOutput();
+      expect(output).toContain('ERROR Failed to check server configuration');
     });
   });
 });

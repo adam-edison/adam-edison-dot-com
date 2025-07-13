@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { logger, InMemoryLogger } from './Logger';
+import { logger, InMemoryLogger, Logger } from './Logger';
 
 describe('Logger', () => {
-  let testLogger: InMemoryLogger;
+  let testLogger: Logger;
 
   beforeEach(() => {
-    testLogger = logger as InMemoryLogger;
+    testLogger = logger;
+    testLogger.clear();
   });
 
   it('should be InMemoryLogger in test environment', () => {
@@ -16,24 +17,20 @@ describe('Logger', () => {
     expect(logger.debug).toBeInstanceOf(Function);
   });
 
-  it('should log error messages to memory', () => {
+  it('should log error messages to output string', () => {
     testLogger.error('Test error message', { key: 'value' });
 
-    const errorLogs = testLogger.getErrorLogs();
-    expect(errorLogs).toHaveLength(1);
-    expect(errorLogs[0].message).toBe('Test error message');
-    expect(errorLogs[0].level).toBe('ERROR');
-    expect(errorLogs[0].args).toEqual([{ key: 'value' }]);
+    const output = testLogger.getOutput();
+    expect(output).toContain('ERROR Test error message');
+    expect(output).toContain('{"key":"value"}');
   });
 
-  it('should log warn messages to memory', () => {
+  it('should log warn messages to output string', () => {
     testLogger.warn('Test warning', 'extra arg');
 
-    const warnLogs = testLogger.getWarnLogs();
-    expect(warnLogs).toHaveLength(1);
-    expect(warnLogs[0].message).toBe('Test warning');
-    expect(warnLogs[0].level).toBe('WARN');
-    expect(warnLogs[0].args).toEqual(['extra arg']);
+    const output = testLogger.getOutput();
+    expect(output).toContain('WARN Test warning');
+    expect(output).toContain('extra arg');
   });
 
   it('should clear logs', () => {
@@ -41,24 +38,26 @@ describe('Logger', () => {
     testLogger.warn('Warning 1');
     testLogger.info('Info 1');
 
-    expect(testLogger.logs).toHaveLength(3);
+    expect(testLogger.getOutput()).toContain('Error 1');
+    expect(testLogger.getOutput()).toContain('Warning 1');
+    expect(testLogger.getOutput()).toContain('Info 1');
 
     testLogger.clear();
 
-    expect(testLogger.logs).toHaveLength(0);
-    expect(testLogger.getErrorLogs()).toHaveLength(0);
+    expect(testLogger.getOutput()).toBe('');
   });
 
-  it('should filter logs by level', () => {
+  it('should store all log levels in unified output', () => {
     testLogger.error('Error message');
     testLogger.warn('Warning message');
     testLogger.info('Info message');
     testLogger.debug('Debug message');
 
-    expect(testLogger.getLogsByLevel('ERROR')).toHaveLength(1);
-    expect(testLogger.getLogsByLevel('WARN')).toHaveLength(1);
-    expect(testLogger.getLogsByLevel('INFO')).toHaveLength(1);
-    expect(testLogger.getLogsByLevel('DEBUG')).toHaveLength(1);
+    const output = testLogger.getOutput();
+    expect(output).toContain('ERROR Error message');
+    expect(output).toContain('WARN Warning message');
+    expect(output).toContain('INFO Info message');
+    expect(output).toContain('DEBUG Debug message');
   });
 
   it('should be the same instance everywhere', () => {
