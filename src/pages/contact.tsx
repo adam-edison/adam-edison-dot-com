@@ -1,8 +1,8 @@
-import { PageLayout } from '@/components/layout/PageLayout';
-import { ContactHeader } from '@/components/contact/ContactHeader';
-import { ContactInfo } from '@/components/contact/ContactInfo';
-import { ServicesInfo } from '@/components/contact/ServicesInfo';
-import { FormSection } from '@/components/contact/FormSection';
+import { PageLayout } from '@/shared/components/layout/PageLayout';
+import { ContactHeader } from '@/features/contact/components/ContactHeader';
+import { ContactInfo } from '@/features/contact/components/ContactInfo';
+import { ServicesInfo } from '@/features/contact/components/ServicesInfo';
+import { FormSection } from '@/features/contact/components/FormSection';
 import Head from 'next/head';
 
 export default function Contact() {

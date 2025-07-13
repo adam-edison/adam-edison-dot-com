@@ -1,7 +1,7 @@
-import { contactRateLimiter } from '@/lib/api/ContactRateLimiter';
-import { RequestValidator } from '@/lib/api/RequestValidator';
-import { ContactFormProcessor } from '@/lib/api/ContactFormProcessor';
-import { logger } from '@/lib/logger/Logger';
+import { contactRateLimiter } from '@/features/contact/ContactRateLimiter';
+import { RequestValidator } from '@/shared/RequestValidator';
+import { ContactFormProcessor } from '@/features/contact/ContactFormProcessor';
+import { logger } from '@/shared/Logger';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

@@ -1,11 +1,11 @@
-import { PageLayout } from '@/components/layout/PageLayout';
-import { ProfessionalSummary } from '@/components/resume/ProfessionalSummary';
-import { WorkExperience } from '@/components/resume/WorkExperience';
-import { PreviousExperience } from '@/components/resume/PreviousExperience';
-import { Education } from '@/components/resume/Education';
-import { Skills } from '@/components/resume/Skills';
-import { DownloadButton } from '@/components/resume/DownloadButton';
-import { experiences, skills, professionalSummary, previousExperience, education } from '@/data/resume';
+import { PageLayout } from '@/shared/components/layout/PageLayout';
+import { ProfessionalSummary } from '@/features/resume/components/ProfessionalSummary';
+import { WorkExperience } from '@/features/resume/components/WorkExperience';
+import { PreviousExperience } from '@/features/resume/components/PreviousExperience';
+import { Education } from '@/features/resume/components/Education';
+import { Skills } from '@/features/resume/components/Skills';
+import { DownloadButton } from '@/features/resume/components/DownloadButton';
+import { experiences, skills, professionalSummary, previousExperience, education } from '@/features/resume/resume-data';
 
 export default function Resume() {
   return (

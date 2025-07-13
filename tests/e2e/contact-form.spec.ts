@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { generateUniqueIP } from '@tests/utils/testHelpers';
-import { cleanupE2EKeys } from '@tests/utils/redisCleanup';
+import { generateUniqueIP } from '../utils/testHelpers';
+import { cleanupE2EKeys } from '../utils/redisCleanup';
 
 test.describe('Contact Form', () => {
   test.afterEach(async () => {
