@@ -23,6 +23,7 @@
   - ✅ Remove outdated comments and unnecessary comments
   - Make InMemoryLogger and Logger have a unified interface
   - Extract lots of hardcoded variables as env values
+  - Fix the dotenv logging out warnings during tests
   - Get rid of unnecessary nesting and simplify code logic
   - Make top-level error handler reused across API endpoints if possible, and simplify error handling
 
