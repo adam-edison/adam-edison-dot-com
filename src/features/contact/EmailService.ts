@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { ContactFormServerData } from './contact-validation';
+import { ContactFormServerData } from './ContactFormValidator';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { TemplateRenderer } from '@/shared/TemplateRenderer';

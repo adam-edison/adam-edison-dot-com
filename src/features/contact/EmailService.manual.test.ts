@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { emailService } from './EmailService';
-import { ContactFormServerData } from './contact-validation';
+import { ContactFormServerData } from './ContactFormValidator';
 import { fail } from 'assert';
 
 /* Run this test with:

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
-import { contactFormSchema, ContactFormData } from '@/features/contact/contact-validation';
+import { ContactFormValidator, ContactFormData } from '@/features/contact/ContactFormValidator';
 import { ContactSuccessMessage } from './ContactSuccessMessage';
 import { StatusCard } from '@/shared/components/ui/StatusCard';
 import { InputField } from './InputField';
@@ -28,7 +28,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
     reset,
     control
   } = useForm<ContactFormData>({
-    resolver: zodResolver(contactFormSchema),
+    resolver: zodResolver(ContactFormValidator.contactFormSchema),
     mode: 'onChange'
   });
 

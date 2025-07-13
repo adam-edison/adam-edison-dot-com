@@ -74,18 +74,66 @@ const baseContactSchema = z.object({
   message: nonWhitespaceString(50, 1000)
 });
 
-// Client-side form schema (without reCAPTCHA token for form validation)
-export const contactFormSchema = baseContactSchema;
+export type ContactFormData = z.infer<typeof baseContactSchema>;
+export type ContactFormSubmissionData = ContactFormData & { recaptchaToken: string };
+export type ContactFormServerData = ContactFormData;
 
-// Full schema with reCAPTCHA token for API submission
-export const contactFormSubmissionSchema = baseContactSchema.extend({
-  recaptchaToken: z.string().min(1, 'Please complete the reCAPTCHA verification')
-});
+export class ContactFormValidator {
+  // Client-side form schema (without reCAPTCHA token for form validation)
+  static readonly contactFormSchema = baseContactSchema;
 
-export type ContactFormData = z.infer<typeof contactFormSchema>;
-export type ContactFormSubmissionData = z.infer<typeof contactFormSubmissionSchema>;
+  // Full schema with reCAPTCHA token for API submission
+  static readonly contactFormSubmissionSchema = baseContactSchema.extend({
+    recaptchaToken: z.string().min(1, 'Please complete the reCAPTCHA verification')
+  });
 
-// Server-side schema without reCAPTCHA token
-export const contactFormServerSchema = baseContactSchema;
+  // Server-side schema without reCAPTCHA token
+  static readonly contactFormServerSchema = baseContactSchema;
 
-export type ContactFormServerData = z.infer<typeof contactFormServerSchema>;
+  /**
+   * Validates form data for client-side use (without reCAPTCHA)
+   */
+  static validateFormData(data: unknown): z.SafeParseReturnType<unknown, ContactFormData> {
+    return this.contactFormSchema.safeParse(data);
+  }
+
+  /**
+   * Validates submission data including reCAPTCHA token
+   */
+  static validateSubmissionData(data: unknown): z.SafeParseReturnType<unknown, ContactFormSubmissionData> {
+    return this.contactFormSubmissionSchema.safeParse(data);
+  }
+
+  /**
+   * Validates server-side data (without reCAPTCHA)
+   */
+  static validateServerData(data: unknown): z.SafeParseReturnType<unknown, ContactFormServerData> {
+    return this.contactFormServerSchema.safeParse(data);
+  }
+
+  /**
+   * Parses form data and throws on validation error
+   */
+  static parseFormData(data: unknown): ContactFormData {
+    return this.contactFormSchema.parse(data);
+  }
+
+  /**
+   * Parses submission data and throws on validation error
+   */
+  static parseSubmissionData(data: unknown): ContactFormSubmissionData {
+    return this.contactFormSubmissionSchema.parse(data);
+  }
+
+  /**
+   * Parses server data and throws on validation error
+   */
+  static parseServerData(data: unknown): ContactFormServerData {
+    return this.contactFormServerSchema.parse(data);
+  }
+}
+
+// Legacy exports for backward compatibility (to be removed after migration)
+export const contactFormSchema = ContactFormValidator.contactFormSchema;
+export const contactFormSubmissionSchema = ContactFormValidator.contactFormSubmissionSchema;
+export const contactFormServerSchema = ContactFormValidator.contactFormServerSchema;

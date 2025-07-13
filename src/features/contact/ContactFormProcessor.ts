@@ -1,7 +1,7 @@
 import { emailService } from './EmailService';
 import { InputSanitizer } from './InputSanitizer';
 import { recaptchaService } from './RecaptchaService';
-import { contactFormServerSchema, contactFormSubmissionSchema, ContactFormSubmissionData } from './contact-validation';
+import { ContactFormValidator, ContactFormSubmissionData } from './ContactFormValidator';
 import { logger } from '@/shared/Logger';
 
 export interface ProcessFormResult {
@@ -46,7 +46,7 @@ export class ContactFormProcessor {
   }
 
   private static validateFormData(formData: unknown): ValidationResult {
-    const validationResult = contactFormSubmissionSchema.safeParse(formData);
+    const validationResult = ContactFormValidator.validateSubmissionData(formData);
     if (!validationResult.success) {
       logger.error('Contact form validation failed:', validationResult.error.errors);
       return {
@@ -89,7 +89,7 @@ export class ContactFormProcessor {
   }
 
   private static validateSanitizedData(sanitizedData: ReturnType<typeof this.sanitizeFormData>): ProcessFormResult {
-    const serverValidationResult = contactFormServerSchema.safeParse(sanitizedData);
+    const serverValidationResult = ContactFormValidator.validateServerData(sanitizedData);
 
     if (!serverValidationResult.success) {
       logger.error('Server validation failed after sanitization:', serverValidationResult.error.errors);
