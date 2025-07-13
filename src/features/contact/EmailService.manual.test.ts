@@ -9,7 +9,6 @@ import { fail } from 'assert';
 
 describe('Resend Email Integration (Manual)', () => {
   beforeEach(() => {
-    // Check if required environment variables are present
     const requiredEnvVars = ['RESEND_API_KEY', 'FROM_EMAIL', 'TO_EMAIL'];
     const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
@@ -32,7 +31,6 @@ describe('Resend Email Integration (Manual)', () => {
 
     const result = await emailService.sendContactEmail(testData);
 
-    // Verify the result is not a mock email response
     expect(result).toMatchObject({
       data: {
         id: expect.stringMatching(/^(?!mock-email-id$).+/)

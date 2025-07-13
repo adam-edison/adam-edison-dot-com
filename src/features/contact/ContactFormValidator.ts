@@ -58,11 +58,9 @@ const baseContactSchema = z.object({
       return !fakePatterns.some((pattern) => email.toLowerCase().includes(pattern));
     }, 'Please enter a valid email address')
     .refine((email) => {
-      // Check for consecutive dots
       return !email.includes('..');
     }, 'Please enter a valid email address')
     .refine((email) => {
-      // Check for valid TLD (at least 2 characters)
       const parts = email.split('@');
       if (parts.length !== 2) return false;
       const domain = parts[1];

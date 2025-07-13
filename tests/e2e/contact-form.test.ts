@@ -4,7 +4,6 @@ import { cleanupE2EKeys } from '@tests/utils/redisCleanup';
 
 test.describe('Contact Form', () => {
   test.afterEach(async () => {
-    // Clean up Redis keys after each test to prevent interference
     await cleanupE2EKeys();
   });
   test('should successfully submit contact form', async ({ request }) => {
@@ -17,7 +16,6 @@ test.describe('Contact Form', () => {
       recaptchaToken: 'dummy-token'
     };
 
-    // Use a unique IP to avoid rate limiting between test runs
     const uniqueIP = generateUniqueIP();
 
     const response = await request.post('/api/contact', {

@@ -41,7 +41,6 @@ describe('ConfigChecker', () => {
         missingVars: ['FROM_EMAIL', 'TO_EMAIL']
       });
 
-      // Check that error was logged
       const errorLogs = testLogger.getErrorLogs();
       expect(errorLogs).toHaveLength(1);
       expect(errorLogs[0].message).toBe('Missing required environment variables:');
