@@ -1,3 +1,5 @@
+import { TemplatePatterns } from '@/shared/patterns/TemplatePatterns';
+
 export interface TemplateData {
   [key: string]: string;
 }
@@ -30,11 +32,10 @@ export class TemplateRenderer {
    * @returns Array of missing placeholder keys, empty if all are provided
    */
   static validateTemplate(template: string, data: TemplateData): string[] {
-    const placeholderRegex = /\{\{(\w+)\}\}/g;
     const placeholders = new Set<string>();
     let match;
 
-    while ((match = placeholderRegex.exec(template)) !== null) {
+    while ((match = TemplatePatterns.PLACEHOLDER.exec(template)) !== null) {
       placeholders.add(match[1]);
     }
 
@@ -55,11 +56,10 @@ export class TemplateRenderer {
    * @returns Array of unique placeholder names found in the template
    */
   static extractPlaceholders(template: string): string[] {
-    const placeholderRegex = /\{\{(\w+)\}\}/g;
     const placeholders = new Set<string>();
     let match;
 
-    while ((match = placeholderRegex.exec(template)) !== null) {
+    while ((match = TemplatePatterns.PLACEHOLDER.exec(template)) !== null) {
       placeholders.add(match[1]);
     }
 

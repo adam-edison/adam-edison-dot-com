@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ValidationPatterns } from '@/shared/patterns/ValidationPatterns';
 
 const nonWhitespaceString = (minLength: number, maxLength: number) =>
   z
@@ -16,15 +17,15 @@ const baseContactSchema = z.object({
     .max(50, 'First name must be at most 50 characters')
     .refine((val) => {
       // Must contain at least one letter (Unicode letter category)
-      return /\p{L}/u.test(val);
+      return ValidationPatterns.UNICODE_LETTER.test(val);
     }, 'First name must contain at least one letter')
     .refine((val) => {
       // Cannot be purely numbers
-      return !/^\d+$/.test(val);
+      return !ValidationPatterns.ONLY_DIGITS.test(val);
     }, 'First name cannot be only numbers')
     .refine((val) => {
       // Cannot be purely symbols/punctuation
-      return !/^[\p{P}\p{S}]+$/u.test(val);
+      return !ValidationPatterns.ONLY_SYMBOLS.test(val);
     }, 'First name cannot be only symbols'),
   lastName: z
     .string()
@@ -32,15 +33,15 @@ const baseContactSchema = z.object({
     .max(50, 'Last name must be at most 50 characters')
     .refine((val) => {
       // Must contain at least one letter (Unicode letter category)
-      return /\p{L}/u.test(val);
+      return ValidationPatterns.UNICODE_LETTER.test(val);
     }, 'Last name must contain at least one letter')
     .refine((val) => {
       // Cannot be purely numbers
-      return !/^\d+$/.test(val);
+      return !ValidationPatterns.ONLY_DIGITS.test(val);
     }, 'Last name cannot be only numbers')
     .refine((val) => {
       // Cannot be purely symbols/punctuation
-      return !/^[\p{P}\p{S}]+$/u.test(val);
+      return !ValidationPatterns.ONLY_SYMBOLS.test(val);
     }, 'Last name cannot be only symbols'),
   email: z
     .string()
@@ -49,8 +50,7 @@ const baseContactSchema = z.object({
     .max(100, 'Email must be at most 100 characters')
     .refine((email) => {
       // Additional validation: check for common email patterns
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      return emailRegex.test(email);
+      return ValidationPatterns.EMAIL_FORMAT.test(email);
     }, 'Please enter a valid email address')
     .refine((email) => {
       // Prevent obvious fake emails
@@ -58,7 +58,7 @@ const baseContactSchema = z.object({
       return !fakePatterns.some((pattern) => email.toLowerCase().includes(pattern));
     }, 'Please enter a valid email address')
     .refine((email) => {
-      return !email.includes('..');
+      return !ValidationPatterns.CONSECUTIVE_DOTS.test(email);
     }, 'Please enter a valid email address')
     .refine((email) => {
       const parts = email.split('@');
