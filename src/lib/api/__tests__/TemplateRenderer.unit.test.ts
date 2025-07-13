@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TemplateRenderer } from '../TemplateRenderer';
+import { TemplateRenderer } from '@/lib/api/TemplateRenderer';
 
 describe('TemplateRenderer', () => {
   describe('render', () => {

@@ -6,7 +6,7 @@ import {
   type ContactFormData,
   type ContactFormSubmissionData,
   type ContactFormServerData
-} from '../contact';
+} from '@/lib/validations/contact';
 
 describe('Contact Form Validation', () => {
   describe('firstName validation', () => {
