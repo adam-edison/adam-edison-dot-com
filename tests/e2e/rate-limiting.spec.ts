@@ -34,6 +34,7 @@ test.describe('Rate Limiting', () => {
         }
       });
       responses.push(response);
+
       expect(response.status()).toBe(200);
     }
 

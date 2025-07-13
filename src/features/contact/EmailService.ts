@@ -26,7 +26,7 @@ export class EmailService {
     this.config = config;
     this.resend = new Resend(config.apiKey);
 
-    const templatesDir = join(process.cwd(), 'src', 'lib', 'templates');
+    const templatesDir = join(process.cwd(), 'src', 'features', 'contact', 'templates');
     this.htmlTemplate = readFileSync(join(templatesDir, 'contact-email.html'), 'utf-8');
     this.textTemplate = readFileSync(join(templatesDir, 'contact-email.txt'), 'utf-8');
   }
