@@ -19,7 +19,7 @@
   - ✅ Encapsulate all boundaries
   - ✅ Externalize email templates
   - ✅ Make all imports absolute references (no ../)
-  - Organize files and tests better (all in separate root tests folder next to src)
+  - ✅ Organize files and tests better (all in separate root tests folder next to src)
   - Remove outdated comments and unnecessary comments
   - Extract lots of hardcoded variables as env values
   - Get rid of unnecessary nesting and simplify code logic

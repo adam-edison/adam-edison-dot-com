@@ -1,5 +1,5 @@
 import { UseFormRegister, FieldError } from 'react-hook-form';
-import { ContactFormData } from '../contact-validation';
+import { ContactFormData } from '@/features/contact/contact-validation';
 import { FormFieldBase } from './FormFieldBase';
 
 interface InputFieldProps {

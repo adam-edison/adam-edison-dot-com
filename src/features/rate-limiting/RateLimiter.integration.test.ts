@@ -11,7 +11,7 @@ import { Redis } from '@upstash/redis';
 import { RateLimiter } from './RateLimiter';
 import { RateLimiterDataStore } from './RateLimiterDataStore';
 import { describe, test, expect, beforeAll, afterEach } from 'vitest';
-import { generateUniqueIdentifier } from '../../../tests/utils/testHelpers';
+import { generateUniqueIdentifier } from '@tests/utils/testHelpers';
 
 describe('RateLimiter Integration Tests', () => {
   let rateLimiter: RateLimiter;
