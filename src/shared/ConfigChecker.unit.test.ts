@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ConfigChecker } from './ConfigChecker';
-import { logger, InMemoryLogger } from './Logger';
+import { logger, Logger } from './Logger';
 
 describe('ConfigChecker', () => {
-  let testLogger: InMemoryLogger;
+  let testLogger: Logger;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    testLogger = logger as InMemoryLogger;
+    testLogger = logger;
     testLogger.clear();
   });
 
@@ -41,10 +41,10 @@ describe('ConfigChecker', () => {
         missingVars: ['FROM_EMAIL', 'TO_EMAIL']
       });
 
-      const errorLogs = testLogger.getErrorLogs();
-      expect(errorLogs).toHaveLength(1);
-      expect(errorLogs[0].message).toBe('Missing required environment variables:');
-      expect(errorLogs[0].args).toEqual([['FROM_EMAIL', 'TO_EMAIL']]);
+      const output = testLogger.getOutput();
+      expect(output).toContain('ERROR Missing required environment variables:');
+      expect(output).toContain('FROM_EMAIL');
+      expect(output).toContain('TO_EMAIL');
     });
 
     it('should return configured: false when no variables are set', () => {

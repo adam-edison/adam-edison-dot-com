@@ -21,7 +21,7 @@
   - ✅ Make all imports absolute references (no ../)
   - ✅ Organize files and tests better (all in separate root tests folder next to src)
   - ✅ Remove outdated comments and unnecessary comments
-  - Make InMemoryLogger and Logger have a unified interface
+  - ✅ Make InMemoryLogger and Logger have a unified interface
   - Extract lots of hardcoded variables as env values
   - Fix the dotenv logging out warnings during tests
   - Get rid of unnecessary nesting and simplify code logic
