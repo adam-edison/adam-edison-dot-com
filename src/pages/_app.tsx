@@ -1,8 +1,8 @@
 import '@/styles/globals.css';
 import type { AppProps } from 'next/app';
 import { Geist } from 'next/font/google';
-import { CommandPalette } from '@/components/command/CommandPalette';
-import { CommandPaletteProvider } from '@/contexts/CommandPaletteContext';
+import { CommandPalette } from '@/features/navigation/components/CommandPalette';
+import { CommandPaletteProvider } from '@/features/navigation/CommandPaletteContext';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

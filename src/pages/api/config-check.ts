@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { ConfigChecker } from '@/lib/ConfigChecker';
+import { ConfigChecker } from '@/shared/ConfigChecker';
 
 interface ConfigCheckResponse {
   configured: boolean;

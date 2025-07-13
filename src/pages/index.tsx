@@ -1,5 +1,5 @@
-import { PageLayout } from '@/components/layout/PageLayout';
-import { HeroSection } from '@/components/home/HeroSection';
+import { PageLayout } from '@/shared/components/layout/PageLayout';
+import { HeroSection } from '@/features/home/components/HeroSection';
 
 export default function Home() {
   return (
