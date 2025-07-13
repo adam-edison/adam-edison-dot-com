@@ -20,7 +20,8 @@
   - ✅ Externalize email templates
   - ✅ Make all imports absolute references (no ../)
   - ✅ Organize files and tests better (all in separate root tests folder next to src)
-  - Remove outdated comments and unnecessary comments
+  - ✅ Remove outdated comments and unnecessary comments
+  - Make InMemoryLogger and Logger have a unified interface
   - Extract lots of hardcoded variables as env values
   - Get rid of unnecessary nesting and simplify code logic
   - Make top-level error handler reused across API endpoints if possible, and simplify error handling

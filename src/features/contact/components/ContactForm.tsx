@@ -13,13 +13,11 @@ export function ContactForm({ className }: ContactFormProps) {
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   useEffect(() => {
-    // Check frontend configuration first
     if (!siteKey) {
       setConfigStatus('error');
       return;
     }
 
-    // Check backend configuration
     const checkServerConfig = async () => {
       try {
         const response = await fetch('/api/config-check');

@@ -9,7 +9,6 @@ export interface ConfigCheckResult {
 }
 
 export class ConfigChecker {
-  // Essential variables required for contact form functionality at runtime
   private static readonly CONTACT_FORM_REQUIRED_VARS = [
     'RESEND_API_KEY',
     'FROM_EMAIL',
@@ -37,12 +36,10 @@ export class ConfigChecker {
     };
   }
 
-  // Runtime check for essential contact form variables only
   public static checkContactFormRequirements(): ConfigCheckResult {
     return ConfigChecker.checkConfiguration(ConfigChecker.CONTACT_FORM_REQUIRED_VARS, process.env);
   }
 
-  // Build-time check that reads from filesystem (checks ALL variables from .env.example)
   public static checkConfigurationFromFile(): ConfigCheckResult {
     try {
       const envExamplePath = join(process.cwd(), '.env.example');

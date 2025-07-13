@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-// Custom validator for non-whitespace content
 const nonWhitespaceString = (minLength: number, maxLength: number) =>
   z
     .string()
@@ -10,7 +9,6 @@ const nonWhitespaceString = (minLength: number, maxLength: number) =>
       message: `Must contain at least ${minLength} non-whitespace characters`
     });
 
-// Base schema without reCAPTCHA token
 const baseContactSchema = z.object({
   firstName: z
     .string()
@@ -79,15 +77,12 @@ export type ContactFormSubmissionData = ContactFormData & { recaptchaToken: stri
 export type ContactFormServerData = ContactFormData;
 
 export class ContactFormValidator {
-  // Client-side form schema (without reCAPTCHA token for form validation)
   static readonly contactFormSchema = baseContactSchema;
 
-  // Full schema with reCAPTCHA token for API submission
   static readonly contactFormSubmissionSchema = baseContactSchema.extend({
     recaptchaToken: z.string().min(1, 'Please complete the reCAPTCHA verification')
   });
 
-  // Server-side schema without reCAPTCHA token
   static readonly contactFormServerSchema = baseContactSchema;
 
   /**

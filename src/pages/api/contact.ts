@@ -5,19 +5,15 @@ import { logger } from '@/shared/Logger';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Only allow POST requests
   if (!RequestValidator.validateMethod(req, 'POST')) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
-    // Get client IP for rate limiting
     const ip = RequestValidator.extractClientIp(req);
 
-    // Apply rate limiting (both global and per-IP)
     const rateLimitResult = await contactRateLimiter.checkLimits(ip);
 
-    // Set rate limit headers
     Object.entries(rateLimitResult.globalResult.headers).forEach(([key, value]) => {
       res.setHeader(key, value);
     });
@@ -39,7 +35,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Process form data (validation, reCAPTCHA, sanitization, email)
     const result = await ContactFormProcessor.processForm(req.body);
 
     if (!result.success) {

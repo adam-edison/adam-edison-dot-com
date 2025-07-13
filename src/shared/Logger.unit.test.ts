@@ -5,7 +5,6 @@ describe('Logger', () => {
   let testLogger: InMemoryLogger;
 
   beforeEach(() => {
-    // In test environment, logger is InMemoryLogger
     testLogger = logger as InMemoryLogger;
   });
 
@@ -63,7 +62,6 @@ describe('Logger', () => {
   });
 
   it('should be the same instance everywhere', () => {
-    // Same instance used everywhere
     expect(logger).toBe(testLogger);
   });
 });
