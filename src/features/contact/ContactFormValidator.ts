@@ -75,58 +75,58 @@ export type ContactFormSubmissionData = ContactFormData & { recaptchaToken: stri
 export type ContactFormServerData = ContactFormData;
 
 export class ContactFormValidator {
-  static readonly contactFormSchema = baseContactSchema;
+  static readonly clientFormValidationSchema = baseContactSchema;
 
-  static readonly contactFormSubmissionSchema = baseContactSchema.extend({
+  static readonly clientSubmissionSchema = baseContactSchema.extend({
     recaptchaToken: z.string().min(1, 'Please complete the reCAPTCHA verification')
   });
 
-  static readonly contactFormServerSchema = baseContactSchema;
+  static readonly serverProcessingSchema = baseContactSchema;
 
   /**
    * Validates form data for client-side use (without reCAPTCHA)
    */
   static validateFormData(data: unknown): z.SafeParseReturnType<unknown, ContactFormData> {
-    return this.contactFormSchema.safeParse(data);
+    return this.clientFormValidationSchema.safeParse(data);
   }
 
   /**
    * Validates submission data including reCAPTCHA token
    */
   static validateSubmissionData(data: unknown): z.SafeParseReturnType<unknown, ContactFormSubmissionData> {
-    return this.contactFormSubmissionSchema.safeParse(data);
+    return this.clientSubmissionSchema.safeParse(data);
   }
 
   /**
    * Validates server-side data (without reCAPTCHA)
    */
   static validateServerData(data: unknown): z.SafeParseReturnType<unknown, ContactFormServerData> {
-    return this.contactFormServerSchema.safeParse(data);
+    return this.serverProcessingSchema.safeParse(data);
   }
 
   /**
    * Parses form data and throws on validation error
    */
   static parseFormData(data: unknown): ContactFormData {
-    return this.contactFormSchema.parse(data);
+    return this.clientFormValidationSchema.parse(data);
   }
 
   /**
    * Parses submission data and throws on validation error
    */
   static parseSubmissionData(data: unknown): ContactFormSubmissionData {
-    return this.contactFormSubmissionSchema.parse(data);
+    return this.clientSubmissionSchema.parse(data);
   }
 
   /**
    * Parses server data and throws on validation error
    */
   static parseServerData(data: unknown): ContactFormServerData {
-    return this.contactFormServerSchema.parse(data);
+    return this.serverProcessingSchema.parse(data);
   }
 }
 
 // Legacy exports for backward compatibility (to be removed after migration)
-export const contactFormSchema = ContactFormValidator.contactFormSchema;
-export const contactFormSubmissionSchema = ContactFormValidator.contactFormSubmissionSchema;
-export const contactFormServerSchema = ContactFormValidator.contactFormServerSchema;
+export const contactFormSchema = ContactFormValidator.clientFormValidationSchema;
+export const contactFormSubmissionSchema = ContactFormValidator.clientSubmissionSchema;
+export const contactFormServerSchema = ContactFormValidator.serverProcessingSchema;

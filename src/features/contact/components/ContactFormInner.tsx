@@ -28,7 +28,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
     reset,
     control
   } = useForm<ContactFormData>({
-    resolver: zodResolver(ContactFormValidator.contactFormSchema),
+    resolver: zodResolver(ContactFormValidator.clientFormValidationSchema),
     mode: 'onChange'
   });
 
