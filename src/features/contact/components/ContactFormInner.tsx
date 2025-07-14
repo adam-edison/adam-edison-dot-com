@@ -34,65 +34,79 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
   const watchedMessage = useWatch({ control, name: 'message' });
 
+  const executeRecaptchaWithTimeout = async (): Promise<string> => {
+    if (!executeRecaptcha) {
+      logger.warn('reCAPTCHA not ready, proceeding anyway (fail-open)');
+      return '';
+    }
+
+    try {
+      const timeoutMs = parseInt(process.env.NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS!);
+      const recaptchaToken = await Promise.race([
+        executeRecaptcha('contact_form'),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('reCAPTCHA timeout')), timeoutMs))
+      ]);
+      return recaptchaToken;
+    } catch (error) {
+      logger.warn('reCAPTCHA failed, proceeding anyway (fail-open):', error);
+      return '';
+    }
+  };
+
+  const submitContactForm = async (data: ContactFormData, recaptchaToken: string): Promise<Response> => {
+    return fetch('/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ...data,
+        recaptchaToken
+      })
+    });
+  };
+
+  const handleApiError = async (response: Response): Promise<void> => {
+    const errorData = await response.json();
+    setSubmitStatus('error');
+
+    let friendlyMessage = errorData.message || 'Failed to send message';
+    if (friendlyMessage.includes('reCAPTCHA')) {
+      friendlyMessage = 'Security verification failed. Please refresh the page and try again.';
+    }
+
+    setErrorMessage(friendlyMessage);
+  };
+
+  const handleUnexpectedError = (error: unknown): void => {
+    logger.error('Contact form submission error:', error);
+    setSubmitStatus('error');
+
+    if (error instanceof Error) {
+      setErrorMessage(error.message);
+    } else {
+      setErrorMessage('An unexpected error occurred. Please try again.');
+    }
+  };
+
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
     setSubmitStatus('idle');
     setErrorMessage('');
 
     try {
-      let recaptchaToken = '';
-
-      if (executeRecaptcha) {
-        try {
-          const timeoutMs = parseInt(process.env.NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS!);
-          recaptchaToken = await Promise.race([
-            executeRecaptcha('contact_form'),
-            new Promise<never>((_, reject) => setTimeout(() => reject(new Error('reCAPTCHA timeout')), timeoutMs))
-          ]);
-        } catch (error) {
-          logger.warn('reCAPTCHA failed, proceeding anyway (fail-open):', error);
-          recaptchaToken = ''; // Empty token will be handled gracefully on the server
-        }
-      } else {
-        logger.warn('reCAPTCHA not ready, proceeding anyway (fail-open)');
-        recaptchaToken = ''; // Empty token will be handled gracefully on the server
-      }
-
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...data,
-          recaptchaToken
-        })
-      });
+      const recaptchaToken = await executeRecaptchaWithTimeout();
+      const response = await submitContactForm(data, recaptchaToken);
 
       if (!response.ok) {
-        const errorData = await response.json();
-        setSubmitStatus('error');
-
-        let friendlyMessage = errorData.message || 'Failed to send message';
-        if (friendlyMessage.includes('reCAPTCHA')) {
-          friendlyMessage = 'Security verification failed. Please refresh the page and try again.';
-        }
-
-        setErrorMessage(friendlyMessage);
+        await handleApiError(response);
         return;
       }
 
       setSubmitStatus('success');
       reset();
     } catch (error) {
-      logger.error('Contact form submission error:', error);
-      setSubmitStatus('error');
-
-      if (error instanceof Error) {
-        setErrorMessage(error.message);
-      } else {
-        setErrorMessage('An unexpected error occurred. Please try again.');
-      }
+      handleUnexpectedError(error);
     } finally {
       setIsSubmitting(false);
     }
