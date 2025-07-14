@@ -16,7 +16,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 function checkEnvironmentVariables(): void {
-  config({ path: join(process.cwd(), '.env.local') });
+  config({ path: join(process.cwd(), '.env.local'), quiet: true });
 
   const envExamplePath = join(process.cwd(), '.env.example');
 
