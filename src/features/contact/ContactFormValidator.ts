@@ -1,5 +1,10 @@
 import { z } from 'zod';
 import { ValidationPatterns } from '@/shared/patterns/ValidationPatterns';
+import { FormValidationConstants } from '@/shared/constants/FormValidationConstants';
+
+// Extract constants for better readability
+const nameMinLength = FormValidationConstants.NAME_MIN_LENGTH;
+const nameMaxLength = FormValidationConstants.NAME_MAX_LENGTH;
 
 const nonWhitespaceString = (minLength: number, maxLength: number) =>
   z
@@ -13,8 +18,8 @@ const nonWhitespaceString = (minLength: number, maxLength: number) =>
 const baseContactSchema = z.object({
   firstName: z
     .string()
-    .min(2, 'First name must be at least 2 characters')
-    .max(50, 'First name must be at most 50 characters')
+    .min(nameMinLength, `First name must be at least ${nameMinLength} characters`)
+    .max(nameMaxLength, `First name must be at most ${nameMaxLength} characters`)
     .refine((val) => {
       // Must contain at least one letter (Unicode letter category)
       return ValidationPatterns.UNICODE_LETTER.test(val);
@@ -29,8 +34,8 @@ const baseContactSchema = z.object({
     }, 'First name cannot be only symbols'),
   lastName: z
     .string()
-    .min(2, 'Last name must be at least 2 characters')
-    .max(50, 'Last name must be at most 50 characters')
+    .min(nameMinLength, `Last name must be at least ${nameMinLength} characters`)
+    .max(nameMaxLength, `Last name must be at most ${nameMaxLength} characters`)
     .refine((val) => {
       // Must contain at least one letter (Unicode letter category)
       return ValidationPatterns.UNICODE_LETTER.test(val);
