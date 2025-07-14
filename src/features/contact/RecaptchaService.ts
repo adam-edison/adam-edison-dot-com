@@ -24,8 +24,8 @@ export class RecaptchaService {
 
   static fromEnv(): RecaptchaService {
     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-    const scoreThreshold = parseFloat(process.env.RECAPTCHA_SCORE_THRESHOLD || '0.5');
-    const verificationEnabled = process.env.RECAPTCHA_SCORE_THRESHOLD !== '0';
+    const scoreThreshold = parseFloat(process.env.RECAPTCHA_SCORE_THRESHOLD!);
+    const verificationEnabled = scoreThreshold !== 0;
 
     const config: RecaptchaConfiguration = {
       secretKey,
