@@ -21,28 +21,76 @@ interface ValidationResult {
 
 export class ContactFormProcessor {
   static async processForm(formData: unknown): Promise<ProcessFormResult> {
+    const validatedData = this.validateAndExtractFormData(formData);
+    if (!validatedData) {
+      return this.createValidationError();
+    }
+
+    const recaptchaVerified = await this.verifyRecaptchaToken(validatedData.recaptchaToken);
+    if (!recaptchaVerified) {
+      return this.createRecaptchaError();
+    }
+
+    const processedData = this.sanitizeAndValidateData(validatedData);
+    if (!processedData) {
+      return this.createSanitizationError();
+    }
+
+    return this.attemptEmailSend(processedData);
+  }
+
+  private static validateAndExtractFormData(formData: unknown): ContactFormSubmissionData | null {
     const validationResult = this.validateFormData(formData);
-    if (!validationResult.success || !validationResult.data) {
-      return {
-        success: false,
-        error: validationResult.error
-      };
-    }
+    return validationResult.success && validationResult.data ? validationResult.data : null;
+  }
 
-    const { recaptchaToken, ...formDataOnly } = validationResult.data;
+  private static async verifyRecaptchaToken(recaptchaToken: string): Promise<boolean> {
     const recaptchaResult = await this.verifyRecaptcha(recaptchaToken);
-    if (!recaptchaResult.success) {
-      return recaptchaResult;
-    }
+    return recaptchaResult.success;
+  }
 
+  private static sanitizeAndValidateData(
+    validatedData: ContactFormSubmissionData
+  ): ReturnType<typeof this.sanitizeFormData> | null {
+    const formDataOnly = {
+      firstName: validatedData.firstName,
+      lastName: validatedData.lastName,
+      email: validatedData.email,
+      message: validatedData.message
+    };
     const sanitizedData = this.sanitizeFormData(formDataOnly);
-
     const sanitizationResult = this.validateSanitizedData(sanitizedData);
-    if (!sanitizationResult.success) {
-      return sanitizationResult;
-    }
+    return sanitizationResult.success ? sanitizedData : null;
+  }
 
-    return this.attemptEmailSend(sanitizedData);
+  private static createValidationError(): ProcessFormResult {
+    return {
+      success: false,
+      error: {
+        type: 'validation',
+        message: 'Invalid form data'
+      }
+    };
+  }
+
+  private static createRecaptchaError(): ProcessFormResult {
+    return {
+      success: false,
+      error: {
+        type: 'recaptcha',
+        message: 'reCAPTCHA verification failed'
+      }
+    };
+  }
+
+  private static createSanitizationError(): ProcessFormResult {
+    return {
+      success: false,
+      error: {
+        type: 'sanitization',
+        message: 'Invalid form data after sanitization'
+      }
+    };
   }
 
   private static validateFormData(formData: unknown): ValidationResult {
