@@ -74,6 +74,7 @@ FROM_EMAIL=your-contact@email.com
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-site-key
 RECAPTCHA_SECRET_KEY=your-secret-key
 RECAPTCHA_SCORE_THRESHOLD=0.5
+NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS=10000
 ```
 
 1. Visit [Google reCAPTCHA Console](https://www.google.com/recaptcha/admin/create)

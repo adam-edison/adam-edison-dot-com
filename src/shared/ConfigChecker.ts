@@ -14,7 +14,8 @@ export class ConfigChecker {
     'FROM_EMAIL',
     'TO_EMAIL',
     'UPSTASH_REDIS_REST_URL',
-    'UPSTASH_REDIS_REST_TOKEN'
+    'UPSTASH_REDIS_REST_TOKEN',
+    'NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS'
   ];
 
   public static checkConfiguration(

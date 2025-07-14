@@ -62,6 +62,15 @@ The contact form uses **Resend** for email delivery instead of traditional SMTP:
 - **Reply-To**: Automatically set to the form submitter's email
 - **Domain**: Requires domain verification in Resend dashboard for production use
 
+## reCAPTCHA Configuration
+
+The contact form uses Google reCAPTCHA v3 for spam protection:
+
+- **Site Key**: Set `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` in environment variables
+- **Secret Key**: Set `RECAPTCHA_SECRET_KEY` in environment variables
+- **Score Threshold**: Set `RECAPTCHA_SCORE_THRESHOLD` in environment variables (0.0-1.0)
+- **Timeout**: Set `NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS` in environment variables (milliseconds)
+
 ## Rate Limiting Configuration
 
 The contact form uses configurable rate limiting with two layers:
