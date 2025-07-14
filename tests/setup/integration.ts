@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 import { join } from 'path';
 
-config({ path: join(process.cwd(), '.env.local') });
+config({ path: join(process.cwd(), '.env.local'), quiet: true });
 
 process.env.RATE_LIMIT_REQUESTS = '5';
 process.env.RATE_LIMIT_WINDOW = '10 m';
