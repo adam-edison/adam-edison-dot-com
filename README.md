@@ -101,6 +101,16 @@ GLOBAL_RATE_LIMIT_REQUESTS=10
 GLOBAL_RATE_LIMIT_WINDOW=1 h
 ```
 
+#### Social Media URLs
+
+```env
+NEXT_PUBLIC_GITHUB_URL=https://github.com/your-username
+NEXT_PUBLIC_LINKEDIN_URL=https://www.linkedin.com/in/your-profile/
+NEXT_PUBLIC_REPO_URL=https://github.com/your-username/your-repo
+```
+
+Configure social media links and repository URL displayed throughout the site.
+
 1. Create account at [upstash.com](https://upstash.com)
 2. Create Redis database
 3. Copy REST URL and token from dashboard

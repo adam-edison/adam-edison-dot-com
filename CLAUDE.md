@@ -89,6 +89,14 @@ The contact form uses configurable rate limiting with two layers:
 
 **Redis**: Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
 
+## Social Media Configuration
+
+Social media links are configurable through environment variables:
+
+- **GitHub URL**: Set `NEXT_PUBLIC_GITHUB_URL` in environment variables
+- **LinkedIn URL**: Set `NEXT_PUBLIC_LINKEDIN_URL` in environment variables
+- **Repository URL**: Set `NEXT_PUBLIC_REPO_URL` in environment variables (for "View Source Code" link)
+
 ## Architecture
 
 ### Framework & Stack
