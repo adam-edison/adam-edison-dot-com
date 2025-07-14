@@ -9,6 +9,8 @@ export interface EmailConfiguration {
   fromEmail: string;
   toEmail: string;
   sendEmailEnabled: boolean;
+  senderName: string;
+  recipientName: string;
 }
 
 export interface EmailSendResult {
@@ -36,6 +38,8 @@ export class EmailService {
     const fromEmail = process.env.FROM_EMAIL;
     const toEmail = process.env.TO_EMAIL;
     const sendEmailEnabled = process.env.SEND_EMAIL_ENABLED !== 'false';
+    const senderName = process.env.EMAIL_SENDER_NAME;
+    const recipientName = process.env.EMAIL_RECIPIENT_NAME;
 
     if (!apiKey) {
       throw new Error('RESEND_API_KEY is not configured');
@@ -49,11 +53,21 @@ export class EmailService {
       throw new Error('To email not configured');
     }
 
+    if (!senderName) {
+      throw new Error('EMAIL_SENDER_NAME is not configured');
+    }
+
+    if (!recipientName) {
+      throw new Error('EMAIL_RECIPIENT_NAME is not configured');
+    }
+
     const config: EmailConfiguration = {
       apiKey,
       fromEmail,
       toEmail,
-      sendEmailEnabled
+      sendEmailEnabled,
+      senderName,
+      recipientName
     };
 
     return new EmailService(config);
@@ -65,8 +79,8 @@ export class EmailService {
     }
 
     const result = await this.resend.emails.send({
-      from: `Personal Website Contact Form <${this.config.fromEmail}>`,
-      to: `Adam Edison <${this.config.toEmail}>`,
+      from: `${this.config.senderName} <${this.config.fromEmail}>`,
+      to: `${this.config.recipientName} <${this.config.toEmail}>`,
       replyTo: data.email,
       subject: `New Message from ${data.firstName} ${data.lastName}`,
       html: this.createEmailHTML(data),

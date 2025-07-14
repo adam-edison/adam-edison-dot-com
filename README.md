@@ -61,12 +61,15 @@ Copy `.env.example` to `.env.local` and configure these services:
 ```env
 RESEND_API_KEY=your-resend-api-key-here
 FROM_EMAIL=your-contact@email.com
+TO_EMAIL=your-inbox@email.com
+EMAIL_SENDER_NAME=Personal Website Contact Form
+EMAIL_RECIPIENT_NAME=Your Name
 ```
 
 1. Create account at [resend.com](https://resend.com)
 2. Verify your domain (add DNS records)
 3. Generate API key from dashboard
-4. Set contact email address
+4. Set contact email addresses and display names
 
 #### Spam Protection (reCAPTCHA)
 

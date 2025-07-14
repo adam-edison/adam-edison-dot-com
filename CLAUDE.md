@@ -59,6 +59,8 @@ The contact form uses **Resend** for email delivery instead of traditional SMTP:
 - **API Key**: Set `RESEND_API_KEY` in environment variables
 - **From Address**: Uses `FROM_EMAIL` in environment variables
 - **To Address**: Uses `TO_EMAIL` in environment variables
+- **Sender Name**: Uses `EMAIL_SENDER_NAME` in environment variables (displays in email headers)
+- **Recipient Name**: Uses `EMAIL_RECIPIENT_NAME` in environment variables (displays in email headers)
 - **Reply-To**: Automatically set to the form submitter's email
 - **Domain**: Requires domain verification in Resend dashboard for production use
 
