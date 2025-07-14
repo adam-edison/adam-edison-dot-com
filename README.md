@@ -61,12 +61,15 @@ Copy `.env.example` to `.env.local` and configure these services:
 ```env
 RESEND_API_KEY=your-resend-api-key-here
 FROM_EMAIL=your-contact@email.com
+TO_EMAIL=your-inbox@email.com
+EMAIL_SENDER_NAME=Personal Website Contact Form
+EMAIL_RECIPIENT_NAME=Your Name
 ```
 
 1. Create account at [resend.com](https://resend.com)
 2. Verify your domain (add DNS records)
 3. Generate API key from dashboard
-4. Set contact email address
+4. Set contact email addresses and display names
 
 #### Spam Protection (reCAPTCHA)
 
@@ -74,6 +77,7 @@ FROM_EMAIL=your-contact@email.com
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-site-key
 RECAPTCHA_SECRET_KEY=your-secret-key
 RECAPTCHA_SCORE_THRESHOLD=0.5
+NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS=10000
 ```
 
 1. Visit [Google reCAPTCHA Console](https://www.google.com/recaptcha/admin/create)
@@ -96,6 +100,16 @@ RATE_LIMIT_WINDOW=10 m
 GLOBAL_RATE_LIMIT_REQUESTS=10
 GLOBAL_RATE_LIMIT_WINDOW=1 h
 ```
+
+#### Social Media URLs
+
+```env
+NEXT_PUBLIC_GITHUB_URL=https://github.com/your-username
+NEXT_PUBLIC_LINKEDIN_URL=https://www.linkedin.com/in/your-profile/
+NEXT_PUBLIC_REPO_URL=https://github.com/your-username/your-repo
+```
+
+Configure social media links and repository URL displayed throughout the site.
 
 1. Create account at [upstash.com](https://upstash.com)
 2. Create Redis database

@@ -13,8 +13,14 @@ export class ConfigChecker {
     'RESEND_API_KEY',
     'FROM_EMAIL',
     'TO_EMAIL',
+    'EMAIL_SENDER_NAME',
+    'EMAIL_RECIPIENT_NAME',
     'UPSTASH_REDIS_REST_URL',
-    'UPSTASH_REDIS_REST_TOKEN'
+    'UPSTASH_REDIS_REST_TOKEN',
+    'NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS',
+    'NEXT_PUBLIC_GITHUB_URL',
+    'NEXT_PUBLIC_LINKEDIN_URL',
+    'NEXT_PUBLIC_REPO_URL'
   ];
 
   public static checkConfiguration(

@@ -44,9 +44,10 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
       if (executeRecaptcha) {
         try {
+          const timeoutMs = parseInt(process.env.NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS!);
           recaptchaToken = await Promise.race([
             executeRecaptcha('contact_form'),
-            new Promise<never>((_, reject) => setTimeout(() => reject(new Error('reCAPTCHA timeout')), 10000))
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error('reCAPTCHA timeout')), timeoutMs))
           ]);
         } catch (error) {
           logger.warn('reCAPTCHA failed, proceeding anyway (fail-open):', error);

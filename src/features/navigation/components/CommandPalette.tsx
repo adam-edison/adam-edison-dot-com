@@ -63,7 +63,7 @@ export function CommandPalette() {
             </CommandGroup>
 
             <CommandGroup heading="Developer">
-              <CommandItem onSelect={() => handleExternalLink('https://github.com/adam-edison/adam-edison-dot-com')}>
+              <CommandItem onSelect={() => handleExternalLink(process.env.NEXT_PUBLIC_REPO_URL!)}>
                 <Code className="mr-2 h-4 w-4" />
                 <span>View Source Code</span>
               </CommandItem>

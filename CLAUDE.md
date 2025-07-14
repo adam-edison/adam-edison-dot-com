@@ -59,8 +59,19 @@ The contact form uses **Resend** for email delivery instead of traditional SMTP:
 - **API Key**: Set `RESEND_API_KEY` in environment variables
 - **From Address**: Uses `FROM_EMAIL` in environment variables
 - **To Address**: Uses `TO_EMAIL` in environment variables
+- **Sender Name**: Uses `EMAIL_SENDER_NAME` in environment variables (displays in email headers)
+- **Recipient Name**: Uses `EMAIL_RECIPIENT_NAME` in environment variables (displays in email headers)
 - **Reply-To**: Automatically set to the form submitter's email
 - **Domain**: Requires domain verification in Resend dashboard for production use
+
+## reCAPTCHA Configuration
+
+The contact form uses Google reCAPTCHA v3 for spam protection:
+
+- **Site Key**: Set `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` in environment variables
+- **Secret Key**: Set `RECAPTCHA_SECRET_KEY` in environment variables
+- **Score Threshold**: Set `RECAPTCHA_SCORE_THRESHOLD` in environment variables (0.0-1.0)
+- **Timeout**: Set `NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS` in environment variables (milliseconds)
 
 ## Rate Limiting Configuration
 
@@ -77,6 +88,14 @@ The contact form uses configurable rate limiting with two layers:
 - **Window**: Set `GLOBAL_RATE_LIMIT_WINDOW` in environment variables (default: '1 h')
 
 **Redis**: Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
+
+## Social Media Configuration
+
+Social media links are configurable through environment variables:
+
+- **GitHub URL**: Set `NEXT_PUBLIC_GITHUB_URL` in environment variables
+- **LinkedIn URL**: Set `NEXT_PUBLIC_LINKEDIN_URL` in environment variables
+- **Repository URL**: Set `NEXT_PUBLIC_REPO_URL` in environment variables (for "View Source Code" link)
 
 ## Architecture
 

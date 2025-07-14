@@ -1,4 +1,4 @@
 export const SOCIAL_LINKS = {
-  github: 'https://github.com/adam-edison',
-  linkedin: 'https://www.linkedin.com/in/adam-edison-software/'
+  github: process.env.NEXT_PUBLIC_GITHUB_URL!,
+  linkedin: process.env.NEXT_PUBLIC_LINKEDIN_URL!
 };
