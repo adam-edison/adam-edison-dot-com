@@ -29,3 +29,38 @@ export function generateUniqueIdentifier(prefix: string): string {
   const random = Math.floor(Math.random() * 1000);
   return `${prefix}-${timestamp}-${random}`;
 }
+
+/**
+ * Expects an async function to throw an error containing all specified error messages.
+ * Fails the test if no error is thrown or if any expected message is missing.
+ *
+ * @param asyncFn The async function that should throw an error
+ * @param expectedMessages Array of error message strings that should be present in the error
+ * @throws Test failure if no error is thrown or expected messages are missing
+ */
+export async function expectErrorContaining(
+  asyncFn: () => Promise<unknown>,
+  expectedMessages: string[]
+): Promise<void> {
+  let error: unknown;
+
+  try {
+    await asyncFn();
+  } catch (thrownError) {
+    error = thrownError;
+  }
+
+  if (!error) {
+    throw new Error('Expected function to throw an error, but it did not');
+  }
+
+  if (!(error instanceof Error)) {
+    throw new Error('Expected error to be an instance of Error');
+  }
+
+  for (const expectedMessage of expectedMessages) {
+    if (!error.message.includes(expectedMessage)) {
+      throw new Error(`Expected error message to contain "${expectedMessage}", but got: "${error.message}"`);
+    }
+  }
+}
