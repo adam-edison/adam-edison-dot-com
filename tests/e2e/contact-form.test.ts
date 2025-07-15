@@ -7,9 +7,15 @@ test.describe('Contact Form', () => {
     await cleanupE2EKeys();
   });
 
-  test('should show error when email sending is disabled', async ({ page }) => {
-    // Override environment variable to disable email sending
-    process.env.SEND_EMAIL_ENABLED = 'false';
+  test('should show error when email service is not configured', async ({ page }) => {
+    // Mock the email service check to return disabled state
+    await page.route('/api/email-service-check', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ configured: false })
+      });
+    });
 
     // Navigate to contact page
     await page.goto('/contact');
@@ -22,9 +28,6 @@ test.describe('Contact Form', () => {
 
     // Form should not be visible when there's a config error
     await expect(page.locator('form')).not.toBeVisible();
-
-    // Restore environment variable
-    process.env.SEND_EMAIL_ENABLED = 'true';
   });
 
   test('should successfully submit contact form', async ({ request }) => {
