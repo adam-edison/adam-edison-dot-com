@@ -29,7 +29,7 @@ export default defineConfig({
     stderr: 'ignore',
     env: {
       RECAPTCHA_SCORE_THRESHOLD: '0',
-      SEND_EMAIL_ENABLED: 'false',
+      SEND_EMAIL_ENABLED: 'true',
       RATE_LIMIT_REQUESTS: '5',
       RATE_LIMIT_WINDOW: '10 m',
       GLOBAL_RATE_LIMIT_REQUESTS: '100',
