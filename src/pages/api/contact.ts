@@ -4,6 +4,12 @@ import { ContactFormProcessor } from '@/features/contact/ContactFormProcessor';
 import { logger } from '@/shared/Logger';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+function setRateLimitHeaders(res: NextApiResponse, headers: Record<string, string | number>) {
+  Object.entries(headers).forEach(([key, value]) => {
+    res.setHeader(key, value);
+  });
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!RequestValidator.validateMethod(req, 'POST')) {
     return res.status(405).json({ message: 'Method not allowed' });
@@ -14,12 +20,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const rateLimitResult = await contactRateLimiter.checkLimits(ip);
 
-    Object.entries(rateLimitResult.globalResult.headers).forEach(([key, value]) => {
-      res.setHeader(key, value);
-    });
-    Object.entries(rateLimitResult.ipResult.headers).forEach(([key, value]) => {
-      res.setHeader(key, value);
-    });
+    setRateLimitHeaders(res, rateLimitResult.globalResult.headers);
+    setRateLimitHeaders(res, rateLimitResult.ipResult.headers);
 
     if (rateLimitResult.globalLimitExceeded) {
       return res.status(429).json({
