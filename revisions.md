@@ -27,6 +27,8 @@
   - ✅ Get rid of unnecessary nesting and simplify code logic
   - Make top-level error handler reused across API endpoints if possible, and simplify error handling
 
+- Bandwidth improvements via caching - see [BandWidth](./bandwidth.md)
+
 - Captcha Improvements
   - Fix unconditional skipping of recaptcha, might as well not be there
   - Add fallback captcha for when the main one gets denied [see guide](./IMPROVE_CAPTCHA.md) - maybe just use v2 instead?
