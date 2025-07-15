@@ -3,6 +3,7 @@ import { ContactFormServerData } from './ContactFormValidator';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { TemplateRenderer } from '@/shared/TemplateRenderer';
+import { EmailServiceConfigurationValidator } from '@/shared/EmailServiceConfigurationValidator';
 
 export interface EmailConfiguration {
   apiKey: string;
@@ -24,7 +25,7 @@ export class EmailService {
   private readonly htmlTemplate: string;
   private readonly textTemplate: string;
 
-  private constructor(config: EmailConfiguration) {
+  constructor(config: EmailConfiguration) {
     this.config = config;
     this.resend = new Resend(config.apiKey);
 
@@ -33,49 +34,36 @@ export class EmailService {
     this.textTemplate = readFileSync(join(templatesDir, 'contact-email.txt'), 'utf-8');
   }
 
-  static fromEnv(): EmailService {
-    const apiKey = process.env.RESEND_API_KEY;
-    const fromEmail = process.env.FROM_EMAIL;
-    const toEmail = process.env.TO_EMAIL;
-    const sendEmailEnabled = process.env.SEND_EMAIL_ENABLED !== 'false';
-    const senderName = process.env.EMAIL_SENDER_NAME;
-    const recipientName = process.env.EMAIL_RECIPIENT_NAME;
+  getConfiguration(): EmailConfiguration {
+    return { ...this.config };
+  }
 
-    if (!apiKey) {
-      throw new Error('RESEND_API_KEY is not configured');
+  static fromEnv(env: NodeJS.ProcessEnv = process.env, validator = new EmailServiceConfigurationValidator()): EmailService {
+    const validationResult = validator.validate(env);
+
+    if (!validationResult.configured) {
+      const errors = validationResult.problems || ['Email service configuration validation failed'];
+      throw new Error(`Email service configuration errors: ${errors.join(', ')}`);
     }
 
-    if (!fromEmail) {
-      throw new Error('From email not configured');
-    }
-
-    if (!toEmail) {
-      throw new Error('To email not configured');
-    }
-
-    if (!senderName) {
-      throw new Error('EMAIL_SENDER_NAME is not configured');
-    }
-
-    if (!recipientName) {
-      throw new Error('EMAIL_RECIPIENT_NAME is not configured');
-    }
-
-    const config: EmailConfiguration = {
-      apiKey,
-      fromEmail,
-      toEmail,
-      sendEmailEnabled,
-      senderName,
-      recipientName
-    };
-
+    const config = this.extractEnvironmentVariables(env);
     return new EmailService(config);
+  }
+
+  private static extractEnvironmentVariables(env: NodeJS.ProcessEnv): EmailConfiguration {
+    return {
+      apiKey: env.RESEND_API_KEY!,
+      fromEmail: env.FROM_EMAIL!,
+      toEmail: env.TO_EMAIL!,
+      sendEmailEnabled: env.SEND_EMAIL_ENABLED === 'true',
+      senderName: env.EMAIL_SENDER_NAME!,
+      recipientName: env.EMAIL_RECIPIENT_NAME!
+    };
   }
 
   async sendContactEmail(data: ContactFormServerData): Promise<EmailSendResult> {
     if (!this.config.sendEmailEnabled) {
-      return this.createMockEmailResponse();
+      return this.createEmailDisabledResponse();
     }
 
     const result = await this.resend.emails.send({
@@ -90,10 +78,10 @@ export class EmailService {
     return result;
   }
 
-  private createMockEmailResponse(): EmailSendResult {
+  private createEmailDisabledResponse(): EmailSendResult {
     return {
-      data: { id: 'mock-email-id' },
-      error: null
+      data: null,
+      error: new Error('SEND_EMAIL_ENABLED is false')
     };
   }
 
@@ -117,5 +105,3 @@ export class EmailService {
     });
   }
 }
-
-export const emailService = EmailService.fromEnv();
