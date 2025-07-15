@@ -20,7 +20,7 @@ export function ContactForm({ className }: ContactFormProps) {
 
     const checkServerConfig = async () => {
       try {
-        const response = await fetch('/api/config-check');
+        const response = await fetch('/api/email-service-check');
         const data = await response.json();
 
         if (data.configured) {

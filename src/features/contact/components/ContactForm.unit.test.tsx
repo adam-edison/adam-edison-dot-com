@@ -26,7 +26,7 @@ describe('ContactForm', () => {
     vi.stubEnv('SEND_EMAIL_ENABLED', 'false');
 
     vi.mocked(fetch).mockImplementation(async (url) => {
-      if (typeof url === 'string' && url.includes('/api/config-check')) {
+      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         return new Response(JSON.stringify({ configured: true }), {
           status: 200,
           statusText: 'OK'
@@ -102,7 +102,7 @@ describe('ContactForm', () => {
   test('should display error message when reCAPTCHA fails', async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockImplementation(async (url) => {
-      if (typeof url === 'string' && url.includes('/api/config-check')) {
+      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         return new Response(JSON.stringify({ configured: true }), {
           status: 200,
           statusText: 'OK'
@@ -132,7 +132,7 @@ describe('ContactForm', () => {
   test('should display error message when API returns error', async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockImplementation(async (url) => {
-      if (typeof url === 'string' && url.includes('/api/config-check')) {
+      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         return new Response(JSON.stringify({ configured: true }), {
           status: 200,
           statusText: 'OK'
@@ -169,7 +169,7 @@ describe('ContactForm', () => {
   test('should display error message when fetch fails', async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockImplementation(async (url) => {
-      if (typeof url === 'string' && url.includes('/api/config-check')) {
+      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         return new Response(JSON.stringify({ configured: true }), {
           status: 200,
           statusText: 'OK'
@@ -236,7 +236,7 @@ describe('ContactForm', () => {
 
   test('should display error message when server configuration is missing', async () => {
     vi.mocked(fetch).mockImplementation(async (url) => {
-      if (typeof url === 'string' && url.includes('/api/config-check')) {
+      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         return new Response(
           JSON.stringify({
             configured: false
@@ -265,7 +265,7 @@ describe('ContactForm', () => {
 
   test('should log error when config check fails', async () => {
     vi.mocked(fetch).mockImplementation(async (url) => {
-      if (typeof url === 'string' && url.includes('/api/config-check')) {
+      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         throw new Error('Config check failed');
       }
 
