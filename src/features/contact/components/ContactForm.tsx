@@ -18,24 +18,24 @@ export function ContactForm({ className }: ContactFormProps) {
       return;
     }
 
-    const checkServerConfig = async () => {
-      try {
-        const response = await fetch('/api/email-service-check');
-        const data = await response.json();
-
-        if (data.configured) {
-          setConfigStatus('ready');
-        } else {
-          setConfigStatus('error');
-        }
-      } catch (error) {
-        logger.error('Failed to check server configuration:', error);
-        setConfigStatus('error');
-      }
-    };
-
     checkServerConfig();
   }, [siteKey]);
+
+  const checkServerConfig = async () => {
+    try {
+      const response = await fetch('/api/email-service-check');
+      const data = await response.json();
+
+      if (data.configured) {
+        setConfigStatus('ready');
+      } else {
+        setConfigStatus('error');
+      }
+    } catch (error) {
+      logger.error('Failed to check server configuration:', error);
+      setConfigStatus('error');
+    }
+  };
 
   if (configStatus === 'loading') {
     return (
