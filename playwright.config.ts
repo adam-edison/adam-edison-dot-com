@@ -1,4 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
+import { setup } from './tests/setup/e2e';
+
+setup();
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -31,7 +34,9 @@ export default defineConfig({
       RATE_LIMIT_WINDOW: '10 m',
       GLOBAL_RATE_LIMIT_REQUESTS: '100',
       GLOBAL_RATE_LIMIT_WINDOW: '1 h',
-      REDIS_PREFIX: `${process.env.REDIS_PREFIX}-e2e`
+      REDIS_PREFIX: `${process.env.REDIS_PREFIX}-e2e`,
+      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL ?? '',
+      UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN ?? ''
     }
   }
 });
