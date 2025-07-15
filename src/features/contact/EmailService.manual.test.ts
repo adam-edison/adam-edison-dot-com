@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import { emailService } from './EmailService';
+import { EmailService } from './EmailService';
 import { ContactFormServerData } from './ContactFormValidator';
 import { fail } from 'assert';
 
@@ -29,6 +29,7 @@ describe('Resend Email Integration (Manual)', () => {
       message: 'This is a manual integration test for email sending functionality.'
     };
 
+    const emailService = EmailService.fromEnv();
     const result = await emailService.sendContactEmail(testData);
 
     expect(result).toMatchObject({

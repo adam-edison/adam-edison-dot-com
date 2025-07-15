@@ -1,4 +1,4 @@
-import { emailService } from './EmailService';
+import { EmailService } from './EmailService';
 import { InputSanitizer } from './InputSanitizer';
 import { recaptchaService } from './RecaptchaService';
 import { ContactFormValidator, ContactFormSubmissionData } from './ContactFormValidator';
@@ -159,6 +159,7 @@ export class ContactFormProcessor {
     sanitizedData: ReturnType<typeof this.sanitizeFormData>
   ): Promise<ProcessFormResult> {
     try {
+      const emailService = EmailService.fromEnv();
       await emailService.sendContactEmail(sanitizedData);
       return { success: true };
     } catch (error) {
