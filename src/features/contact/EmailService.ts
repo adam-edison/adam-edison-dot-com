@@ -38,7 +38,10 @@ export class EmailService {
     return { ...this.config };
   }
 
-  static fromEnv(env: NodeJS.ProcessEnv = process.env, validator = new EmailServiceConfigurationValidator()): EmailService {
+  static fromEnv(
+    env: NodeJS.ProcessEnv = process.env,
+    validator = new EmailServiceConfigurationValidator()
+  ): EmailService {
     const validationResult = validator.validate(env);
 
     if (!validationResult.configured) {

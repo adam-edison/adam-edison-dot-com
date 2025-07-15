@@ -40,7 +40,9 @@ describe('EmailService', () => {
         })
       };
 
-      expect(() => EmailService.fromEnv(validEnvironment, mockValidator as unknown as EmailServiceConfigurationValidator)).not.toThrow();
+      expect(() =>
+        EmailService.fromEnv(validEnvironment, mockValidator as unknown as EmailServiceConfigurationValidator)
+      ).not.toThrow();
     });
 
     it('should set sendEmailEnabled to true when SEND_EMAIL_ENABLED is "true"', () => {
@@ -55,7 +57,10 @@ describe('EmailService', () => {
         SEND_EMAIL_ENABLED: 'true'
       };
 
-      const service = EmailService.fromEnv(envWithEnabledEmail, mockValidator as unknown as EmailServiceConfigurationValidator);
+      const service = EmailService.fromEnv(
+        envWithEnabledEmail,
+        mockValidator as unknown as EmailServiceConfigurationValidator
+      );
       expect(service.getConfiguration().sendEmailEnabled).toBe(true);
     });
 
@@ -71,7 +76,10 @@ describe('EmailService', () => {
         SEND_EMAIL_ENABLED: 'false'
       };
 
-      const service = EmailService.fromEnv(envWithDisabledEmail, mockValidator as unknown as EmailServiceConfigurationValidator);
+      const service = EmailService.fromEnv(
+        envWithDisabledEmail,
+        mockValidator as unknown as EmailServiceConfigurationValidator
+      );
       expect(service.getConfiguration().sendEmailEnabled).toBe(false);
     });
 
@@ -87,7 +95,10 @@ describe('EmailService', () => {
         SEND_EMAIL_ENABLED: undefined
       };
 
-      const service = EmailService.fromEnv(envWithUndefinedEmail, mockValidator as unknown as EmailServiceConfigurationValidator);
+      const service = EmailService.fromEnv(
+        envWithUndefinedEmail,
+        mockValidator as unknown as EmailServiceConfigurationValidator
+      );
       expect(service.getConfiguration().sendEmailEnabled).toBe(false);
     });
 
@@ -103,7 +114,10 @@ describe('EmailService', () => {
         SEND_EMAIL_ENABLED: 'maybe'
       };
 
-      const service = EmailService.fromEnv(envWithOtherValue, mockValidator as unknown as EmailServiceConfigurationValidator);
+      const service = EmailService.fromEnv(
+        envWithOtherValue,
+        mockValidator as unknown as EmailServiceConfigurationValidator
+      );
       expect(service.getConfiguration().sendEmailEnabled).toBe(false);
     });
   });
