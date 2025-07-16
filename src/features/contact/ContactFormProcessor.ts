@@ -35,7 +35,7 @@ export class ContactFormProcessor {
     const emailSent = await this.sendContactEmail(emailableData);
     if (!emailSent.success) return Result.failure(emailSent.error);
 
-    return Result.success(undefined);
+    return Result.success();
   }
 
   private static async validateRawSubmission(
@@ -44,9 +44,9 @@ export class ContactFormProcessor {
     return ContactFormValidator.validateSubmissionData(rawData);
   }
 
-  private static async verifyRecaptchaToken(token: string): Promise<Result<boolean, RecaptchaError>> {
+  private static async verifyRecaptchaToken(token: string): Promise<Result<void, RecaptchaError>> {
     const result = await recaptchaService.verifyToken(token);
-    return result.success ? Result.success(true) : Result.failure(new RecaptchaError('reCAPTCHA verification failed'));
+    return result.success ? Result.success() : Result.failure(new RecaptchaError('reCAPTCHA verification failed'));
   }
 
   private static sanitizeFormData(submissionData: ContactFormSubmissionData): ContactFormServerData {
@@ -72,6 +72,6 @@ export class ContactFormProcessor {
     if (!emailService.success) return Result.failure(emailService.error);
 
     const emailResult = await emailService.data.sendContactEmail(emailData);
-    return emailResult.success ? Result.success(undefined) : Result.failure(emailResult.error);
+    return emailResult.success ? Result.success() : Result.failure(emailResult.error);
   }
 }
