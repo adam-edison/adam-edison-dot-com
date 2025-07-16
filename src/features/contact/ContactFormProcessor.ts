@@ -31,8 +31,8 @@ export class ContactFormProcessor {
     const serverValidatedData = await this.validateSanitizedData(sanitizedFormData);
     if (!serverValidatedData.success) return Result.failure(serverValidatedData.error);
 
-    const emailableData = serverValidatedData.data;
-    const emailSent = await this.sendContactEmail(emailableData);
+    const emailData = serverValidatedData.data;
+    const emailSent = await this.sendContactEmail(emailData);
     if (!emailSent.success) return Result.failure(emailSent.error);
 
     return Result.success();
