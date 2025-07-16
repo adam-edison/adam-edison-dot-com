@@ -6,6 +6,30 @@ test.describe('Contact Form', () => {
   test.afterEach(async () => {
     await cleanupE2EKeys();
   });
+
+  test('should show error when email service is not configured', async ({ page }) => {
+    // Mock the email service check to return disabled state
+    await page.route('/api/email-service-check', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ configured: false })
+      });
+    });
+
+    // Navigate to contact page
+    await page.goto('/contact');
+
+    // Wait for the form to load and check config
+    await page.waitForLoadState('networkidle');
+
+    // The contact form should show error state when email sending is disabled
+    await expect(page.locator('text=Contact form is not available.')).toBeVisible();
+
+    // Form should not be visible when there's a config error
+    await expect(page.locator('form')).not.toBeVisible();
+  });
+
   test('should successfully submit contact form', async ({ request }) => {
     const contactData = {
       firstName: 'Test',
