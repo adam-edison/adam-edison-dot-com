@@ -4,6 +4,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { TemplateRenderer } from '@/shared/TemplateRenderer';
 import { EmailServiceConfigurationValidator } from '@/shared/EmailServiceConfigurationValidator';
+import { EmailServiceConfigurationFactory } from '@/shared/EmailServiceConfigurationFactory';
 
 export interface EmailConfiguration {
   apiKey: string;
@@ -26,6 +27,11 @@ export class EmailService {
   private readonly textTemplate: string;
 
   constructor(config: EmailConfiguration) {
+    const result = EmailServiceConfigurationValidator.validate(config);
+    if (!result.configured) {
+      throw new Error(`Email service configuration errors: ${result.problems?.join(', ')}`);
+    }
+
     this.config = config;
     this.resend = new Resend(config.apiKey);
 
@@ -38,30 +44,9 @@ export class EmailService {
     return { ...this.config };
   }
 
-  static fromEnv(
-    env: NodeJS.ProcessEnv = process.env,
-    validator = new EmailServiceConfigurationValidator()
-  ): EmailService {
-    const validationResult = validator.validate(env);
-
-    if (!validationResult.configured) {
-      const errors = validationResult.problems || ['Email service configuration validation failed'];
-      throw new Error(`Email service configuration errors: ${errors.join(', ')}`);
-    }
-
-    const config = this.extractEnvironmentVariables(env);
+  static fromEnv(env: NodeJS.ProcessEnv = process.env): EmailService {
+    const config = EmailServiceConfigurationFactory.fromEnv(env);
     return new EmailService(config);
-  }
-
-  private static extractEnvironmentVariables(env: NodeJS.ProcessEnv): EmailConfiguration {
-    return {
-      apiKey: env.RESEND_API_KEY!,
-      fromEmail: env.FROM_EMAIL!,
-      toEmail: env.TO_EMAIL!,
-      sendEmailEnabled: env.SEND_EMAIL_ENABLED === 'true',
-      senderName: env.EMAIL_SENDER_NAME!,
-      recipientName: env.EMAIL_RECIPIENT_NAME!
-    };
   }
 
   async sendContactEmail(data: ContactFormServerData): Promise<EmailSendResult> {

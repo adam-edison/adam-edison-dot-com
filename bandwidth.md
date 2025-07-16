@@ -6,8 +6,8 @@ Thanks for running those commands — this gives us a **very clear picture** of 
 
 Here’s what matters for **Netlify bandwidth**:
 
-| Folder/File                | Size                                         | Counts Toward Bandwidth?                       |
-| -------------------------- | -------------------------------------------- | ---------------------------------------------- |
+| Folder/File                | Size                                         | Counts Toward Bandwidth?                        |
+| -------------------------- | -------------------------------------------- | ----------------------------------------------- |
 | `.next/cache/webpack/...`  | **57M**                                      | ❌ No (build-time cache only)                   |
 | `.next/server/...`         | 3.6M                                         | ✅ Possibly (SSR-related output)                |
 | `.next/static/chunks/...`  | **15M**                                      | ✅ **Yes** (served via CDN)                     |
@@ -20,10 +20,10 @@ Here’s what matters for **Netlify bandwidth**:
 
 ## 🧠 What This Means
 
-* Your **actual deployed asset size is \~18 MB**, not 80 MB.
-* Most of the `.next/cache` folder is just internal build cache — **Netlify does not deploy that**.
-* So every **fresh visitor** (or device, or bot) is likely downloading **up to 18 MB** in total.
-* With **no caching**, it only takes \~15–20 full visits or reloads to hit **279 MB bandwidth**.
+- Your **actual deployed asset size is \~18 MB**, not 80 MB.
+- Most of the `.next/cache` folder is just internal build cache — **Netlify does not deploy that**.
+- So every **fresh visitor** (or device, or bot) is likely downloading **up to 18 MB** in total.
+- With **no caching**, it only takes \~15–20 full visits or reloads to hit **279 MB bandwidth**.
 
 ---
 
@@ -36,7 +36,7 @@ Here’s what matters for **Netlify bandwidth**:
 | 5 preview deploy views                | \~90 MB        |
 | **Total**                             | **\~270 MB**   |
 
-> That’s how you're hitting this bandwidth *without heavy real traffic*.
+> That’s how you're hitting this bandwidth _without heavy real traffic_.
 
 ---
 
@@ -95,8 +95,8 @@ Be aware that every deploy preview or branch access = full page load = bandwidth
 
 Consider:
 
-* Enabling [Netlify Analytics (paid)](https://www.netlify.com/products/analytics/)
-* Using [Cloudflare Free Plan](https://www.cloudflare.com/plans) for bot filtering and bandwidth control
+- Enabling [Netlify Analytics (paid)](https://www.netlify.com/products/analytics/)
+- Using [Cloudflare Free Plan](https://www.cloudflare.com/plans) for bot filtering and bandwidth control
 
 ---
 
@@ -104,9 +104,9 @@ Consider:
 
 Your bandwidth usage **makes perfect sense** now:
 
-* \~18 MB per fresh load
-* Multiplied by preview deploys, multiple devices, no cache, or bots
-* 279 MB is right on target
+- \~18 MB per fresh load
+- Multiplied by preview deploys, multiple devices, no cache, or bots
+- 279 MB is right on target
 
 🔧 With proper headers + compression + awareness of preview deploys, **you could cut that usage by 80–90%** next month.
 

@@ -1,21 +1,14 @@
 import { z } from 'zod';
 import { logger } from './Logger';
+import { EmailConfiguration } from '@/features/contact/EmailService';
 
-const EmailServiceConfigurationSchema = z.object({
-  RESEND_API_KEY: z
-    .string({ required_error: 'RESEND_API_KEY is not configured' })
-    .min(1, 'RESEND_API_KEY is not configured'),
-  FROM_EMAIL: z.string({ required_error: 'FROM_EMAIL is not configured' }).min(1, 'FROM_EMAIL is not configured'),
-  TO_EMAIL: z.string({ required_error: 'TO_EMAIL is not configured' }).min(1, 'TO_EMAIL is not configured'),
-  EMAIL_SENDER_NAME: z
-    .string({ required_error: 'EMAIL_SENDER_NAME is not configured' })
-    .min(1, 'EMAIL_SENDER_NAME is not configured'),
-  EMAIL_RECIPIENT_NAME: z
-    .string({ required_error: 'EMAIL_RECIPIENT_NAME is not configured' })
-    .min(1, 'EMAIL_RECIPIENT_NAME is not configured'),
-  SEND_EMAIL_ENABLED: z
-    .string({ required_error: 'SEND_EMAIL_ENABLED must be set to "true"' })
-    .refine((val) => val === 'true', 'SEND_EMAIL_ENABLED must be set to "true"')
+const EmailConfigurationSchema = z.object({
+  apiKey: z.string().min(1).describe('RESEND_API_KEY'),
+  fromEmail: z.string().email().describe('FROM_EMAIL'),
+  toEmail: z.string().email().describe('TO_EMAIL'),
+  sendEmailEnabled: z.boolean().describe('SEND_EMAIL_ENABLED'),
+  senderName: z.string().min(1).describe('EMAIL_SENDER_NAME'),
+  recipientName: z.string().min(1).describe('EMAIL_RECIPIENT_NAME')
 });
 
 export interface EmailServiceConfigurationResult {
@@ -24,11 +17,15 @@ export interface EmailServiceConfigurationResult {
 }
 
 export class EmailServiceConfigurationValidator {
-  validate(env: Record<string, string | undefined>): EmailServiceConfigurationResult {
-    const result = EmailServiceConfigurationSchema.safeParse(env);
+  static validate(config: EmailConfiguration): EmailServiceConfigurationResult {
+    const result = EmailConfigurationSchema.safeParse(config);
 
     if (!result.success) {
-      const problems = result.error.errors.map((err) => err.message);
+      const problems = result.error.errors.map((err) => {
+        const fieldName = err.path[0] as keyof typeof EmailConfigurationSchema.shape;
+        const envVar = EmailConfigurationSchema.shape[fieldName]?.description || fieldName;
+        return `${envVar}: ${err.message}`;
+      });
       logger.error('Email service configuration validation failed:', problems);
       return {
         configured: false,

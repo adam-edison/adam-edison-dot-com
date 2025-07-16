@@ -25,7 +25,7 @@
   - ✅ Extract lots of hardcoded variables as env values
   - ✅ Fix the dotenv logging out warnings during tests
   - ✅ Get rid of unnecessary nesting and simplify code logic
-  - Scrutinize validation, factory method, and constructor patterns (EmailService, etc)
+  - ✅ Scrutinize validation, factory method, and constructor patterns (EmailService, etc)
   - Make top-level error handler reused across API endpoints if possible, and simplify error handling
 
 - Bandwidth improvements via caching - see [BandWidth](./bandwidth.md)
