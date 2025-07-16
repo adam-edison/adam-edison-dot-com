@@ -2,6 +2,7 @@ import { contactRateLimiter } from '@/features/contact/ContactRateLimiter';
 import { RequestValidator } from '@/shared/RequestValidator';
 import { ContactFormProcessor } from '@/features/contact/ContactFormProcessor';
 import { logger } from '@/shared/Logger';
+import { ValidationError, RecaptchaError, SanitizationError, EmailServiceError } from '@/shared/errors';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 function setRateLimitHeaders(res: NextApiResponse, headers: Record<string, string | number>) {
@@ -43,16 +44,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const error = result.error;
 
       let statusCode = 500;
-      if (error?.type === 'validation' || error?.type === 'sanitization' || error?.type === 'recaptcha') {
+      if (error instanceof ValidationError || error instanceof RecaptchaError || error instanceof SanitizationError) {
         statusCode = 400;
+      } else if (error instanceof EmailServiceError && error.isConfigError) {
+        statusCode = 500;
+      } else if (error instanceof EmailServiceError) {
+        statusCode = 502;
       }
 
       const response: { message: string; errors?: unknown[] } = {
-        message: error?.message || 'An error occurred'
+        message: error.message
       };
 
-      if (error?.errors) {
-        response.errors = error.errors;
+      if (error instanceof ValidationError || error instanceof SanitizationError) {
+        response.errors = error.details;
       }
 
       return res.status(statusCode).json(response);

@@ -1,4 +1,6 @@
 import { logger } from '@/shared/Logger';
+import { Result } from '@/shared/Result';
+import { RecaptchaError, ServiceUnavailableError } from '@/shared/errors';
 
 export interface RecaptchaAPIResponse {
   success: boolean;
@@ -36,19 +38,19 @@ export class RecaptchaService {
     return new RecaptchaService(config);
   }
 
-  async verifyToken(token: string): Promise<boolean> {
+  async verifyToken(token: string): Promise<Result<boolean, RecaptchaError | ServiceUnavailableError>> {
     if (!this.config.verificationEnabled) {
-      return true;
+      return Result.success(true);
     }
 
     if (this.isTokenEmpty(token)) {
       logger.warn('No reCAPTCHA token provided - allowing request (fail-open)');
-      return true;
+      return Result.success(true);
     }
 
     if (this.isSecretKeyMissing()) {
       logger.error('reCAPTCHA secret key not configured - allowing request (fail-open)');
-      return true;
+      return Result.success(true);
     }
 
     try {
@@ -79,27 +81,27 @@ export class RecaptchaService {
     return response.json();
   }
 
-  private processVerificationResult(data: RecaptchaAPIResponse): boolean {
+  private processVerificationResult(data: RecaptchaAPIResponse): Result<boolean, RecaptchaError> {
     if (!data.success) {
       logger.error('reCAPTCHA verification failed:', data['error-codes'], '- allowing request (fail-open)');
-      return true;
+      return Result.success(true);
     }
 
     if (this.isScoreBelowThreshold(data.score)) {
       logger.error('reCAPTCHA score too low:', data.score, '- allowing request (fail-open)');
-      return true;
+      return Result.success(true);
     }
 
-    return true;
+    return Result.success(true);
   }
 
   private isScoreBelowThreshold(score: number | undefined): boolean {
     return Boolean(score && score < this.config.scoreThreshold);
   }
 
-  private handleVerificationError(error: unknown): boolean {
+  private handleVerificationError(error: unknown): Result<boolean, ServiceUnavailableError> {
     logger.error('Error verifying reCAPTCHA:', error, '- allowing request (fail-open)');
-    return true;
+    return Result.success(true);
   }
 }
 

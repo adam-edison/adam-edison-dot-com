@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { ValidationPatterns } from '@/shared/patterns/ValidationPatterns';
 import { FormValidationConstants } from '@/shared/constants/FormValidationConstants';
+import { Result } from '@/shared/Result';
+import { ValidationError } from '@/shared/errors';
 
 // Extract constants for better readability
 const nameMinLength = FormValidationConstants.NAME_MIN_LENGTH;
@@ -91,21 +93,48 @@ export class ContactFormValidator {
   /**
    * Validates form data for client-side use (without reCAPTCHA)
    */
-  static validateFormData(data: unknown): z.SafeParseReturnType<unknown, ContactFormData> {
-    return this.clientFormValidationSchema.safeParse(data);
+  static validateFormData(data: unknown): Result<ContactFormData, ValidationError> {
+    const result = this.clientFormValidationSchema.safeParse(data);
+    if (!result.success) {
+      return Result.failure(new ValidationError('Invalid form data', result.error.errors));
+    }
+    return Result.success(result.data);
   }
 
   /**
    * Validates submission data including reCAPTCHA token
    */
-  static validateSubmissionData(data: unknown): z.SafeParseReturnType<unknown, ContactFormSubmissionData> {
-    return this.clientSubmissionSchema.safeParse(data);
+  static validateSubmissionData(data: unknown): Result<ContactFormSubmissionData, ValidationError> {
+    const result = this.clientSubmissionSchema.safeParse(data);
+    if (!result.success) {
+      return Result.failure(new ValidationError('Invalid submission data', result.error.errors));
+    }
+    return Result.success(result.data);
   }
 
   /**
    * Validates server-side data (without reCAPTCHA)
    */
-  static validateServerData(data: unknown): z.SafeParseReturnType<unknown, ContactFormServerData> {
+  static validateServerData(data: unknown): Result<ContactFormServerData, ValidationError> {
+    const result = this.serverProcessingSchema.safeParse(data);
+    if (!result.success) {
+      return Result.failure(new ValidationError('Invalid server data', result.error.errors));
+    }
+    return Result.success(result.data);
+  }
+
+  /**
+   * Legacy Zod validation methods for backward compatibility
+   */
+  static validateFormDataLegacy(data: unknown): z.SafeParseReturnType<unknown, ContactFormData> {
+    return this.clientFormValidationSchema.safeParse(data);
+  }
+
+  static validateSubmissionDataLegacy(data: unknown): z.SafeParseReturnType<unknown, ContactFormSubmissionData> {
+    return this.clientSubmissionSchema.safeParse(data);
+  }
+
+  static validateServerDataLegacy(data: unknown): z.SafeParseReturnType<unknown, ContactFormServerData> {
     return this.serverProcessingSchema.safeParse(data);
   }
 
