@@ -104,5 +104,3 @@ export class RecaptchaService {
     return Result.success(true);
   }
 }
-
-export const recaptchaService = RecaptchaService.fromEnv();

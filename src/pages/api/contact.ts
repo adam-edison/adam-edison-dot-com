@@ -1,4 +1,4 @@
-import { contactRateLimiter } from '@/features/contact/ContactRateLimiter';
+import { ContactRateLimiter } from '@/features/contact/ContactRateLimiter';
 import { RequestValidator } from '@/shared/RequestValidator';
 import { ContactFormProcessor } from '@/features/contact/ContactFormProcessor';
 import { logger } from '@/shared/Logger';
@@ -19,6 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const ip = RequestValidator.extractClientIp(req);
 
+    const contactRateLimiter = ContactRateLimiter.fromEnv();
     const rateLimitResult = await contactRateLimiter.checkLimits(ip);
 
     setRateLimitHeaders(res, rateLimitResult.globalResult.headers);
@@ -38,7 +39,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    const result = await ContactFormProcessor.processForm(req.body);
+    const processorResult = await ContactFormProcessor.fromEnv();
+    if (!processorResult.success) {
+      logger.error('Failed to create ContactFormProcessor:', processorResult.error);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+
+    const result = await processorResult.data.processForm(req.body);
 
     if (!result.success) {
       const error = result.error;

@@ -48,5 +48,3 @@ export class ContactRateLimiter {
     await Promise.all([this.globalRateLimiter.clearKeys(pattern), this.ipRateLimiter.clearKeys(pattern)]);
   }
 }
-
-export const contactRateLimiter = ContactRateLimiter.fromEnv();

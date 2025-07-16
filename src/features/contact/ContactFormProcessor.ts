@@ -1,6 +1,6 @@
 import { EmailService } from './EmailService';
 import { InputSanitizer } from './InputSanitizer';
-import { recaptchaService } from './RecaptchaService';
+import { RecaptchaService } from './RecaptchaService';
 import { ContactFormValidator, ContactFormSubmissionData, ContactFormServerData } from './ContactFormValidator';
 import { Result } from '@/shared/Result';
 import {
@@ -17,7 +17,23 @@ export type ProcessFormResult = Result<
 >;
 
 export class ContactFormProcessor {
-  static async processForm(formData: unknown): Promise<ProcessFormResult> {
+  constructor(
+    private emailService: EmailService,
+    private recaptchaService: RecaptchaService
+  ) {}
+
+  static async fromEnv(): Promise<Result<ContactFormProcessor, EmailServiceError>> {
+    const emailServiceResult = EmailService.fromEnv();
+    if (!emailServiceResult.success) {
+      return Result.failure(emailServiceResult.error);
+    }
+
+    const recaptchaService = RecaptchaService.fromEnv();
+
+    return Result.success(new ContactFormProcessor(emailServiceResult.data, recaptchaService));
+  }
+
+  async processForm(formData: unknown): Promise<ProcessFormResult> {
     const rawSubmission = formData;
     const validatedSubmission = await this.validateRawSubmission(rawSubmission);
     if (!validatedSubmission.success) return Result.failure(validatedSubmission.error);
@@ -38,18 +54,16 @@ export class ContactFormProcessor {
     return Result.success();
   }
 
-  private static async validateRawSubmission(
-    rawData: unknown
-  ): Promise<Result<ContactFormSubmissionData, ValidationError>> {
+  private async validateRawSubmission(rawData: unknown): Promise<Result<ContactFormSubmissionData, ValidationError>> {
     return ContactFormValidator.validateSubmissionData(rawData);
   }
 
-  private static async verifyRecaptchaToken(token: string): Promise<Result<void, RecaptchaError>> {
-    const result = await recaptchaService.verifyToken(token);
+  private async verifyRecaptchaToken(token: string): Promise<Result<void, RecaptchaError>> {
+    const result = await this.recaptchaService.verifyToken(token);
     return result.success ? Result.success() : Result.failure(new RecaptchaError('reCAPTCHA verification failed'));
   }
 
-  private static sanitizeFormData(submissionData: ContactFormSubmissionData): ContactFormServerData {
+  private sanitizeFormData(submissionData: ContactFormSubmissionData): ContactFormServerData {
     return {
       firstName: InputSanitizer.sanitize(submissionData.firstName),
       lastName: InputSanitizer.sanitize(submissionData.lastName),
@@ -58,7 +72,7 @@ export class ContactFormProcessor {
     };
   }
 
-  private static async validateSanitizedData(
+  private async validateSanitizedData(
     sanitizedData: ContactFormServerData
   ): Promise<Result<ContactFormServerData, SanitizationError>> {
     const result = ContactFormValidator.validateServerData(sanitizedData);
@@ -67,11 +81,8 @@ export class ContactFormProcessor {
       : Result.failure(new SanitizationError('Data validation failed after sanitization', result.error.details));
   }
 
-  private static async sendContactEmail(emailData: ContactFormServerData): Promise<Result<void, EmailServiceError>> {
-    const emailService = EmailService.fromEnv();
-    if (!emailService.success) return Result.failure(emailService.error);
-
-    const emailResult = await emailService.data.sendContactEmail(emailData);
+  private async sendContactEmail(emailData: ContactFormServerData): Promise<Result<void, EmailServiceError>> {
+    const emailResult = await this.emailService.sendContactEmail(emailData);
     return emailResult.success ? Result.success() : Result.failure(emailResult.error);
   }
 }
