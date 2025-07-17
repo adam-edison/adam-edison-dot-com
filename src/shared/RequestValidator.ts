@@ -15,7 +15,8 @@ export class RequestValidator {
 
     const methodError = new MethodNotAllowedError('Method not allowed', {
       internalMessage: `Invalid method ${req.method}, expected ${allowedMethod}`,
-      allowedMethod
+      allowedMethod,
+      attemptedMethod: req.method || 'unknown'
     });
     return Result.failure(methodError);
   }

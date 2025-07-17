@@ -52,9 +52,8 @@ export class ApiErrorHandler {
       response.errors = error.details;
     }
 
-    // Add any metadata to response
-    if (error.metadata) {
-      Object.assign(response, error.metadata);
+    if (error.responseMetadata) {
+      Object.assign(response, error.responseMetadata);
     }
 
     return response;

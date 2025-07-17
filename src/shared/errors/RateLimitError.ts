@@ -13,7 +13,8 @@ export class RateLimitError extends BaseError {
 
   constructor(message: string, options: RateLimitErrorOptions) {
     const { internalMessage, retryAfter, limitType } = options;
-    const metadata = { retryAfter, limitType };
-    super(message, { internalMessage, metadata });
+    const responseMetadata = { retryAfter };
+    const metadata = { limitType, actualLimitValue: retryAfter };
+    super(message, { internalMessage, responseMetadata, metadata });
   }
 }

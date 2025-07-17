@@ -302,8 +302,8 @@ describe('ApiErrorHandler', () => {
       expect(mockRes.status).toHaveBeenCalledWith(429);
       expect(mockRes.json).toHaveBeenCalledWith({
         message: 'Too many requests. Please try again later.',
-        retryAfter: 300,
-        limitType: 'ip'
+        retryAfter: 300
+        // limitType is no longer exposed to client - kept in internal metadata only
       });
 
       // Verify logging
@@ -314,7 +314,7 @@ describe('ApiErrorHandler', () => {
         internalMessage: 'IP rate limit exceeded: 5 requests per 10 minutes from 192.168.1.1',
         statusCode: 429,
         details: undefined,
-        metadata: { retryAfter: 300, limitType: 'ip' }
+        metadata: { limitType: 'ip', actualLimitValue: 300 }
       });
     });
 
@@ -327,7 +327,8 @@ describe('ApiErrorHandler', () => {
 
       const error = new MethodNotAllowedError('Method not allowed', {
         internalMessage: 'Invalid method GET, expected POST',
-        allowedMethod: 'POST'
+        allowedMethod: 'POST',
+        attemptedMethod: 'GET'
       });
 
       ApiErrorHandler.handle(mockRes, error);
@@ -335,8 +336,8 @@ describe('ApiErrorHandler', () => {
       // Verify HTTP response
       expect(mockRes.status).toHaveBeenCalledWith(405);
       expect(mockRes.json).toHaveBeenCalledWith({
-        message: 'Method not allowed',
-        allowedMethod: 'POST'
+        message: 'Method not allowed'
+        // allowedMethod is no longer in response body - it's in Allow header and internal metadata only
       });
 
       // Verify Allow header is set
@@ -350,7 +351,7 @@ describe('ApiErrorHandler', () => {
         internalMessage: 'Invalid method GET, expected POST',
         statusCode: 405,
         details: undefined,
-        metadata: { allowedMethod: 'POST' }
+        metadata: { allowedMethod: 'POST', attemptedMethod: 'GET' }
       });
     });
 
