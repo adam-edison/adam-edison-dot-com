@@ -90,9 +90,6 @@ export class ContactFormValidator {
 
   static readonly serverProcessingSchema = baseContactSchema;
 
-  /**
-   * Validates form data for client-side use (without reCAPTCHA)
-   */
   static validateFormData(data: unknown): Result<ContactFormData, ValidationError> {
     const result = this.clientFormValidationSchema.safeParse(data);
     if (!result.success) {
@@ -106,9 +103,6 @@ export class ContactFormValidator {
     return Result.success(result.data);
   }
 
-  /**
-   * Validates submission data including reCAPTCHA token
-   */
   static validateSubmissionData(data: unknown): Result<ContactFormSubmissionData, ValidationError> {
     const result = this.clientSubmissionSchema.safeParse(data);
     if (!result.success) {
@@ -122,9 +116,6 @@ export class ContactFormValidator {
     return Result.success(result.data);
   }
 
-  /**
-   * Validates server-side data (without reCAPTCHA)
-   */
   static validateServerData(data: unknown): Result<ContactFormServerData, ValidationError> {
     const result = this.serverProcessingSchema.safeParse(data);
     if (!result.success) {
@@ -138,44 +129,15 @@ export class ContactFormValidator {
     return Result.success(result.data);
   }
 
-  /**
-   * Legacy Zod validation methods for backward compatibility
-   */
-  static validateFormDataLegacy(data: unknown): z.SafeParseReturnType<unknown, ContactFormData> {
-    return this.clientFormValidationSchema.safeParse(data);
-  }
-
-  static validateSubmissionDataLegacy(data: unknown): z.SafeParseReturnType<unknown, ContactFormSubmissionData> {
-    return this.clientSubmissionSchema.safeParse(data);
-  }
-
-  static validateServerDataLegacy(data: unknown): z.SafeParseReturnType<unknown, ContactFormServerData> {
-    return this.serverProcessingSchema.safeParse(data);
-  }
-
-  /**
-   * Parses form data and throws on validation error
-   */
   static parseFormData(data: unknown): ContactFormData {
     return this.clientFormValidationSchema.parse(data);
   }
 
-  /**
-   * Parses submission data and throws on validation error
-   */
   static parseSubmissionData(data: unknown): ContactFormSubmissionData {
     return this.clientSubmissionSchema.parse(data);
   }
 
-  /**
-   * Parses server data and throws on validation error
-   */
   static parseServerData(data: unknown): ContactFormServerData {
     return this.serverProcessingSchema.parse(data);
   }
 }
-
-// Legacy exports for backward compatibility (to be removed after migration)
-export const contactFormSchema = ContactFormValidator.clientFormValidationSchema;
-export const contactFormSubmissionSchema = ContactFormValidator.clientSubmissionSchema;
-export const contactFormServerSchema = ContactFormValidator.serverProcessingSchema;
