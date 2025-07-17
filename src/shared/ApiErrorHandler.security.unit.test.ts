@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ApiErrorHandler } from './ApiErrorHandler';
 import { RateLimitError, MethodNotAllowedError, InternalServerError } from './errors';
 import { logger } from './Logger';
-import type { NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 // Mock logger
 vi.mock('./Logger', () => ({
@@ -159,6 +159,69 @@ describe('ApiErrorHandler - Security Analysis', () => {
       expect(responseCall).not.toHaveProperty('internalMessage');
       expect(JSON.stringify(responseCall)).not.toContain('IP rate limit exceeded');
       expect(JSON.stringify(responseCall)).not.toContain('192.168.1.1');
+    });
+  });
+
+  describe('Request Context Logging', () => {
+    it('should log request context when provided', () => {
+      const mockRes = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn()
+      } as unknown as NextApiResponse;
+
+      const mockReq = {
+        headers: {
+          'x-forwarded-for': '192.168.1.100',
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        socket: { remoteAddress: '127.0.0.1' }
+      } as unknown as NextApiRequest;
+
+      const requestContext = ApiErrorHandler.createRequestContext(mockReq);
+      const error = new InternalServerError('Something went wrong', {
+        internalMessage: 'Test internal error message'
+      });
+
+      ApiErrorHandler.handle(mockRes, error, requestContext);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        'API Error:',
+        expect.objectContaining({
+          requestContext: expect.objectContaining({
+            requestId: expect.any(String),
+            ip: '192.168.1.100',
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          })
+        })
+      );
+    });
+
+    it('should handle missing headers gracefully', () => {
+      const mockReq = {
+        headers: {},
+        socket: {}
+      } as unknown as NextApiRequest;
+
+      const requestContext = ApiErrorHandler.createRequestContext(mockReq);
+
+      expect(requestContext).toEqual({
+        requestId: expect.any(String),
+        ip: undefined,
+        userAgent: undefined
+      });
+    });
+
+    it('should handle array IP addresses from x-forwarded-for', () => {
+      const mockReq = {
+        headers: {
+          'x-forwarded-for': ['192.168.1.100', '10.0.0.1']
+        },
+        socket: { remoteAddress: '127.0.0.1' }
+      } as unknown as NextApiRequest;
+
+      const requestContext = ApiErrorHandler.createRequestContext(mockReq);
+
+      expect(requestContext.ip).toBe('192.168.1.100');
     });
   });
 });

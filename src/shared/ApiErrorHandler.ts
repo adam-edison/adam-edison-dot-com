@@ -1,6 +1,12 @@
-import type { NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { logger } from './Logger';
 import { BaseError, ValidationError, SanitizationError } from './errors';
+
+export interface RequestContext {
+  requestId: string;
+  ip?: string;
+  userAgent?: string;
+}
 
 export interface ErrorResponse {
   statusCode: number;
@@ -18,7 +24,7 @@ export class ApiErrorHandler {
     return { statusCode, response };
   }
 
-  static handle(res: NextApiResponse, error: BaseError): void {
+  static handle(res: NextApiResponse, error: BaseError, context?: RequestContext): void {
     const { statusCode, response } = this.mapErrorToResponse(error);
 
     // Set any custom headers
@@ -36,10 +42,23 @@ export class ApiErrorHandler {
       internalMessage: error.internalMessage,
       statusCode,
       details: error.details,
-      metadata: error.metadata
+      metadata: error.metadata,
+      requestContext: context
     });
 
     res.status(statusCode).json(response);
+  }
+
+  static createRequestContext(req: NextApiRequest): RequestContext {
+    const requestId = crypto.randomUUID();
+    const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+
+    return {
+      requestId,
+      ip: Array.isArray(ip) ? ip[0] : ip,
+      userAgent
+    };
   }
 
   private static buildResponse(error: BaseError): { message: string; [key: string]: unknown } {

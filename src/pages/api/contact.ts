@@ -12,28 +12,30 @@ function setRateLimitHeaders(res: NextApiResponse, headers: Record<string, strin
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const requestContext = ApiErrorHandler.createRequestContext(req);
+
   const methodValidation = RequestValidator.validateMethod(req, 'POST');
-  if (!methodValidation.success) return ApiErrorHandler.handle(res, methodValidation.error);
+  if (!methodValidation.success) return ApiErrorHandler.handle(res, methodValidation.error, requestContext);
 
   try {
     const ip = RequestValidator.extractClientIp(req);
 
     const rateLimitResult = await ContactRateLimiter.fromEnv().checkLimits(ip);
-    if (!rateLimitResult.success) return ApiErrorHandler.handle(res, rateLimitResult.error);
+    if (!rateLimitResult.success) return ApiErrorHandler.handle(res, rateLimitResult.error, requestContext);
 
     setRateLimitHeaders(res, rateLimitResult.data.headers);
 
     const processorResult = await ContactFormProcessor.fromEnv();
-    if (!processorResult.success) return ApiErrorHandler.handle(res, processorResult.error);
+    if (!processorResult.success) return ApiErrorHandler.handle(res, processorResult.error, requestContext);
 
     const formResult = await processorResult.data.processForm(req.body);
-    if (!formResult.success) return ApiErrorHandler.handle(res, formResult.error);
+    if (!formResult.success) return ApiErrorHandler.handle(res, formResult.error, requestContext);
 
     res.status(200).json({ message: 'Message sent successfully' });
   } catch (error) {
     const serverError = new InternalServerError('Failed to send message. Please try again later.', {
       internalMessage: `Unexpected error in contact handler: ${error instanceof Error ? error.message : 'Unknown error'}`
     });
-    return ApiErrorHandler.handle(res, serverError);
+    return ApiErrorHandler.handle(res, serverError, requestContext);
   }
 }
