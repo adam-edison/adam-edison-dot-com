@@ -1,6 +1,6 @@
 import { RateLimiter, RateLimitResult } from '@/features/rate-limiting/RateLimiter';
 import { Result } from '@/shared/Result';
-import { RateLimitError } from '@/shared/errors';
+import { RateLimitError, InternalServerError } from '@/shared/errors';
 
 export interface ContactRateLimitResult {
   ipLimitExceeded: boolean;
@@ -33,7 +33,9 @@ export class ContactRateLimiter {
     return contactRateLimiter;
   }
 
-  async checkLimits(ip: string): Promise<Result<{ headers: Record<string, string | number> }, RateLimitError>> {
+  async checkLimits(
+    ip: string
+  ): Promise<Result<{ headers: Record<string, string | number> }, RateLimitError | InternalServerError>> {
     const [globalResult, ipResult] = await Promise.all([
       this.globalRateLimiter.checkLimit('global'),
       this.ipRateLimiter.checkLimit(ip)
@@ -62,17 +64,25 @@ export class ContactRateLimiter {
       return Result.failure(globalRateLimitError);
     }
 
-    // IP limit exceeded
-    const retryAfter = Math.ceil((ipResult.reset - Date.now()) / 1000);
-    const clientMessage = 'Too many requests. Please try again later.';
-    const internalMessage = `IP rate limit exceeded: ${ipResult.limit} requests per window from ${ip}`;
-    const ipRateLimitError = new RateLimitError(clientMessage, {
-      internalMessage,
-      retryAfter,
-      limitType: 'ip'
-    });
+    if (!ipResult.success) {
+      // IP limit exceeded
+      const retryAfter = Math.ceil((ipResult.reset - Date.now()) / 1000);
+      const clientMessage = 'Too many requests. Please try again later.';
+      const internalMessage = `IP rate limit exceeded: ${ipResult.limit} requests per window from ${ip}`;
+      const ipRateLimitError = new RateLimitError(clientMessage, {
+        internalMessage,
+        retryAfter,
+        limitType: 'ip'
+      });
 
-    return Result.failure(ipRateLimitError);
+      return Result.failure(ipRateLimitError);
+    }
+
+    const internalMessage =
+      'Rate limiter reached unexpected state: both globalResult and ipResult should have been checked';
+    const clientMessage = 'Internal server error';
+    const error = new InternalServerError(clientMessage, { internalMessage });
+    return Result.failure(error);
   }
 
   async clearKeys(pattern: string): Promise<void> {
