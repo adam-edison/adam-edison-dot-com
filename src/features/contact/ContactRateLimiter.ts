@@ -39,35 +39,40 @@ export class ContactRateLimiter {
       this.ipRateLimiter.checkLimit(ip)
     ]);
 
-    // Combine headers for successful case
-    const combinedHeaders = {
-      ...globalResult.headers,
-      ...ipResult.headers
-    };
+    if (globalResult.success && ipResult.success) {
+      const combinedHeaders = {
+        ...globalResult.headers,
+        ...ipResult.headers
+      };
 
-    // Check global limit first (more restrictive)
+      return Result.success({ headers: combinedHeaders });
+    }
+
     if (!globalResult.success) {
       const retryAfter = Math.ceil((globalResult.reset - Date.now()) / 1000);
-      const globalRateLimitError = new RateLimitError('Site-wide rate limit exceeded. Please try again later.', {
-        internalMessage: `Global rate limit exceeded: ${globalResult.limit} requests per window`,
+      const clientMessage = 'Site-wide rate limit exceeded. Please try again later.';
+      const internalMessage = `Global rate limit exceeded: ${globalResult.limit} requests per window`;
+
+      const globalRateLimitError = new RateLimitError(clientMessage, {
+        internalMessage,
         retryAfter,
         limitType: 'global'
       });
+
       return Result.failure(globalRateLimitError);
     }
 
-    // Check IP limit
-    if (!ipResult.success) {
-      const retryAfter = Math.ceil((ipResult.reset - Date.now()) / 1000);
-      const ipRateLimitError = new RateLimitError('Too many requests. Please try again later.', {
-        internalMessage: `IP rate limit exceeded: ${ipResult.limit} requests per window from ${ip}`,
-        retryAfter,
-        limitType: 'ip'
-      });
-      return Result.failure(ipRateLimitError);
-    }
+    // IP limit exceeded
+    const retryAfter = Math.ceil((ipResult.reset - Date.now()) / 1000);
+    const clientMessage = 'Too many requests. Please try again later.';
+    const internalMessage = `IP rate limit exceeded: ${ipResult.limit} requests per window from ${ip}`;
+    const ipRateLimitError = new RateLimitError(clientMessage, {
+      internalMessage,
+      retryAfter,
+      limitType: 'ip'
+    });
 
-    return Result.success({ headers: combinedHeaders });
+    return Result.failure(ipRateLimitError);
   }
 
   async clearKeys(pattern: string): Promise<void> {

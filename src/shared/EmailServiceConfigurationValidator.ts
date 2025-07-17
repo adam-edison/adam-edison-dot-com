@@ -20,21 +20,19 @@ export class EmailServiceConfigurationValidator {
   static validate(config: EmailConfiguration): EmailServiceConfigurationResult {
     const result = EmailConfigurationSchema.safeParse(config);
 
-    if (!result.success) {
-      const problems = result.error.errors.map((err) => {
-        const fieldName = err.path[0] as keyof typeof EmailConfigurationSchema.shape;
-        const envVar = EmailConfigurationSchema.shape[fieldName]?.description || fieldName;
-        return `${envVar}: ${err.message}`;
-      });
-      logger.error('Email service configuration validation failed:', problems);
-      return {
-        configured: false,
-        problems
-      };
-    }
+    if (result.success) return { configured: true };
+
+    const problems = result.error.errors.map((err) => {
+      const fieldName = err.path[0] as keyof typeof EmailConfigurationSchema.shape;
+      const envVar = EmailConfigurationSchema.shape[fieldName]?.description || fieldName;
+      return `${envVar}: ${err.message}`;
+    });
+
+    logger.error('Email service configuration validation failed:', problems);
 
     return {
-      configured: true
+      configured: false,
+      problems
     };
   }
 }

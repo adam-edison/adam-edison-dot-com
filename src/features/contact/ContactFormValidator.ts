@@ -92,41 +92,38 @@ export class ContactFormValidator {
 
   static validateFormData(data: unknown): Result<ContactFormData, ValidationError> {
     const result = this.clientFormValidationSchema.safeParse(data);
-    if (!result.success) {
-      const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
-      const errorMessage = `Form validation failed: ${issueDetails}`;
-      const options = { internalMessage: errorMessage, details: result.error.errors };
-      const validationError = new ValidationError(errorMessage, options);
+    if (result.success) return Result.success(result.data);
 
-      return Result.failure(validationError);
-    }
-    return Result.success(result.data);
+    const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
+    const errorMessage = `Form validation failed: ${issueDetails}`;
+    const options = { internalMessage: errorMessage, details: result.error.errors };
+    const validationError = new ValidationError(errorMessage, options);
+
+    return Result.failure(validationError);
   }
 
   static validateSubmissionData(data: unknown): Result<ContactFormSubmissionData, ValidationError> {
     const result = this.clientSubmissionSchema.safeParse(data);
-    if (!result.success) {
-      const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
-      const errorMessage = `Submission validation failed: ${issueDetails}`;
-      const options = { internalMessage: errorMessage, details: result.error.errors };
-      const validationError = new ValidationError(errorMessage, options);
+    if (result.success) return Result.success(result.data);
 
-      return Result.failure(validationError);
-    }
-    return Result.success(result.data);
+    const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
+    const errorMessage = `Submission validation failed: ${issueDetails}`;
+    const options = { internalMessage: errorMessage, details: result.error.errors };
+    const validationError = new ValidationError(errorMessage, options);
+
+    return Result.failure(validationError);
   }
 
   static validateServerData(data: unknown): Result<ContactFormServerData, ValidationError> {
     const result = this.serverProcessingSchema.safeParse(data);
-    if (!result.success) {
-      const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
-      const errorMessage = `Server data validation failed: ${issueDetails}`;
-      const options = { internalMessage: errorMessage, details: result.error.errors };
-      const validationError = new ValidationError(errorMessage, options);
+    if (result.success) return Result.success(result.data);
 
-      return Result.failure(validationError);
-    }
-    return Result.success(result.data);
+    const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
+    const errorMessage = `Server data validation failed: ${issueDetails}`;
+    const options = { internalMessage: errorMessage, details: result.error.errors };
+    const validationError = new ValidationError(errorMessage, options);
+
+    return Result.failure(validationError);
   }
 
   static parseFormData(data: unknown): ContactFormData {

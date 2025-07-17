@@ -18,10 +18,11 @@ export class ContactFormProcessor {
 
   static async fromEnv(): Promise<Result<ContactFormProcessor, InternalServerError>> {
     const emailServiceResult = EmailService.fromEnv();
+
     if (!emailServiceResult.success) {
-      const serverError = new InternalServerError('Internal server error', {
-        internalMessage: `Failed to initialize email service: ${emailServiceResult.error.message}`
-      });
+      const internalMessage = `Failed to initialize email service: ${emailServiceResult.error.message}`;
+      const clientMessage = 'Internal server error';
+      const serverError = new InternalServerError(clientMessage, { internalMessage });
       return Result.failure(serverError);
     }
 
@@ -84,9 +85,7 @@ export class ContactFormProcessor {
   ): Promise<Result<ContactFormServerData, SanitizationError>> {
     const result = ContactFormValidator.validateServerData(sanitizedData);
 
-    if (result.success) {
-      return result;
-    }
+    if (result.success) return result;
 
     const clientMessage = 'Invalid content detected. Please check your input and try again.';
     const internalMessage = `Data validation failed after sanitization: ${result.error.message}`;
@@ -98,13 +97,11 @@ export class ContactFormProcessor {
   private async sendContactEmail(emailData: ContactFormServerData): Promise<Result<void, InternalServerError>> {
     const emailResult = await this.emailService.sendContactEmail(emailData);
 
-    if (emailResult.success) {
-      return Result.success();
-    }
+    if (emailResult.success) return Result.success();
 
-    const serverError = new InternalServerError('Failed to send message. Please try again later.', {
-      internalMessage: `Email service error: ${emailResult.error.message}`
-    });
+    const internalMessage = `Email service error: ${emailResult.error.message}`;
+    const clientMessage = 'Failed to send message. Please try again later.';
+    const serverError = new InternalServerError(clientMessage, { internalMessage });
     return Result.failure(serverError);
   }
 }
