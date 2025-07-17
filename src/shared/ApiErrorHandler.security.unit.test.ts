@@ -107,9 +107,10 @@ describe('ApiErrorHandler - Security Analysis', () => {
       class CustomError extends InternalServerError {
         constructor(message: string, sensitiveData: Record<string, unknown>) {
           super(message, {
-            internalMessage: 'Custom error occurred',
-            metadata: { debugInfo: sensitiveData }
+            internalMessage: 'Custom error occurred'
           });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (this as any).metadata = { debugInfo: sensitiveData };
         }
       }
 
