@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { strict as assert } from 'node:assert';
 import {
   ContactFormValidator,
   type ContactFormData,
@@ -46,10 +47,10 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.internalMessage).toContain('First name must be at least 2 characters');
-      }
+      assert(!result.success);
+      const expectedMessage = 'First name must be at least 2 characters';
+      expect(result.error.message).toContain(expectedMessage);
+      expect(result.error.internalMessage).toContain(expectedMessage);
     });
 
     test('should reject first names that are too long', () => {
@@ -61,10 +62,10 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.internalMessage).toContain('First name must be at most 50 characters');
-      }
+      assert(!result.success);
+      const expectedMessage = 'First name must be at most 50 characters';
+      expect(result.error.message).toContain(expectedMessage);
+      expect(result.error.internalMessage).toContain(expectedMessage);
     });
 
     test('should reject first names that are purely numbers', () => {
@@ -78,10 +79,10 @@ describe('ContactFormValidator', () => {
           message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
         });
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.internalMessage).toContain('First name must contain at least one letter');
-        }
+        assert(!result.success);
+        const expectedMessage = 'First name must contain at least one letter';
+        expect(result.error.message).toContain(expectedMessage);
+        expect(result.error.internalMessage).toContain(expectedMessage);
       });
     });
 
@@ -96,10 +97,10 @@ describe('ContactFormValidator', () => {
           message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
         });
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.internalMessage).toContain('First name must contain at least one letter');
-        }
+        assert(!result.success);
+        const expectedMessage = 'First name must contain at least one letter';
+        expect(result.error.message).toContain(expectedMessage);
+        expect(result.error.internalMessage).toContain(expectedMessage);
       });
     });
 
@@ -114,10 +115,10 @@ describe('ContactFormValidator', () => {
           message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
         });
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.internalMessage).toContain('First name must contain at least one letter');
-        }
+        assert(!result.success);
+        const expectedMessage = 'First name must contain at least one letter';
+        expect(result.error.message).toContain(expectedMessage);
+        expect(result.error.internalMessage).toContain(expectedMessage);
       });
     });
 
@@ -175,10 +176,10 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.internalMessage).toContain('Last name must be at least 2 characters');
-      }
+      assert(!result.success);
+      const expectedMessage = 'Last name must be at least 2 characters';
+      expect(result.error.message).toContain(expectedMessage);
+      expect(result.error.internalMessage).toContain(expectedMessage);
     });
 
     test('should reject last names that are too long', () => {
@@ -190,10 +191,10 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.internalMessage).toContain('Last name must be at most 50 characters');
-      }
+      assert(!result.success);
+      const expectedMessage = 'Last name must be at most 50 characters';
+      expect(result.error.message).toContain(expectedMessage);
+      expect(result.error.internalMessage).toContain(expectedMessage);
     });
 
     test('should reject last names that are purely numbers', () => {
@@ -207,10 +208,10 @@ describe('ContactFormValidator', () => {
           message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
         });
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.internalMessage).toContain('Last name must contain at least one letter');
-        }
+        assert(!result.success);
+        const expectedMessage = 'Last name must contain at least one letter';
+        expect(result.error.message).toContain(expectedMessage);
+        expect(result.error.internalMessage).toContain(expectedMessage);
       });
     });
 
@@ -225,10 +226,10 @@ describe('ContactFormValidator', () => {
           message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
         });
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.internalMessage).toContain('Last name must contain at least one letter');
-        }
+        assert(!result.success);
+        const expectedMessage = 'Last name must contain at least one letter';
+        expect(result.error.message).toContain(expectedMessage);
+        expect(result.error.internalMessage).toContain(expectedMessage);
       });
     });
 
@@ -243,10 +244,10 @@ describe('ContactFormValidator', () => {
           message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
         });
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.internalMessage).toContain('Last name must contain at least one letter');
-        }
+        assert(!result.success);
+        const expectedMessage = 'Last name must contain at least one letter';
+        expect(result.error.message).toContain(expectedMessage);
+        expect(result.error.internalMessage).toContain(expectedMessage);
       });
     });
 
@@ -296,10 +297,10 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.internalMessage).toContain('Email is required');
-      }
+      assert(!result.success);
+      const expectedMessage = 'Email is required';
+      expect(result.error.message).toContain(expectedMessage);
+      expect(result.error.internalMessage).toContain(expectedMessage);
     });
 
     test('should reject invalid email formats', () => {
@@ -321,10 +322,10 @@ describe('ContactFormValidator', () => {
           message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
         });
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.internalMessage).toContain('valid email');
-        }
+        assert(!result.success);
+        const expectedMessage = 'valid email';
+        expect(result.error.message).toContain(expectedMessage);
+        expect(result.error.internalMessage).toContain(expectedMessage);
       });
     });
 
@@ -337,10 +338,10 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.internalMessage).toContain('Email must be at most 100 characters');
-      }
+      assert(!result.success);
+      const expectedMessage = 'Email must be at most 100 characters';
+      expect(result.error.message).toContain(expectedMessage);
+      expect(result.error.internalMessage).toContain(expectedMessage);
     });
 
     test('should reject fake email patterns', () => {
@@ -354,10 +355,10 @@ describe('ContactFormValidator', () => {
           message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
         });
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.internalMessage).toContain('valid email');
-        }
+        assert(!result.success);
+        const expectedMessage = 'valid email';
+        expect(result.error.message).toContain(expectedMessage);
+        expect(result.error.internalMessage).toContain(expectedMessage);
       });
     });
 
@@ -369,10 +370,10 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.internalMessage).toContain('valid email');
-      }
+      assert(!result.success);
+      const expectedMessage = 'valid email';
+      expect(result.error.message).toContain(expectedMessage);
+      expect(result.error.internalMessage).toContain(expectedMessage);
     });
 
     test('should reject emails with invalid TLD', () => {
@@ -386,10 +387,10 @@ describe('ContactFormValidator', () => {
           message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
         });
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.internalMessage).toContain('valid email');
-        }
+        assert(!result.success);
+        const expectedMessage = 'valid email';
+        expect(result.error.message).toContain(expectedMessage);
+        expect(result.error.internalMessage).toContain(expectedMessage);
       });
     });
   });
@@ -423,10 +424,10 @@ describe('ContactFormValidator', () => {
         message: 'Short'
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.internalMessage).toContain('Must be at least 50 characters');
-      }
+      assert(!result.success);
+      const expectedMessage = 'Must be at least 50 characters';
+      expect(result.error.message).toContain(expectedMessage);
+      expect(result.error.internalMessage).toContain(expectedMessage);
     });
 
     test('should reject messages that are too long', () => {
@@ -438,10 +439,10 @@ describe('ContactFormValidator', () => {
         message: longMessage
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.internalMessage).toContain('Must be at most 1000 characters');
-      }
+      assert(!result.success);
+      const expectedMessage = 'Must be at most 1000 characters';
+      expect(result.error.message).toContain(expectedMessage);
+      expect(result.error.internalMessage).toContain(expectedMessage);
     });
 
     test('should reject messages with only whitespace', () => {
@@ -455,10 +456,10 @@ describe('ContactFormValidator', () => {
           message
         });
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.internalMessage).toContain('Must contain at least 50 non-whitespace characters');
-        }
+        assert(!result.success);
+        const expectedMessage = 'Must contain at least 50 non-whitespace characters';
+        expect(result.error.message).toContain(expectedMessage);
+        expect(result.error.internalMessage).toContain(expectedMessage);
       });
     });
 
@@ -497,10 +498,10 @@ describe('ContactFormValidator', () => {
         recaptchaToken: ''
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.internalMessage).toContain('Please complete the reCAPTCHA verification');
-      }
+      assert(!result.success);
+      const expectedMessage = 'Please complete the reCAPTCHA verification';
+      expect(result.error.message).toContain(expectedMessage);
+      expect(result.error.internalMessage).toContain(expectedMessage);
     });
 
     test('should not require recaptcha token in form schema', () => {
