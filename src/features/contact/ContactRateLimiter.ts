@@ -1,4 +1,6 @@
 import { RateLimiter, RateLimitResult } from '@/features/rate-limiting/RateLimiter';
+import { Result } from '@/shared/Result';
+import { RateLimitError } from '@/shared/errors';
 
 export interface ContactRateLimitResult {
   ipLimitExceeded: boolean;
@@ -30,18 +32,41 @@ export class ContactRateLimiter {
     return new ContactRateLimiter(globalRateLimiter, ipRateLimiter);
   }
 
-  async checkLimits(ip: string): Promise<ContactRateLimitResult> {
+  async checkLimits(ip: string): Promise<Result<{ headers: Record<string, string | number> }, RateLimitError>> {
     const [globalResult, ipResult] = await Promise.all([
       this.globalRateLimiter.checkLimit('global'),
       this.ipRateLimiter.checkLimit(ip)
     ]);
 
-    return {
-      ipLimitExceeded: !ipResult.success,
-      globalLimitExceeded: !globalResult.success,
-      ipResult,
-      globalResult
+    // Combine headers for successful case
+    const combinedHeaders = {
+      ...globalResult.headers,
+      ...ipResult.headers
     };
+
+    // Check global limit first (more restrictive)
+    if (!globalResult.success) {
+      const retryAfter = Math.ceil((globalResult.reset - Date.now()) / 1000);
+      const globalRateLimitError = new RateLimitError('Site-wide rate limit exceeded. Please try again later.', {
+        internalMessage: `Global rate limit exceeded: ${globalResult.limit} requests per window`,
+        retryAfter,
+        limitType: 'global'
+      });
+      return Result.failure(globalRateLimitError);
+    }
+
+    // Check IP limit
+    if (!ipResult.success) {
+      const retryAfter = Math.ceil((ipResult.reset - Date.now()) / 1000);
+      const ipRateLimitError = new RateLimitError('Too many requests. Please try again later.', {
+        internalMessage: `IP rate limit exceeded: ${ipResult.limit} requests per window from ${ip}`,
+        retryAfter,
+        limitType: 'ip'
+      });
+      return Result.failure(ipRateLimitError);
+    }
+
+    return Result.success({ headers: combinedHeaders });
   }
 
   async clearKeys(pattern: string): Promise<void> {

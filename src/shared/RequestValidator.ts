@@ -1,4 +1,6 @@
 import type { NextApiRequest } from 'next';
+import { Result } from './Result';
+import { MethodNotAllowedError } from './errors';
 
 export class RequestValidator {
   static extractClientIp(req: NextApiRequest): string {
@@ -6,7 +8,15 @@ export class RequestValidator {
     return Array.isArray(clientIP) ? clientIP[0] : clientIP;
   }
 
-  static validateMethod(req: NextApiRequest, allowedMethod: string): boolean {
-    return req.method === allowedMethod;
+  static validateMethod(req: NextApiRequest, allowedMethod: string): Result<void, MethodNotAllowedError> {
+    if (req.method === allowedMethod) {
+      return Result.success();
+    }
+
+    const methodError = new MethodNotAllowedError('Method not allowed', {
+      internalMessage: `Invalid method ${req.method}, expected ${allowedMethod}`,
+      allowedMethod
+    });
+    return Result.failure(methodError);
   }
 }

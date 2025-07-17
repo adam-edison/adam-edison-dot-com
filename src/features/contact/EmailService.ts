@@ -49,7 +49,7 @@ export class EmailService {
       const clientMessage = 'Unable to send messages at this time. Please try again later.';
       const problemList = validationResult.problems?.join(', ');
       const internalMessage = `Email service configuration errors: ${problemList}`;
-      const configError = new EmailServiceError(clientMessage, internalMessage, true);
+      const configError = new EmailServiceError(clientMessage, { internalMessage, isConfigError: true });
 
       return Result.failure(configError);
     }
@@ -61,7 +61,7 @@ export class EmailService {
     if (!this.config.sendEmailEnabled) {
       const clientMessage = 'Unable to send messages at this time. Please try again later.';
       const internalMessage = 'Email sending is disabled in configuration';
-      const disabledError = new EmailServiceError(clientMessage, internalMessage, true);
+      const disabledError = new EmailServiceError(clientMessage, { internalMessage, isConfigError: true });
 
       return Result.failure(disabledError);
     }
@@ -79,7 +79,7 @@ export class EmailService {
       if (result.error) {
         const clientMessage = 'Unable to send your message at this time. Please try again later.';
         const internalMessage = `Failed to send email via Resend API: ${result.error.message}`;
-        const emailServiceError = new EmailServiceError(clientMessage, internalMessage, false);
+        const emailServiceError = new EmailServiceError(clientMessage, { internalMessage, isConfigError: false });
 
         return Result.failure(emailServiceError);
       }
@@ -89,7 +89,7 @@ export class EmailService {
       const clientMessage = 'Unable to send your message at this time. Please try again later.';
       const errorDetails = error instanceof Error ? error.message : 'Unknown error';
       const internalMessage = `Email service error: ${errorDetails}`;
-      const emailServiceError = new EmailServiceError(clientMessage, internalMessage, false);
+      const emailServiceError = new EmailServiceError(clientMessage, { internalMessage, isConfigError: false });
 
       return Result.failure(emailServiceError);
     }

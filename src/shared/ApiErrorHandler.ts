@@ -1,25 +1,18 @@
 import type { NextApiResponse } from 'next';
 import { logger } from './Logger';
-import {
-  BaseError,
-  ValidationError,
-  RecaptchaError,
-  SanitizationError,
-  EmailServiceError,
-  ServiceUnavailableError
-} from './errors';
+import { BaseError, ValidationError, SanitizationError } from './errors';
 
 export interface ErrorResponse {
   statusCode: number;
   response: {
     message: string;
-    errors?: unknown[];
+    [key: string]: unknown;
   };
 }
 
 export class ApiErrorHandler {
   static mapErrorToResponse(error: BaseError): ErrorResponse {
-    const statusCode = this.getStatusCode(error);
+    const statusCode = error.httpStatusCode;
     const response = this.buildResponse(error);
 
     return { statusCode, response };
@@ -28,6 +21,13 @@ export class ApiErrorHandler {
   static handle(res: NextApiResponse, error: BaseError): void {
     const { statusCode, response } = this.mapErrorToResponse(error);
 
+    // Set any custom headers
+    if (error.headers) {
+      Object.entries(error.headers).forEach(([key, value]) => {
+        res.setHeader(key, value);
+      });
+    }
+
     // Log internal message for backend debugging
     logger.error('API Error:', {
       code: error.code,
@@ -35,35 +35,26 @@ export class ApiErrorHandler {
       clientMessage: error.message,
       internalMessage: error.internalMessage,
       statusCode,
-      details: error.details
+      details: error.details,
+      metadata: error.metadata
     });
 
     res.status(statusCode).json(response);
   }
 
-  private static getStatusCode(error: BaseError): number {
-    if (error instanceof ValidationError || error instanceof RecaptchaError || error instanceof SanitizationError) {
-      return 400;
-    }
-
-    if (error instanceof EmailServiceError) {
-      return error.isConfigError ? 500 : 502;
-    }
-
-    if (error instanceof ServiceUnavailableError) {
-      return 503;
-    }
-
-    return 500;
-  }
-
-  private static buildResponse(error: BaseError): { message: string; errors?: unknown[] } {
-    const response: { message: string; errors?: unknown[] } = {
+  private static buildResponse(error: BaseError): { message: string; [key: string]: unknown } {
+    const response: { message: string; [key: string]: unknown } = {
       message: error.message
     };
 
+    // Add details for validation/sanitization errors
     if (error instanceof ValidationError || error instanceof SanitizationError) {
       response.errors = error.details;
+    }
+
+    // Add any metadata to response
+    if (error.metadata) {
+      Object.assign(response, error.metadata);
     }
 
     return response;

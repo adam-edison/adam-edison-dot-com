@@ -3,17 +3,11 @@ import { InputSanitizer } from './InputSanitizer';
 import { RecaptchaService } from './RecaptchaService';
 import { ContactFormValidator, ContactFormSubmissionData, ContactFormServerData } from './ContactFormValidator';
 import { Result } from '@/shared/Result';
-import {
-  ValidationError,
-  RecaptchaError,
-  SanitizationError,
-  EmailServiceError,
-  ServiceUnavailableError
-} from '@/shared/errors';
+import { ValidationError, RecaptchaError, SanitizationError, InternalServerError } from '@/shared/errors';
 
 export type ProcessFormResult = Result<
   void,
-  ValidationError | RecaptchaError | SanitizationError | EmailServiceError | ServiceUnavailableError
+  ValidationError | RecaptchaError | SanitizationError | InternalServerError
 >;
 
 export class ContactFormProcessor {
@@ -22,10 +16,13 @@ export class ContactFormProcessor {
     private recaptchaService: RecaptchaService
   ) {}
 
-  static async fromEnv(): Promise<Result<ContactFormProcessor, EmailServiceError>> {
+  static async fromEnv(): Promise<Result<ContactFormProcessor, InternalServerError>> {
     const emailServiceResult = EmailService.fromEnv();
     if (!emailServiceResult.success) {
-      return Result.failure(emailServiceResult.error);
+      const serverError = new InternalServerError('Internal server error', {
+        internalMessage: `Failed to initialize email service: ${emailServiceResult.error.message}`
+      });
+      return Result.failure(serverError);
     }
 
     const recaptchaService = RecaptchaService.fromEnv();
@@ -67,7 +64,7 @@ export class ContactFormProcessor {
     const clientMessage = 'Security verification failed. Please try again.';
     const errorDetails = result.error.message || 'Unknown reCAPTCHA error';
     const internalMessage = `reCAPTCHA verification failed: ${errorDetails}`;
-    const recaptchaError = new RecaptchaError(clientMessage, internalMessage);
+    const recaptchaError = new RecaptchaError(clientMessage, { internalMessage });
 
     return Result.failure(recaptchaError);
   }
@@ -92,18 +89,21 @@ export class ContactFormProcessor {
 
     const clientMessage = 'Invalid content detected. Please check your input and try again.';
     const internalMessage = `Data validation failed after sanitization: ${result.error.message}`;
-    const sanitizationError = new SanitizationError(clientMessage, internalMessage, result.error.details);
+    const sanitizationError = new SanitizationError(clientMessage, { internalMessage, details: result.error.details });
 
     return Result.failure(sanitizationError);
   }
 
-  private async sendContactEmail(emailData: ContactFormServerData): Promise<Result<void, EmailServiceError>> {
+  private async sendContactEmail(emailData: ContactFormServerData): Promise<Result<void, InternalServerError>> {
     const emailResult = await this.emailService.sendContactEmail(emailData);
 
     if (emailResult.success) {
       return Result.success();
     }
 
-    return Result.failure(emailResult.error);
+    const serverError = new InternalServerError('Failed to send message. Please try again later.', {
+      internalMessage: `Email service error: ${emailResult.error.message}`
+    });
+    return Result.failure(serverError);
   }
 }

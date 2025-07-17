@@ -5,3 +5,5 @@ export { SanitizationError } from './SanitizationError';
 export { EmailServiceError } from './EmailServiceError';
 export { RateLimitError } from './RateLimitError';
 export { ServiceUnavailableError } from './ServiceUnavailableError';
+export { MethodNotAllowedError } from './MethodNotAllowedError';
+export { InternalServerError } from './InternalServerError';

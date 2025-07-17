@@ -99,7 +99,7 @@ export class ContactFormValidator {
       const clientMessage = 'Please check your form data and try again.';
       const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
       const internalMessage = `Form validation failed: ${issueDetails}`;
-      const validationError = new ValidationError(clientMessage, internalMessage, result.error.errors);
+      const validationError = new ValidationError(clientMessage, { internalMessage, details: result.error.errors });
 
       return Result.failure(validationError);
     }
@@ -115,7 +115,7 @@ export class ContactFormValidator {
       const clientMessage = 'Please check your form data and try again.';
       const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
       const internalMessage = `Submission validation failed: ${issueDetails}`;
-      const validationError = new ValidationError(clientMessage, internalMessage, result.error.errors);
+      const validationError = new ValidationError(clientMessage, { internalMessage, details: result.error.errors });
 
       return Result.failure(validationError);
     }
@@ -131,7 +131,7 @@ export class ContactFormValidator {
       const clientMessage = 'Please check your form data and try again.';
       const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
       const internalMessage = `Server data validation failed: ${issueDetails}`;
-      const validationError = new ValidationError(clientMessage, internalMessage, result.error.errors);
+      const validationError = new ValidationError(clientMessage, { internalMessage, details: result.error.errors });
 
       return Result.failure(validationError);
     }
