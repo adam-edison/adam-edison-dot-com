@@ -1,20 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { EmailServiceConfigurationValidator } from '@/shared/EmailServiceConfigurationValidator';
 import { EmailServiceConfigurationFactory } from '@/shared/EmailServiceConfigurationFactory';
+import { RequestValidator } from '@/shared/RequestValidator';
+import { ApiErrorHandler } from '@/shared/ApiErrorHandler';
+import { ServiceUnavailableError } from '@/shared/errors';
 
 interface HealthyResponse {
   status: 'healthy';
 }
 
-interface ErrorResponse {
-  error: string;
-}
+export default function handler(req: NextApiRequest, res: NextApiResponse<HealthyResponse>) {
+  const requestContext = ApiErrorHandler.createRequestContext(req);
 
-export default function handler(req: NextApiRequest, res: NextApiResponse<HealthyResponse | ErrorResponse>) {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', 'GET');
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  const methodValidation = RequestValidator.validateMethod(req, 'GET');
+  if (!methodValidation.success) return ApiErrorHandler.handle(res, methodValidation.error, requestContext);
 
   const config = EmailServiceConfigurationFactory.fromEnv();
   const result = EmailServiceConfigurationValidator.validate(config);
@@ -23,5 +22,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Health
     return res.status(200).json({ status: 'healthy' });
   }
 
-  return res.status(503).json({ error: result.error.message });
+  const internalMessage = `Email service configuration validation failed: ${result.error.message}`;
+  const clientMessage = 'Email service is not properly configured';
+  const serviceError = new ServiceUnavailableError(clientMessage, { internalMessage });
+  return ApiErrorHandler.handle(res, serviceError, requestContext);
 }
