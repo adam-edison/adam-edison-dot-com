@@ -45,9 +45,9 @@ export class EmailService {
     const config = EmailServiceConfigurationFactory.fromEnv(env);
     const validationResult = EmailServiceConfigurationValidator.validate(config);
 
-    if (!validationResult.configured) {
+    if (!validationResult.success) {
       const clientMessage = 'Unable to send messages at this time. Please try again later.';
-      const problemList = validationResult.problems?.join(', ');
+      const problemList = validationResult.error.message;
       const internalMessage = `Email service configuration errors: ${problemList}`;
       const configError = new EmailServiceError(clientMessage, { internalMessage, isConfigError: true });
 

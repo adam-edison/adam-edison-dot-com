@@ -2,15 +2,15 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { EmailServiceConfigurationValidator } from '@/shared/EmailServiceConfigurationValidator';
 import { EmailServiceConfigurationFactory } from '@/shared/EmailServiceConfigurationFactory';
 
-interface EmailServiceCheckResponse {
-  configured: boolean;
+interface HealthyResponse {
+  status: 'healthy';
 }
 
 interface ErrorResponse {
   error: string;
 }
 
-export default function handler(req: NextApiRequest, res: NextApiResponse<EmailServiceCheckResponse | ErrorResponse>) {
+export default function handler(req: NextApiRequest, res: NextApiResponse<HealthyResponse | ErrorResponse>) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
     return res.status(405).json({ error: 'Method not allowed' });
@@ -19,7 +19,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<EmailS
   const config = EmailServiceConfigurationFactory.fromEnv();
   const result = EmailServiceConfigurationValidator.validate(config);
 
-  return res.status(200).json({
-    configured: result.configured
-  });
+  if (result.success) {
+    return res.status(200).json({ status: 'healthy' });
+  }
+
+  return res.status(503).json({ error: result.error.message });
 }

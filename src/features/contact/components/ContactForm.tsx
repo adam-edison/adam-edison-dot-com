@@ -24,9 +24,8 @@ export function ContactForm({ className }: ContactFormProps) {
   const checkServerConfig = async () => {
     try {
       const response = await fetch('/api/email-service-check');
-      const data = await response.json();
 
-      if (data.configured) {
+      if (response.ok) {
         setConfigStatus('ready');
       } else {
         setConfigStatus('error');

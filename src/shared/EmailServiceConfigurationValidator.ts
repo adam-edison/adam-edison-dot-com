@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { logger } from './Logger';
 import { EmailConfiguration } from '@/features/contact/EmailService';
+import { Result } from '@/shared/Result';
+import { ValidationError } from '@/shared/errors';
 
 const EmailConfigurationSchema = z.object({
   apiKey: z.string().min(1).describe('RESEND_API_KEY'),
@@ -11,16 +12,10 @@ const EmailConfigurationSchema = z.object({
   recipientName: z.string().min(1).describe('EMAIL_RECIPIENT_NAME')
 });
 
-export interface EmailServiceConfigurationResult {
-  configured: boolean;
-  problems?: string[];
-}
-
 export class EmailServiceConfigurationValidator {
-  static validate(config: EmailConfiguration): EmailServiceConfigurationResult {
+  static validate(config: EmailConfiguration): Result<void, ValidationError> {
     const result = EmailConfigurationSchema.safeParse(config);
-
-    if (result.success) return { configured: true };
+    if (result.success) return Result.success();
 
     const problems = result.error.errors.map((err) => {
       const fieldName = err.path[0] as keyof typeof EmailConfigurationSchema.shape;
@@ -28,11 +23,13 @@ export class EmailServiceConfigurationValidator {
       return `${envVar}: ${err.message}`;
     });
 
-    logger.error('Email service configuration validation failed:', problems);
+    const errorMessage = `Email service configuration validation failed: ${problems.join(', ')}`;
 
-    return {
-      configured: false,
-      problems
-    };
+    const validationError = new ValidationError(errorMessage, {
+      internalMessage: errorMessage,
+      details: result.error.errors
+    });
+
+    return Result.failure(validationError);
   }
 }
