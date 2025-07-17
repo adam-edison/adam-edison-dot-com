@@ -2,7 +2,7 @@ import { ContactRateLimiter } from '@/features/contact/ContactRateLimiter';
 import { RequestValidator } from '@/shared/RequestValidator';
 import { ContactFormProcessor } from '@/features/contact/ContactFormProcessor';
 import { logger } from '@/shared/Logger';
-import { ErrorResponseMapper } from '@/shared/ErrorResponseMapper';
+import { ApiErrorHandler } from '@/shared/ApiErrorHandler';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 function setRateLimitHeaders(res: NextApiResponse, headers: Record<string, string | number>) {
@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const result = await processorResult.data.processForm(req.body);
 
     if (!result.success) {
-      return ErrorResponseMapper.sendErrorResponse(res, result.error);
+      return ApiErrorHandler.handle(res, result.error);
     }
 
     res.status(200).json({ message: 'Message sent successfully' });

@@ -96,7 +96,12 @@ export class ContactFormValidator {
   static validateFormData(data: unknown): Result<ContactFormData, ValidationError> {
     const result = this.clientFormValidationSchema.safeParse(data);
     if (!result.success) {
-      return Result.failure(new ValidationError('Invalid form data', result.error.errors));
+      const clientMessage = 'Please check your form data and try again.';
+      const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
+      const internalMessage = `Form validation failed: ${issueDetails}`;
+      const validationError = new ValidationError(clientMessage, internalMessage, result.error.errors);
+
+      return Result.failure(validationError);
     }
     return Result.success(result.data);
   }
@@ -107,7 +112,12 @@ export class ContactFormValidator {
   static validateSubmissionData(data: unknown): Result<ContactFormSubmissionData, ValidationError> {
     const result = this.clientSubmissionSchema.safeParse(data);
     if (!result.success) {
-      return Result.failure(new ValidationError('Invalid submission data', result.error.errors));
+      const clientMessage = 'Please check your form data and try again.';
+      const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
+      const internalMessage = `Submission validation failed: ${issueDetails}`;
+      const validationError = new ValidationError(clientMessage, internalMessage, result.error.errors);
+
+      return Result.failure(validationError);
     }
     return Result.success(result.data);
   }
@@ -118,7 +128,12 @@ export class ContactFormValidator {
   static validateServerData(data: unknown): Result<ContactFormServerData, ValidationError> {
     const result = this.serverProcessingSchema.safeParse(data);
     if (!result.success) {
-      return Result.failure(new ValidationError('Invalid server data', result.error.errors));
+      const clientMessage = 'Please check your form data and try again.';
+      const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
+      const internalMessage = `Server data validation failed: ${issueDetails}`;
+      const validationError = new ValidationError(clientMessage, internalMessage, result.error.errors);
+
+      return Result.failure(validationError);
     }
     return Result.success(result.data);
   }

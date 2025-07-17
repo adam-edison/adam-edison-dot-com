@@ -1,4 +1,5 @@
 import type { NextApiResponse } from 'next';
+import { logger } from './Logger';
 import {
   BaseError,
   ValidationError,
@@ -16,7 +17,7 @@ export interface ErrorResponse {
   };
 }
 
-export class ErrorResponseMapper {
+export class ApiErrorHandler {
   static mapErrorToResponse(error: BaseError): ErrorResponse {
     const statusCode = this.getStatusCode(error);
     const response = this.buildResponse(error);
@@ -24,8 +25,19 @@ export class ErrorResponseMapper {
     return { statusCode, response };
   }
 
-  static sendErrorResponse(res: NextApiResponse, error: BaseError): void {
+  static handle(res: NextApiResponse, error: BaseError): void {
     const { statusCode, response } = this.mapErrorToResponse(error);
+
+    // Log internal message for backend debugging
+    logger.error('API Error:', {
+      code: error.code,
+      category: error.category,
+      clientMessage: error.message,
+      internalMessage: error.internalMessage,
+      statusCode,
+      details: error.details
+    });
+
     res.status(statusCode).json(response);
   }
 

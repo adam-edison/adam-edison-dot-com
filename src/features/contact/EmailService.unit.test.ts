@@ -32,10 +32,11 @@ describe('EmailService', () => {
       const result = EmailService.fromEnv(invalidEnv);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.message).toContain('Email service configuration errors');
-        expect(result.error.message).toContain('RESEND_API_KEY');
-        expect(result.error.message).toContain('FROM_EMAIL');
-        expect(result.error.message).toContain('TO_EMAIL');
+        expect(result.error.message).toBe('Unable to send messages at this time. Please try again later.');
+        expect(result.error.internalMessage).toContain('Email service configuration errors');
+        expect(result.error.internalMessage).toContain('RESEND_API_KEY');
+        expect(result.error.internalMessage).toContain('FROM_EMAIL');
+        expect(result.error.internalMessage).toContain('TO_EMAIL');
       }
     });
 

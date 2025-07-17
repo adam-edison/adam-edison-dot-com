@@ -60,7 +60,16 @@ export class ContactFormProcessor {
 
   private async verifyRecaptchaToken(token: string): Promise<Result<void, RecaptchaError>> {
     const result = await this.recaptchaService.verifyToken(token);
-    return result.success ? Result.success() : Result.failure(new RecaptchaError('reCAPTCHA verification failed'));
+    if (result.success) {
+      return Result.success();
+    }
+
+    const clientMessage = 'Security verification failed. Please try again.';
+    const errorDetails = result.error.message || 'Unknown reCAPTCHA error';
+    const internalMessage = `reCAPTCHA verification failed: ${errorDetails}`;
+    const recaptchaError = new RecaptchaError(clientMessage, internalMessage);
+
+    return Result.failure(recaptchaError);
   }
 
   private sanitizeFormData(submissionData: ContactFormSubmissionData): ContactFormServerData {
@@ -76,13 +85,25 @@ export class ContactFormProcessor {
     sanitizedData: ContactFormServerData
   ): Promise<Result<ContactFormServerData, SanitizationError>> {
     const result = ContactFormValidator.validateServerData(sanitizedData);
-    return result.success
-      ? result
-      : Result.failure(new SanitizationError('Data validation failed after sanitization', result.error.details));
+
+    if (result.success) {
+      return result;
+    }
+
+    const clientMessage = 'Invalid content detected. Please check your input and try again.';
+    const internalMessage = `Data validation failed after sanitization: ${result.error.message}`;
+    const sanitizationError = new SanitizationError(clientMessage, internalMessage, result.error.details);
+
+    return Result.failure(sanitizationError);
   }
 
   private async sendContactEmail(emailData: ContactFormServerData): Promise<Result<void, EmailServiceError>> {
     const emailResult = await this.emailService.sendContactEmail(emailData);
-    return emailResult.success ? Result.success() : Result.failure(emailResult.error);
+
+    if (emailResult.success) {
+      return Result.success();
+    }
+
+    return Result.failure(emailResult.error);
   }
 }

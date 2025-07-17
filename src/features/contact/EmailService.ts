@@ -46,9 +46,12 @@ export class EmailService {
     const validationResult = EmailServiceConfigurationValidator.validate(config);
 
     if (!validationResult.configured) {
-      return Result.failure(
-        new EmailServiceError(`Email service configuration errors: ${validationResult.problems?.join(', ')}`, true)
-      );
+      const clientMessage = 'Unable to send messages at this time. Please try again later.';
+      const problemList = validationResult.problems?.join(', ');
+      const internalMessage = `Email service configuration errors: ${problemList}`;
+      const configError = new EmailServiceError(clientMessage, internalMessage, true);
+
+      return Result.failure(configError);
     }
 
     return Result.success(new EmailService(config));
@@ -56,7 +59,11 @@ export class EmailService {
 
   async sendContactEmail(data: ContactFormServerData): Promise<Result<{ id: string }, EmailServiceError>> {
     if (!this.config.sendEmailEnabled) {
-      return Result.failure(new EmailServiceError('Email sending is disabled', true));
+      const clientMessage = 'Unable to send messages at this time. Please try again later.';
+      const internalMessage = 'Email sending is disabled in configuration';
+      const disabledError = new EmailServiceError(clientMessage, internalMessage, true);
+
+      return Result.failure(disabledError);
     }
 
     try {
@@ -70,14 +77,21 @@ export class EmailService {
       });
 
       if (result.error) {
-        return Result.failure(new EmailServiceError(`Failed to send email: ${result.error.message}`, false));
+        const clientMessage = 'Unable to send your message at this time. Please try again later.';
+        const internalMessage = `Failed to send email via Resend API: ${result.error.message}`;
+        const emailServiceError = new EmailServiceError(clientMessage, internalMessage, false);
+
+        return Result.failure(emailServiceError);
       }
 
       return Result.success({ id: result.data!.id });
     } catch (error) {
-      return Result.failure(
-        new EmailServiceError(`Email service error: ${error instanceof Error ? error.message : 'Unknown error'}`, false)
-      );
+      const clientMessage = 'Unable to send your message at this time. Please try again later.';
+      const errorDetails = error instanceof Error ? error.message : 'Unknown error';
+      const internalMessage = `Email service error: ${errorDetails}`;
+      const emailServiceError = new EmailServiceError(clientMessage, internalMessage, false);
+
+      return Result.failure(emailServiceError);
     }
   }
 
