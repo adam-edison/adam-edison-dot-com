@@ -27,7 +27,8 @@ export class ContactFormProcessor {
 
     const recaptchaService = RecaptchaService.fromEnv();
 
-    return Result.success(new ContactFormProcessor(emailServiceResult.data, recaptchaService));
+    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data, recaptchaService);
+    return Result.success(contactFormProcessor);
   }
 
   async processForm(formData: unknown): Promise<ProcessFormResult> {

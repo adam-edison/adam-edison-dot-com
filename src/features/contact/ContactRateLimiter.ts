@@ -29,7 +29,8 @@ export class ContactRateLimiter {
       window: process.env.RATE_LIMIT_WINDOW!
     });
 
-    return new ContactRateLimiter(globalRateLimiter, ipRateLimiter);
+    const contactRateLimiter = new ContactRateLimiter(globalRateLimiter, ipRateLimiter);
+    return contactRateLimiter;
   }
 
   async checkLimits(ip: string): Promise<Result<{ headers: Record<string, string | number> }, RateLimitError>> {

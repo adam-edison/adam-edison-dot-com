@@ -35,7 +35,8 @@ export class RecaptchaService {
       verificationEnabled
     };
 
-    return new RecaptchaService(config);
+    const recaptchaService = new RecaptchaService(config);
+    return recaptchaService;
   }
 
   async verifyToken(token: string): Promise<Result<boolean, RecaptchaError | ServiceUnavailableError>> {

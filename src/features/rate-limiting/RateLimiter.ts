@@ -27,7 +27,8 @@ export class RateLimiter {
 
   static fromEnv(options: RateLimiterOptions): RateLimiter {
     const dataStore = RateLimiterDataStore.fromEnv();
-    return new RateLimiter(dataStore, options);
+    const rateLimiter = new RateLimiter(dataStore, options);
+    return rateLimiter;
   }
 
   async checkLimit(identifier: string): Promise<RateLimitResult> {

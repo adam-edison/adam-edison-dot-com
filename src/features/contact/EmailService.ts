@@ -54,7 +54,8 @@ export class EmailService {
       return Result.failure(configError);
     }
 
-    return Result.success(new EmailService(config));
+    const emailService = new EmailService(config);
+    return Result.success(emailService);
   }
 
   async sendContactEmail(data: ContactFormServerData): Promise<Result<{ id: string }, EmailServiceError>> {
