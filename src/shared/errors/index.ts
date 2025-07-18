@@ -1,7 +1,6 @@
 export { BaseError } from './BaseError';
 export { ValidationError } from './ValidationError';
 export { RecaptchaError } from './RecaptchaError';
-export { SanitizationError } from './SanitizationError';
 export { EmailServiceError } from './EmailServiceError';
 export { RateLimitError } from './RateLimitError';
 export { ServiceUnavailableError } from './ServiceUnavailableError';

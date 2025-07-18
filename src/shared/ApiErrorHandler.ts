@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { logger } from './Logger';
-import { BaseError, ValidationError, SanitizationError } from './errors';
+import { BaseError } from './errors';
 
 export interface RequestContext {
   requestId: string;
@@ -65,11 +65,6 @@ export class ApiErrorHandler {
     const response: { message: string; [key: string]: unknown } = {
       message: error.message
     };
-
-    // Add details for validation/sanitization errors
-    if (error instanceof ValidationError || error instanceof SanitizationError) {
-      response.errors = error.details;
-    }
 
     if (error.responseMetadata) {
       Object.assign(response, error.responseMetadata);

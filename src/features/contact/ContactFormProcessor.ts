@@ -3,12 +3,9 @@ import { InputSanitizer } from './InputSanitizer';
 import { RecaptchaService } from './RecaptchaService';
 import { ContactFormValidator, ContactFormSubmissionData, ContactFormServerData } from './ContactFormValidator';
 import { Result } from '@/shared/Result';
-import { ValidationError, RecaptchaError, SanitizationError, InternalServerError } from '@/shared/errors';
+import { ValidationError, RecaptchaError, InternalServerError } from '@/shared/errors';
 
-export type ProcessFormResult = Result<
-  void,
-  ValidationError | RecaptchaError | SanitizationError | InternalServerError
->;
+export type ProcessFormResult = Result<void, ValidationError | RecaptchaError | InternalServerError>;
 
 export class ContactFormProcessor {
   constructor(
@@ -84,16 +81,16 @@ export class ContactFormProcessor {
 
   private async validateSanitizedData(
     sanitizedData: ContactFormServerData
-  ): Promise<Result<ContactFormServerData, SanitizationError>> {
+  ): Promise<Result<ContactFormServerData, ValidationError>> {
     const result = ContactFormValidator.validateServerData(sanitizedData);
 
     if (result.success) return result;
 
     const clientMessage = 'Invalid content detected. Please check your input and try again.';
     const internalMessage = `Data validation failed after sanitization: ${result.error.message}`;
-    const sanitizationError = new SanitizationError(clientMessage, { internalMessage, details: result.error.details });
+    const validationError = new ValidationError(clientMessage, { internalMessage, details: result.error.details });
 
-    return Result.failure(sanitizationError);
+    return Result.failure(validationError);
   }
 
   private async sendContactEmail(emailData: ContactFormServerData): Promise<Result<void, InternalServerError>> {

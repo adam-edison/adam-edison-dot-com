@@ -15,7 +15,8 @@ export class ValidationError extends BaseError {
 
   constructor(message: string, options: ValidationErrorOptions) {
     const { internalMessage, details, field } = options;
-    super(message, { internalMessage, details });
+    const responseMetadata = details ? { errors: details } : undefined;
+    super(message, { internalMessage, details, responseMetadata });
     this.field = field;
   }
 }

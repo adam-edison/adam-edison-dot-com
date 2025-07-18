@@ -3,7 +3,6 @@ import { ApiErrorHandler } from './ApiErrorHandler';
 import {
   ValidationError,
   RecaptchaError,
-  SanitizationError,
   EmailServiceError,
   ServiceUnavailableError,
   RateLimitError,
@@ -47,8 +46,8 @@ describe('ApiErrorHandler', () => {
       expect(result.response.errors).toBeUndefined();
     });
 
-    it('should map SanitizationError to 400 status with details', () => {
-      const error = new SanitizationError('Invalid content detected', {
+    it('should map ValidationError with sanitization details to 400 status with details', () => {
+      const error = new ValidationError('Invalid content detected', {
         internalMessage: 'XSS attempt detected in message field: <script>alert(1)</script>',
         details: [{ field: 'message', message: 'Invalid content' }]
       });
@@ -159,13 +158,13 @@ describe('ApiErrorHandler', () => {
       });
     });
 
-    it('should handle SanitizationError: log internal details, send client message with errors', () => {
+    it('should handle ValidationError with sanitization details: log internal details, send client message with errors', () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
       } as unknown as NextApiResponse;
 
-      const error = new SanitizationError('Invalid content detected', {
+      const error = new ValidationError('Invalid content detected', {
         internalMessage: 'XSS attempt detected in message field: <script>alert(1)</script>',
         details: [{ field: 'message', message: 'Invalid content' }]
       });
@@ -181,13 +180,14 @@ describe('ApiErrorHandler', () => {
 
       // Verify logging
       expect(logger.error).toHaveBeenCalledWith('API Error:', {
-        code: 'SANITIZATION_ERROR',
+        code: 'VALIDATION_ERROR',
         category: 'client',
         clientMessage: 'Invalid content detected',
         internalMessage: 'XSS attempt detected in message field: <script>alert(1)</script>',
         statusCode: 400,
         details: [{ field: 'message', message: 'Invalid content' }],
-        metadata: undefined
+        metadata: undefined,
+        requestContext: undefined
       });
     });
 
