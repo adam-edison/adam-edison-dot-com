@@ -2,7 +2,6 @@ import { ContactRateLimiter } from '@/features/contact/ContactRateLimiter';
 import { RequestValidator } from '@/shared/RequestValidator';
 import { ContactFormProcessor } from '@/features/contact/ContactFormProcessor';
 import { ApiErrorHandler } from '@/shared/ApiErrorHandler';
-import { InternalServerError } from '@/shared/errors';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 function setRateLimitHeaders(res: NextApiResponse, headers: Record<string, string | number>) {
@@ -17,25 +16,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const methodValidation = RequestValidator.validateMethod(req, 'POST');
   if (!methodValidation.success) return ApiErrorHandler.handle(res, methodValidation.error, requestContext);
 
-  try {
-    const ip = RequestValidator.extractClientIp(req);
+  const ip = RequestValidator.extractClientIp(req);
 
-    const rateLimitResult = await ContactRateLimiter.fromEnv().checkLimits(ip);
-    if (!rateLimitResult.success) return ApiErrorHandler.handle(res, rateLimitResult.error, requestContext);
+  const rateLimitResult = await ContactRateLimiter.fromEnv().checkLimits(ip);
+  if (!rateLimitResult.success) return ApiErrorHandler.handle(res, rateLimitResult.error, requestContext);
 
-    setRateLimitHeaders(res, rateLimitResult.data.headers);
+  setRateLimitHeaders(res, rateLimitResult.data.headers);
 
-    const processorResult = await ContactFormProcessor.fromEnv();
-    if (!processorResult.success) return ApiErrorHandler.handle(res, processorResult.error, requestContext);
+  const processorResult = await ContactFormProcessor.fromEnv();
+  if (!processorResult.success) return ApiErrorHandler.handle(res, processorResult.error, requestContext);
 
-    const formResult = await processorResult.data.processForm(req.body);
-    if (!formResult.success) return ApiErrorHandler.handle(res, formResult.error, requestContext);
+  const formResult = await processorResult.data.processForm(req.body);
+  if (!formResult.success) return ApiErrorHandler.handle(res, formResult.error, requestContext);
 
-    res.status(200).json({ message: 'Message sent successfully' });
-  } catch (error) {
-    const serverError = new InternalServerError('Failed to send message. Please try again later.', {
-      internalMessage: `Unexpected error in contact handler: ${error instanceof Error ? error.message : 'Unknown error'}`
-    });
-    return ApiErrorHandler.handle(res, serverError, requestContext);
-  }
+  res.status(200).json({ message: 'Message sent successfully' });
 }

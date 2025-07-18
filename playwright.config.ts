@@ -29,7 +29,12 @@ export default defineConfig({
     stderr: 'ignore',
     env: {
       RECAPTCHA_SCORE_THRESHOLD: '0',
-      SEND_EMAIL_ENABLED: 'true',
+      SEND_EMAIL_ENABLED: 'false',
+      RESEND_API_KEY: process.env.RESEND_API_KEY ?? 'test-key-e2e',
+      FROM_EMAIL: process.env.FROM_EMAIL ?? 'test@example.com',
+      TO_EMAIL: process.env.TO_EMAIL ?? 'recipient@example.com',
+      EMAIL_SENDER_NAME: process.env.EMAIL_SENDER_NAME ?? 'E2E Test',
+      EMAIL_RECIPIENT_NAME: process.env.EMAIL_RECIPIENT_NAME ?? 'E2E Recipient',
       RATE_LIMIT_REQUESTS: '5',
       RATE_LIMIT_WINDOW: '10 m',
       GLOBAL_RATE_LIMIT_REQUESTS: '100',

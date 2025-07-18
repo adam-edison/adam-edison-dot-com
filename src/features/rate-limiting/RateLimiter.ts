@@ -1,13 +1,15 @@
 import { logger } from '@/shared/Logger';
-import { RateLimiterDataStore } from './RateLimiterDataStore';
+import { RateLimiterDataStore, RateLimitResult } from './RateLimiterDataStore';
+import { Result } from '@/shared/Result';
+import { RateLimitError, InternalServerError } from '@/shared/errors';
 
 export interface RateLimiterOptions {
   limit: number;
   window: string;
+  limitType: 'ip' | 'global';
 }
 
-export interface RateLimitResult {
-  success: boolean;
+export interface RateLimitData {
   limit: number;
   remaining: number;
   reset: number;
@@ -18,11 +20,13 @@ export class RateLimiter {
   private dataStore: RateLimiterDataStore;
   private limit: number;
   private window: string;
+  private limitType: 'ip' | 'global';
 
-  constructor(dataStore: RateLimiterDataStore, { limit, window }: RateLimiterOptions) {
+  constructor(dataStore: RateLimiterDataStore, { limit, window, limitType }: RateLimiterOptions) {
     this.dataStore = dataStore;
     this.limit = limit;
     this.window = window;
+    this.limitType = limitType;
   }
 
   static fromEnv(options: RateLimiterOptions): RateLimiter {
@@ -31,31 +35,56 @@ export class RateLimiter {
     return rateLimiter;
   }
 
-  async checkLimit(identifier: string): Promise<RateLimitResult> {
-    try {
-      const result = await this.dataStore.checkRateLimit(identifier, this.limit, this.window);
+  async checkLimit(identifier: string): Promise<Result<RateLimitData, RateLimitError | InternalServerError>> {
+    const datastoreResult = await this.getRateLimitFromDatastore(identifier);
 
-      return {
-        success: result.success,
-        limit: result.limit,
-        remaining: result.remaining,
-        reset: result.reset,
-        headers: {
-          'X-RateLimit-Limit': result.limit.toString(),
-          'X-RateLimit-Remaining': result.remaining.toString(),
-          'X-RateLimit-Reset': new Date(result.reset).toISOString()
-        }
-      };
-    } catch (error) {
-      logger.error('Rate limiting error:', error);
-      // Fail open - allow request if rate limiting fails
-      return {
-        success: true,
+    if (!datastoreResult.success) {
+      // Infrastructure failure - fail open with empty headers
+      logger.error('Rate limiting error:', datastoreResult.error);
+      const fallbackData: RateLimitData = {
         limit: 0,
         remaining: 0,
         reset: Date.now(),
         headers: {}
       };
+      return Result.success(fallbackData);
+    }
+
+    const result = datastoreResult.data;
+
+    const rateLimitData: RateLimitData = {
+      limit: result.limit,
+      remaining: result.remaining,
+      reset: result.reset,
+      headers: {
+        'X-RateLimit-Limit': result.limit.toString(),
+        'X-RateLimit-Remaining': result.remaining.toString(),
+        'X-RateLimit-Reset': new Date(result.reset).toISOString()
+      }
+    };
+
+    if (result.success) return Result.success(rateLimitData);
+
+    const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
+    const errorMessage = 'Too many requests. Please try again later.';
+    const internalMessage = `Rate limit exceeded for ${identifier}: ${result.limit} requests per ${this.window}`;
+    const rateLimitError = new RateLimitError(errorMessage, {
+      internalMessage,
+      retryAfter,
+      limitType: this.limitType
+    });
+
+    return Result.failure(rateLimitError);
+  }
+
+  private async getRateLimitFromDatastore(identifier: string): Promise<Result<RateLimitResult, InternalServerError>> {
+    try {
+      const result = await this.dataStore.checkRateLimit(identifier, this.limit, this.window);
+      return Result.success(result);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown rate limiter datastore error';
+      const datastoreError = new InternalServerError(message, { internalMessage: message, metadata: { error } });
+      return Result.failure(datastoreError);
     }
   }
 

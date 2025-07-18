@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { EmailService } from './EmailService';
+import assert from 'node:assert';
 
 /*
   Run this test with:
@@ -31,21 +32,19 @@ describe('EmailService', () => {
 
       const result = EmailService.fromEnv(invalidEnv);
       expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.message).toBe('Unable to send messages at this time. Please try again later.');
-        expect(result.error.internalMessage).toContain('Email service configuration errors');
-        expect(result.error.internalMessage).toContain('RESEND_API_KEY');
-        expect(result.error.internalMessage).toContain('FROM_EMAIL');
-        expect(result.error.internalMessage).toContain('TO_EMAIL');
-      }
+      assert(!result.success);
+      expect(result.error.message).toBe('Unable to send messages at this time. Please try again later.');
+      expect(result.error.internalMessage).toContain('Email service configuration errors');
+      expect(result.error.internalMessage).toContain('RESEND_API_KEY');
+      expect(result.error.internalMessage).toContain('FROM_EMAIL');
+      expect(result.error.internalMessage).toContain('TO_EMAIL');
     });
 
     it('should successfully create EmailService when environment config is valid', () => {
       const result = EmailService.fromEnv(validEnvironment);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.getConfiguration().sendEmailEnabled).toBe(false);
-      }
+      assert(result.success);
+      expect(result.data.getConfiguration().sendEmailEnabled).toBe(false);
     });
   });
 
@@ -58,9 +57,8 @@ describe('EmailService', () => {
 
       const result = EmailService.fromEnv(envWithEnabledEmail);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.getConfiguration().sendEmailEnabled).toBe(true);
-      }
+      assert(result.success);
+      expect(result.data.getConfiguration().sendEmailEnabled).toBe(true);
     });
 
     it('should set sendEmailEnabled to false when SEND_EMAIL_ENABLED is "false"', () => {
@@ -71,9 +69,8 @@ describe('EmailService', () => {
 
       const result = EmailService.fromEnv(envWithDisabledEmail);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.getConfiguration().sendEmailEnabled).toBe(false);
-      }
+      assert(result.success);
+      expect(result.data.getConfiguration().sendEmailEnabled).toBe(false);
     });
 
     it('should default sendEmailEnabled to false when SEND_EMAIL_ENABLED is undefined', () => {
@@ -84,9 +81,8 @@ describe('EmailService', () => {
 
       const result = EmailService.fromEnv(envWithUndefinedEmail);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.getConfiguration().sendEmailEnabled).toBe(false);
-      }
+      assert(result.success);
+      expect(result.data.getConfiguration().sendEmailEnabled).toBe(false);
     });
 
     it('should default sendEmailEnabled to false when SEND_EMAIL_ENABLED is any other value', () => {
@@ -97,9 +93,8 @@ describe('EmailService', () => {
 
       const result = EmailService.fromEnv(envWithOtherValue);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.getConfiguration().sendEmailEnabled).toBe(false);
-      }
+      assert(result.success);
+      expect(result.data.getConfiguration().sendEmailEnabled).toBe(false);
     });
   });
 });
