@@ -2,6 +2,7 @@ import { ContactRateLimiter } from '@/features/contact/ContactRateLimiter';
 import { RequestValidator } from '@/shared/RequestValidator';
 import { ContactFormProcessor } from '@/features/contact/ContactFormProcessor';
 import { ApiErrorHandler } from '@/shared/ApiErrorHandler';
+import { RequestContext } from '@/shared/RequestContext';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 function setRateLimitHeaders(res: NextApiResponse, headers: Record<string, string | number>) {
@@ -11,7 +12,7 @@ function setRateLimitHeaders(res: NextApiResponse, headers: Record<string, strin
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const requestContext = ApiErrorHandler.createRequestContext(req);
+  const requestContext = RequestContext.from(req);
 
   const methodValidation = RequestValidator.validateMethod(req, 'POST');
   if (!methodValidation.success) return ApiErrorHandler.handle(res, methodValidation.error, requestContext);

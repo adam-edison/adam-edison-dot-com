@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ApiErrorHandler } from './ApiErrorHandler';
+import { RequestContext } from './RequestContext';
 import { RateLimitError, MethodNotAllowedError, InternalServerError } from './errors';
 import { logger } from './Logger';
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -178,7 +179,7 @@ describe('ApiErrorHandler - Security Analysis', () => {
         socket: { remoteAddress: '127.0.0.1' }
       } as unknown as NextApiRequest;
 
-      const requestContext = ApiErrorHandler.createRequestContext(mockReq);
+      const requestContext = RequestContext.from(mockReq);
       const error = new InternalServerError('Something went wrong', {
         internalMessage: 'Test internal error message'
       });
@@ -203,7 +204,7 @@ describe('ApiErrorHandler - Security Analysis', () => {
         socket: {}
       } as unknown as NextApiRequest;
 
-      const requestContext = ApiErrorHandler.createRequestContext(mockReq);
+      const requestContext = RequestContext.from(mockReq);
 
       expect(requestContext).toEqual({
         requestId: expect.any(String),
@@ -220,7 +221,7 @@ describe('ApiErrorHandler - Security Analysis', () => {
         socket: { remoteAddress: '127.0.0.1' }
       } as unknown as NextApiRequest;
 
-      const requestContext = ApiErrorHandler.createRequestContext(mockReq);
+      const requestContext = RequestContext.from(mockReq);
 
       expect(requestContext.ip).toBe('192.168.1.100');
     });

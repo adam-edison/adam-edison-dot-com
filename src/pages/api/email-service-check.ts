@@ -3,6 +3,7 @@ import { EmailServiceConfigurationValidator } from '@/shared/EmailServiceConfigu
 import { EmailServiceConfigurationFactory } from '@/shared/EmailServiceConfigurationFactory';
 import { RequestValidator } from '@/shared/RequestValidator';
 import { ApiErrorHandler } from '@/shared/ApiErrorHandler';
+import { RequestContext } from '@/shared/RequestContext';
 import { ServiceUnavailableError } from '@/shared/errors';
 
 interface HealthyResponse {
@@ -10,7 +11,7 @@ interface HealthyResponse {
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse<HealthyResponse>) {
-  const requestContext = ApiErrorHandler.createRequestContext(req);
+  const requestContext = RequestContext.from(req);
 
   const methodValidation = RequestValidator.validateMethod(req, 'GET');
   if (!methodValidation.success) return ApiErrorHandler.handle(res, methodValidation.error, requestContext);

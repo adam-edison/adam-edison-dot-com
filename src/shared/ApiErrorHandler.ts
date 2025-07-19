@@ -1,12 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiResponse } from 'next';
 import { logger } from './Logger';
 import { BaseError } from './errors';
-
-export interface RequestContext {
-  requestId: string;
-  ip?: string;
-  userAgent?: string;
-}
+import { RequestContext } from './RequestContext';
 
 export interface ErrorResponse {
   statusCode: number;
@@ -47,18 +42,6 @@ export class ApiErrorHandler {
     });
 
     res.status(statusCode).json(response);
-  }
-
-  static createRequestContext(req: NextApiRequest): RequestContext {
-    const requestId = crypto.randomUUID();
-    const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress;
-    const userAgent = req.headers['user-agent'];
-
-    return {
-      requestId,
-      ip: Array.isArray(ip) ? ip[0] : ip,
-      userAgent
-    };
   }
 
   private static buildResponse(error: BaseError): { message: string; [key: string]: unknown } {
