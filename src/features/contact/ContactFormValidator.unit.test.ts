@@ -1,11 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { strict as assert } from 'node:assert';
-import {
-  ContactFormValidator,
-  type ContactFormData,
-  type ContactFormSubmissionData,
-  type ContactFormServerData
-} from './ContactFormValidator';
+import { ContactFormValidator, type ContactFormData } from './ContactFormValidator';
 
 describe('ContactFormValidator', () => {
   describe('firstName validation', () => {
@@ -28,7 +23,7 @@ describe('ContactFormValidator', () => {
       ];
 
       validNames.forEach((firstName) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName,
           lastName: 'Doe',
           email: 'test@example.com',
@@ -40,7 +35,7 @@ describe('ContactFormValidator', () => {
     });
 
     test('should reject first names that are too short', () => {
-      const result = ContactFormValidator.validateFormData({
+      const result = ContactFormValidator.validate({
         firstName: 'A',
         lastName: 'Doe',
         email: 'test@example.com',
@@ -55,7 +50,7 @@ describe('ContactFormValidator', () => {
 
     test('should reject first names that are too long', () => {
       const longName = 'A'.repeat(51);
-      const result = ContactFormValidator.validateFormData({
+      const result = ContactFormValidator.validate({
         firstName: longName,
         lastName: 'Doe',
         email: 'test@example.com',
@@ -72,7 +67,7 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['123', '456789', '00'];
 
       invalidNames.forEach((firstName) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName,
           lastName: 'Doe',
           email: 'test@example.com',
@@ -90,7 +85,7 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['!@#', '$$$$', '***', '&&&'];
 
       invalidNames.forEach((firstName) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName,
           lastName: 'Doe',
           email: 'test@example.com',
@@ -108,7 +103,7 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['123!@#', '999$$$', '---'];
 
       invalidNames.forEach((firstName) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName,
           lastName: 'Doe',
           email: 'test@example.com',
@@ -126,7 +121,7 @@ describe('ContactFormValidator', () => {
       const validNames = ['John123', 'Mary@Jane', 'Test$Name', 'User.Name', 'Name!'];
 
       validNames.forEach((firstName) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName,
           lastName: 'Doe',
           email: 'test@example.com',
@@ -157,7 +152,7 @@ describe('ContactFormValidator', () => {
       ];
 
       validNames.forEach((lastName) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName: 'John',
           lastName,
           email: 'test@example.com',
@@ -169,7 +164,7 @@ describe('ContactFormValidator', () => {
     });
 
     test('should reject last names that are too short', () => {
-      const result = ContactFormValidator.validateFormData({
+      const result = ContactFormValidator.validate({
         firstName: 'John',
         lastName: 'A',
         email: 'test@example.com',
@@ -184,7 +179,7 @@ describe('ContactFormValidator', () => {
 
     test('should reject last names that are too long', () => {
       const longName = 'A'.repeat(51);
-      const result = ContactFormValidator.validateFormData({
+      const result = ContactFormValidator.validate({
         firstName: 'John',
         lastName: longName,
         email: 'test@example.com',
@@ -201,7 +196,7 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['123', '456789', '00'];
 
       invalidNames.forEach((lastName) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName: 'John',
           lastName,
           email: 'test@example.com',
@@ -219,7 +214,7 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['!@#', '$$$$', '***', '&&&'];
 
       invalidNames.forEach((lastName) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName: 'John',
           lastName,
           email: 'test@example.com',
@@ -237,7 +232,7 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['123!@#', '999$$$', '---'];
 
       invalidNames.forEach((lastName) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName: 'John',
           lastName,
           email: 'test@example.com',
@@ -255,7 +250,7 @@ describe('ContactFormValidator', () => {
       const validNames = ['Smith123', 'Doe@Domain', 'Test$Name', 'User.Name', 'Name!'];
 
       validNames.forEach((lastName) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName: 'John',
           lastName,
           email: 'test@example.com',
@@ -278,7 +273,7 @@ describe('ContactFormValidator', () => {
       ];
 
       validEmails.forEach((email) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName: 'John',
           lastName: 'Doe',
           email,
@@ -290,7 +285,7 @@ describe('ContactFormValidator', () => {
     });
 
     test('should reject empty email', () => {
-      const result = ContactFormValidator.validateFormData({
+      const result = ContactFormValidator.validate({
         firstName: 'John',
         lastName: 'Doe',
         email: '',
@@ -315,7 +310,7 @@ describe('ContactFormValidator', () => {
       ];
 
       invalidEmails.forEach((email) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName: 'John',
           lastName: 'Doe',
           email,
@@ -331,7 +326,7 @@ describe('ContactFormValidator', () => {
 
     test('should reject emails that are too long', () => {
       const longEmail = 'a'.repeat(90) + '@example.com';
-      const result = ContactFormValidator.validateFormData({
+      const result = ContactFormValidator.validate({
         firstName: 'John',
         lastName: 'Doe',
         email: longEmail,
@@ -348,7 +343,7 @@ describe('ContactFormValidator', () => {
       const fakeEmails = ['test@test.com', 'example@example.com', 'user@user.com', 'admin@admin.com'];
 
       fakeEmails.forEach((email) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName: 'John',
           lastName: 'Doe',
           email,
@@ -363,7 +358,7 @@ describe('ContactFormValidator', () => {
     });
 
     test('should reject emails with consecutive dots', () => {
-      const result = ContactFormValidator.validateFormData({
+      const result = ContactFormValidator.validate({
         firstName: 'John',
         lastName: 'Doe',
         email: 'user..name@example.com',
@@ -380,7 +375,7 @@ describe('ContactFormValidator', () => {
       const invalidTLDs = ['user@domain.c', 'user@domain.', 'user@domain'];
 
       invalidTLDs.forEach((email) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName: 'John',
           lastName: 'Doe',
           email,
@@ -405,7 +400,7 @@ describe('ContactFormValidator', () => {
       ];
 
       validMessages.forEach((message) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName: 'John',
           lastName: 'Doe',
           email: 'test@example.com',
@@ -417,7 +412,7 @@ describe('ContactFormValidator', () => {
     });
 
     test('should reject messages that are too short', () => {
-      const result = ContactFormValidator.validateFormData({
+      const result = ContactFormValidator.validate({
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
@@ -432,7 +427,7 @@ describe('ContactFormValidator', () => {
 
     test('should reject messages that are too long', () => {
       const longMessage = 'A'.repeat(1001);
-      const result = ContactFormValidator.validateFormData({
+      const result = ContactFormValidator.validate({
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
@@ -449,7 +444,7 @@ describe('ContactFormValidator', () => {
       const whitespaceMessages = [' '.repeat(50), '\t'.repeat(50), '\n'.repeat(50), ' \t\n '.repeat(25)];
 
       whitespaceMessages.forEach((message) => {
-        const result = ContactFormValidator.validateFormData({
+        const result = ContactFormValidator.validate({
           firstName: 'John',
           lastName: 'Doe',
           email: 'test@example.com',
@@ -465,7 +460,7 @@ describe('ContactFormValidator', () => {
 
     test('should accept messages with leading/trailing whitespace if content is sufficient', () => {
       const messageWithWhitespace = '   ' + 'A'.repeat(50) + '   ';
-      const result = ContactFormValidator.validateFormData({
+      const result = ContactFormValidator.validate({
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
@@ -476,84 +471,66 @@ describe('ContactFormValidator', () => {
     });
   });
 
-  describe('recaptchaToken validation', () => {
-    test('should accept valid recaptcha token in submission schema', () => {
-      const result = ContactFormValidator.validateSubmissionData({
+  describe('recaptcha token extraction', () => {
+    test('should extract valid recaptcha token', () => {
+      const data = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
         recaptchaToken: 'valid-recaptcha-token'
-      });
+      };
 
-      expect(result.success).toBe(true);
+      const token = ContactFormValidator.extractRecaptchaToken(data);
+      expect(token).toBe('valid-recaptcha-token');
     });
 
-    test('should reject empty recaptcha token in submission schema', () => {
-      const result = ContactFormValidator.validateSubmissionData({
+    test('should return null for missing recaptcha token', () => {
+      const data = {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'test@example.com',
+        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+      };
+
+      const token = ContactFormValidator.extractRecaptchaToken(data);
+      expect(token).toBeNull();
+    });
+
+    test('should return null for empty recaptcha token', () => {
+      const data = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
         recaptchaToken: ''
-      });
-
-      assert(!result.success);
-      const expectedMessage = 'Please complete the reCAPTCHA verification';
-      expect(result.error.message).toContain(expectedMessage);
-      expect(result.error.internalMessage).toContain(expectedMessage);
-    });
-
-    test('should not require recaptcha token in form schema', () => {
-      const result = ContactFormValidator.validateFormData({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      });
-
-      expect(result.success).toBe(true);
-    });
-
-    test('should not require recaptcha token in server schema', () => {
-      const result = ContactFormValidator.validateServerData({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      });
-
-      expect(result.success).toBe(true);
-    });
-  });
-
-  describe('static methods', () => {
-    test('should parse form data successfully', () => {
-      const validData = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       };
 
-      const result = ContactFormValidator.parseFormData(validData);
-      expect(result).toEqual(validData);
+      const token = ContactFormValidator.extractRecaptchaToken(data);
+      expect(token).toBeNull();
     });
 
-    test('should parse submission data successfully', () => {
-      const validData = {
+    test('should extract form data without recaptcha token', () => {
+      const data = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-        recaptchaToken: 'valid-token'
+        recaptchaToken: 'valid-recaptcha-token'
       };
 
-      const result = ContactFormValidator.parseSubmissionData(validData);
-      expect(result).toEqual(validData);
+      const formData = ContactFormValidator.extractFormData(data);
+      expect(formData).toEqual({
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'test@example.com',
+        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+      });
     });
+  });
 
-    test('should parse server data successfully', () => {
+  describe('static methods', () => {
+    test('should validate form data successfully', () => {
       const validData = {
         firstName: 'John',
         lastName: 'Doe',
@@ -561,11 +538,14 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       };
 
-      const result = ContactFormValidator.parseServerData(validData);
-      expect(result).toEqual(validData);
+      const result = ContactFormValidator.validate(validData);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(validData);
+      }
     });
 
-    test('should throw on invalid form data', () => {
+    test('should return error for invalid form data', () => {
       const invalidData = {
         firstName: 'J',
         lastName: 'Doe',
@@ -573,7 +553,8 @@ describe('ContactFormValidator', () => {
         message: 'Short'
       };
 
-      expect(() => ContactFormValidator.parseFormData(invalidData)).toThrow();
+      const result = ContactFormValidator.validate(invalidData);
+      expect(result.success).toBe(false);
     });
   });
 
@@ -586,21 +567,7 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       };
 
-      const submissionData: ContactFormSubmissionData = {
-        ...formData,
-        recaptchaToken: 'token'
-      };
-
-      const serverData: ContactFormServerData = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      };
-
       expect(formData).toBeDefined();
-      expect(submissionData).toBeDefined();
-      expect(serverData).toBeDefined();
     });
   });
 });

@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { ContactFormServerData } from './ContactFormValidator';
+import { ContactFormData } from './ContactFormValidator';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { TemplateRenderer } from '@/shared/TemplateRenderer';
@@ -58,7 +58,7 @@ export class EmailService {
     return Result.success(emailService);
   }
 
-  async sendContactEmail(data: ContactFormServerData): Promise<Result<{ id: string }, EmailServiceError>> {
+  async sendContactEmail(data: ContactFormData): Promise<Result<{ id: string }, EmailServiceError>> {
     if (!this.config.sendEmailEnabled) {
       const clientMessage = 'Unable to send messages at this time. Please try again later.';
       const internalMessage = 'Email sending is disabled in configuration';
@@ -96,7 +96,7 @@ export class EmailService {
     }
   }
 
-  private createEmailHTML(data: ContactFormServerData): string {
+  private createEmailHTML(data: ContactFormData): string {
     return TemplateRenderer.render(this.htmlTemplate, {
       firstName: data.firstName,
       lastName: data.lastName,
@@ -106,7 +106,7 @@ export class EmailService {
     });
   }
 
-  private createEmailText(data: ContactFormServerData): string {
+  private createEmailText(data: ContactFormData): string {
     return TemplateRenderer.render(this.textTemplate, {
       firstName: data.firstName,
       lastName: data.lastName,

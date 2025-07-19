@@ -17,7 +17,7 @@ const nonWhitespaceString = (minLength: number, maxLength: number) =>
       message: `Must contain at least ${minLength} non-whitespace characters`
     });
 
-const baseContactSchema = z.object({
+const contactFormSchema = z.object({
   firstName: z
     .string()
     .min(nameMinLength, `First name must be at least ${nameMinLength} characters`)
@@ -77,21 +77,13 @@ const baseContactSchema = z.object({
   message: nonWhitespaceString(50, 1000)
 });
 
-export type ContactFormData = z.infer<typeof baseContactSchema>;
-export type ContactFormSubmissionData = ContactFormData & { recaptchaToken: string };
-export type ContactFormServerData = ContactFormData;
+export type ContactFormData = z.infer<typeof contactFormSchema>;
 
 export class ContactFormValidator {
-  static readonly clientFormValidationSchema = baseContactSchema;
+  static readonly schema = contactFormSchema;
 
-  static readonly clientSubmissionSchema = baseContactSchema.extend({
-    recaptchaToken: z.string().min(1, 'Please complete the reCAPTCHA verification')
-  });
-
-  static readonly serverProcessingSchema = baseContactSchema;
-
-  static validateFormData(data: unknown): Result<ContactFormData, ValidationError> {
-    const result = this.clientFormValidationSchema.safeParse(data);
+  static validate(data: unknown): Result<ContactFormData, ValidationError> {
+    const result = this.schema.safeParse(data);
     if (result.success) return Result.success(result.data);
 
     const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
@@ -102,39 +94,17 @@ export class ContactFormValidator {
     return Result.failure(validationError);
   }
 
-  static validateSubmissionData(data: unknown): Result<ContactFormSubmissionData, ValidationError> {
-    const result = this.clientSubmissionSchema.safeParse(data);
-    if (result.success) return Result.success(result.data);
-
-    const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
-    const errorMessage = `Submission validation failed: ${issueDetails}`;
-    const options = { internalMessage: errorMessage, details: result.error.errors };
-    const validationError = new ValidationError(errorMessage, options);
-
-    return Result.failure(validationError);
+  static extractRecaptchaToken(data: unknown): string | null {
+    if (typeof data !== 'object' || data === null) return null;
+    const obj = data as Record<string, unknown>;
+    return typeof obj.recaptchaToken === 'string' && obj.recaptchaToken.length > 0 ? obj.recaptchaToken : null;
   }
 
-  static validateServerData(data: unknown): Result<ContactFormServerData, ValidationError> {
-    const result = this.serverProcessingSchema.safeParse(data);
-    if (result.success) return Result.success(result.data);
-
-    const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
-    const errorMessage = `Server data validation failed: ${issueDetails}`;
-    const options = { internalMessage: errorMessage, details: result.error.errors };
-    const validationError = new ValidationError(errorMessage, options);
-
-    return Result.failure(validationError);
-  }
-
-  static parseFormData(data: unknown): ContactFormData {
-    return this.clientFormValidationSchema.parse(data);
-  }
-
-  static parseSubmissionData(data: unknown): ContactFormSubmissionData {
-    return this.clientSubmissionSchema.parse(data);
-  }
-
-  static parseServerData(data: unknown): ContactFormServerData {
-    return this.serverProcessingSchema.parse(data);
+  static extractFormData(data: unknown): unknown {
+    if (typeof data !== 'object' || data === null) return data;
+    const obj = data as Record<string, unknown>;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { recaptchaToken, ...formData } = obj;
+    return formData;
   }
 }

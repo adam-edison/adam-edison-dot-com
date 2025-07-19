@@ -1,7 +1,7 @@
 import { EmailService } from './EmailService';
 import { InputSanitizer } from './InputSanitizer';
 import { RecaptchaService } from './RecaptchaService';
-import { ContactFormValidator, ContactFormSubmissionData, ContactFormServerData } from './ContactFormValidator';
+import { ContactFormValidator, ContactFormData } from './ContactFormValidator';
 import { Result } from '@/shared/Result';
 import { ValidationError, RecaptchaError, InternalServerError } from '@/shared/errors';
 
@@ -30,30 +30,28 @@ export class ContactFormProcessor {
   }
 
   async processForm(formData: unknown): Promise<ProcessFormResult> {
-    const rawSubmission = formData;
-    const validatedSubmission = await this.validateRawSubmission(rawSubmission);
-    if (!validatedSubmission.success) return Result.failure(validatedSubmission.error);
+    const recaptchaToken = ContactFormValidator.extractRecaptchaToken(formData);
+    if (!recaptchaToken) {
+      const clientMessage = 'Please complete the reCAPTCHA verification';
+      const validationError = new ValidationError(clientMessage, { internalMessage: 'Missing recaptcha token' });
+      return Result.failure(validationError);
+    }
 
-    const recaptchaToken = validatedSubmission.data.recaptchaToken;
     const recaptchaVerified = await this.verifyRecaptchaToken(recaptchaToken);
     if (!recaptchaVerified.success) return Result.failure(recaptchaVerified.error);
 
-    const formDataWithoutToken = validatedSubmission.data;
-    const sanitizedFormData = this.sanitizeFormData(formDataWithoutToken);
-    const serverValidatedData = await this.validateSanitizedData(sanitizedFormData);
-    if (!serverValidatedData.success) return Result.failure(serverValidatedData.error);
+    const formDataOnly = ContactFormValidator.extractFormData(formData);
+    const validatedFormData = ContactFormValidator.validate(formDataOnly);
+    if (!validatedFormData.success) return Result.failure(validatedFormData.error);
+
+    const sanitizedFormData = this.sanitizeFormData(validatedFormData.data);
 
     if (!this.emailService.getConfiguration().sendEmailEnabled) return Result.success();
 
-    const emailData = serverValidatedData.data;
-    const emailSent = await this.sendContactEmail(emailData);
+    const emailSent = await this.sendContactEmail(sanitizedFormData);
     if (!emailSent.success) return Result.failure(emailSent.error);
 
     return Result.success();
-  }
-
-  private async validateRawSubmission(rawData: unknown): Promise<Result<ContactFormSubmissionData, ValidationError>> {
-    return ContactFormValidator.validateSubmissionData(rawData);
   }
 
   private async verifyRecaptchaToken(token: string): Promise<Result<void, RecaptchaError>> {
@@ -70,30 +68,16 @@ export class ContactFormProcessor {
     return Result.failure(recaptchaError);
   }
 
-  private sanitizeFormData(submissionData: ContactFormSubmissionData): ContactFormServerData {
+  private sanitizeFormData(formData: ContactFormData): ContactFormData {
     return {
-      firstName: InputSanitizer.sanitize(submissionData.firstName),
-      lastName: InputSanitizer.sanitize(submissionData.lastName),
-      email: InputSanitizer.sanitize(submissionData.email),
-      message: InputSanitizer.sanitize(submissionData.message)
+      firstName: InputSanitizer.sanitize(formData.firstName),
+      lastName: InputSanitizer.sanitize(formData.lastName),
+      email: InputSanitizer.sanitize(formData.email),
+      message: InputSanitizer.sanitize(formData.message)
     };
   }
 
-  private async validateSanitizedData(
-    sanitizedData: ContactFormServerData
-  ): Promise<Result<ContactFormServerData, ValidationError>> {
-    const result = ContactFormValidator.validateServerData(sanitizedData);
-
-    if (result.success) return result;
-
-    const clientMessage = 'Invalid content detected. Please check your input and try again.';
-    const internalMessage = `Data validation failed after sanitization: ${result.error.message}`;
-    const validationError = new ValidationError(clientMessage, { internalMessage, details: result.error.details });
-
-    return Result.failure(validationError);
-  }
-
-  private async sendContactEmail(emailData: ContactFormServerData): Promise<Result<void, InternalServerError>> {
+  private async sendContactEmail(emailData: ContactFormData): Promise<Result<void, InternalServerError>> {
     const emailResult = await this.emailService.sendContactEmail(emailData);
 
     if (emailResult.success) return Result.success();
