@@ -22,13 +22,20 @@ describe('ApiErrorHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-  describe('mapErrorToResponse', () => {
+  describe('error response mapping through handle method', () => {
     it('should map ValidationError to 400 status with details', () => {
+      const mockRes = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+        setHeader: vi.fn()
+      } as unknown as NextApiResponse;
+
       const error = new ValidationError('Please check your form data', {
         internalMessage: 'Detailed validation error for logging',
         details: [{ field: 'email', message: 'Required' }]
       });
-      const result = ApiErrorHandler.mapErrorToResponse(error);
+
+      const result = ApiErrorHandler.handle(mockRes, error);
 
       expect(result.statusCode).toBe(400);
       expect(result.response.message).toBe('Please check your form data');
@@ -36,10 +43,17 @@ describe('ApiErrorHandler', () => {
     });
 
     it('should map RecaptchaError to 400 status without details', () => {
+      const mockRes = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+        setHeader: vi.fn()
+      } as unknown as NextApiResponse;
+
       const error = new RecaptchaError('Security verification failed', {
         internalMessage: 'reCAPTCHA API returned score 0.1, threshold 0.5'
       });
-      const result = ApiErrorHandler.mapErrorToResponse(error);
+
+      const result = ApiErrorHandler.handle(mockRes, error);
 
       expect(result.statusCode).toBe(400);
       expect(result.response.message).toBe('Security verification failed');
@@ -47,11 +61,18 @@ describe('ApiErrorHandler', () => {
     });
 
     it('should map ValidationError with sanitization details to 400 status with details', () => {
+      const mockRes = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+        setHeader: vi.fn()
+      } as unknown as NextApiResponse;
+
       const error = new ValidationError('Invalid content detected', {
         internalMessage: 'XSS attempt detected in message field: <script>alert(1)</script>',
         details: [{ field: 'message', message: 'Invalid content' }]
       });
-      const result = ApiErrorHandler.mapErrorToResponse(error);
+
+      const result = ApiErrorHandler.handle(mockRes, error);
 
       expect(result.statusCode).toBe(400);
       expect(result.response.message).toBe('Invalid content detected');
@@ -59,11 +80,18 @@ describe('ApiErrorHandler', () => {
     });
 
     it('should map EmailServiceError with isConfigError=true to 500 status', () => {
+      const mockRes = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+        setHeader: vi.fn()
+      } as unknown as NextApiResponse;
+
       const error = new EmailServiceError('Unable to send messages at this time', {
         internalMessage: 'Missing RESEND_API_KEY environment variable',
         isConfigError: true
       });
-      const result = ApiErrorHandler.mapErrorToResponse(error);
+
+      const result = ApiErrorHandler.handle(mockRes, error);
 
       expect(result.statusCode).toBe(500);
       expect(result.response.message).toBe('Unable to send messages at this time');
@@ -71,11 +99,18 @@ describe('ApiErrorHandler', () => {
     });
 
     it('should map EmailServiceError with isConfigError=false to 502 status', () => {
+      const mockRes = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+        setHeader: vi.fn()
+      } as unknown as NextApiResponse;
+
       const error = new EmailServiceError('Unable to send your message at this time', {
         internalMessage: 'Resend API error: 422 Invalid email domain',
         isConfigError: false
       });
-      const result = ApiErrorHandler.mapErrorToResponse(error);
+
+      const result = ApiErrorHandler.handle(mockRes, error);
 
       expect(result.statusCode).toBe(502);
       expect(result.response.message).toBe('Unable to send your message at this time');
@@ -83,11 +118,18 @@ describe('ApiErrorHandler', () => {
     });
 
     it('should map ServiceUnavailableError to 503 status', () => {
+      const mockRes = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+        setHeader: vi.fn()
+      } as unknown as NextApiResponse;
+
       const error = new ServiceUnavailableError('Service temporarily unavailable', {
         internalMessage: 'Redis connection timeout after 5000ms',
         serviceName: 'redis'
       });
-      const result = ApiErrorHandler.mapErrorToResponse(error);
+
+      const result = ApiErrorHandler.handle(mockRes, error);
 
       expect(result.statusCode).toBe(503);
       expect(result.response.message).toBe('Service temporarily unavailable');

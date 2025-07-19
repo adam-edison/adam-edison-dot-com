@@ -12,15 +12,9 @@ export interface ErrorResponse {
 }
 
 export class ApiErrorHandler {
-  static mapErrorToResponse(error: BaseError): ErrorResponse {
+  static handle(res: NextApiResponse, error: BaseError, context?: RequestContext): ErrorResponse {
     const statusCode = error.httpStatusCode;
     const response = this.buildResponse(error);
-
-    return { statusCode, response };
-  }
-
-  static handle(res: NextApiResponse, error: BaseError, context?: RequestContext): void {
-    const { statusCode, response } = this.mapErrorToResponse(error);
 
     // Set any custom headers
     if (error.headers) {
@@ -42,6 +36,8 @@ export class ApiErrorHandler {
     });
 
     res.status(statusCode).json(response);
+
+    return { statusCode, response };
   }
 
   private static buildResponse(error: BaseError): { message: string; [key: string]: unknown } {
