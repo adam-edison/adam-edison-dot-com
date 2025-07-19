@@ -20,7 +20,8 @@ export class RateLimiterDataStore {
   static fromEnv(): RateLimiterDataStore {
     const redis = Redis.fromEnv();
     const prefix = process.env.REDIS_PREFIX!;
-    return new RateLimiterDataStore(redis, prefix);
+    const rateLimiterDataStore = new RateLimiterDataStore(redis, prefix);
+    return rateLimiterDataStore;
   }
 
   async getKeys(pattern: string): Promise<string[]> {

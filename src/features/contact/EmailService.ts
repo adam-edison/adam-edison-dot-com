@@ -1,10 +1,12 @@
 import { Resend } from 'resend';
-import { ContactFormServerData } from './ContactFormValidator';
+import { ContactFormData } from './ContactFormValidator';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { TemplateRenderer } from '@/shared/TemplateRenderer';
 import { EmailServiceConfigurationValidator } from '@/shared/EmailServiceConfigurationValidator';
 import { EmailServiceConfigurationFactory } from '@/shared/EmailServiceConfigurationFactory';
+import { Result } from '@/shared/Result';
+import { EmailServiceError } from '@/shared/errors';
 
 export interface EmailConfiguration {
   apiKey: string;
@@ -26,12 +28,7 @@ export class EmailService {
   private readonly htmlTemplate: string;
   private readonly textTemplate: string;
 
-  constructor(config: EmailConfiguration) {
-    const result = EmailServiceConfigurationValidator.validate(config);
-    if (!result.configured) {
-      throw new Error(`Email service configuration errors: ${result.problems?.join(', ')}`);
-    }
-
+  private constructor(config: EmailConfiguration) {
     this.config = config;
     this.resend = new Resend(config.apiKey);
 
@@ -44,36 +41,62 @@ export class EmailService {
     return { ...this.config };
   }
 
-  static fromEnv(env: NodeJS.ProcessEnv = process.env): EmailService {
+  static fromEnv(env: NodeJS.ProcessEnv = process.env): Result<EmailService, EmailServiceError> {
     const config = EmailServiceConfigurationFactory.fromEnv(env);
-    return new EmailService(config);
-  }
+    const validationResult = EmailServiceConfigurationValidator.validate(config);
 
-  async sendContactEmail(data: ContactFormServerData): Promise<EmailSendResult> {
-    if (!this.config.sendEmailEnabled) {
-      return this.createEmailDisabledResponse();
+    if (!validationResult.success) {
+      const clientMessage = 'Unable to send messages at this time. Please try again later.';
+      const problemList = validationResult.error.message;
+      const internalMessage = `Email service configuration errors: ${problemList}`;
+      const configError = new EmailServiceError(clientMessage, { internalMessage, isConfigError: true });
+
+      return Result.failure(configError);
     }
 
-    const result = await this.resend.emails.send({
-      from: `${this.config.senderName} <${this.config.fromEmail}>`,
-      to: `${this.config.recipientName} <${this.config.toEmail}>`,
-      replyTo: data.email,
-      subject: `New Message from ${data.firstName} ${data.lastName}`,
-      html: this.createEmailHTML(data),
-      text: this.createEmailText(data)
-    });
-
-    return result;
+    const emailService = new EmailService(config);
+    return Result.success(emailService);
   }
 
-  private createEmailDisabledResponse(): EmailSendResult {
-    return {
-      data: null,
-      error: new Error('SEND_EMAIL_ENABLED is false')
-    };
+  async sendContactEmail(data: ContactFormData): Promise<Result<{ id: string }, EmailServiceError>> {
+    if (!this.config.sendEmailEnabled) {
+      const clientMessage = 'Unable to send messages at this time. Please try again later.';
+      const internalMessage = 'Email sending is disabled in configuration';
+      const disabledError = new EmailServiceError(clientMessage, { internalMessage, isConfigError: true });
+
+      return Result.failure(disabledError);
+    }
+
+    try {
+      const result = await this.resend.emails.send({
+        from: `${this.config.senderName} <${this.config.fromEmail}>`,
+        to: `${this.config.recipientName} <${this.config.toEmail}>`,
+        replyTo: data.email,
+        subject: `New Message from ${data.firstName} ${data.lastName}`,
+        html: this.createEmailHTML(data),
+        text: this.createEmailText(data)
+      });
+
+      if (result.error) {
+        const clientMessage = 'Unable to send your message at this time. Please try again later.';
+        const internalMessage = `Failed to send email via Resend API: ${result.error.message}`;
+        const emailServiceError = new EmailServiceError(clientMessage, { internalMessage, isConfigError: false });
+
+        return Result.failure(emailServiceError);
+      }
+
+      return Result.success({ id: result.data!.id });
+    } catch (error) {
+      const clientMessage = 'Unable to send your message at this time. Please try again later.';
+      const errorDetails = error instanceof Error ? error.message : 'Unknown error';
+      const internalMessage = `Email service error: ${errorDetails}`;
+      const emailServiceError = new EmailServiceError(clientMessage, { internalMessage, isConfigError: false });
+
+      return Result.failure(emailServiceError);
+    }
   }
 
-  private createEmailHTML(data: ContactFormServerData): string {
+  private createEmailHTML(data: ContactFormData): string {
     return TemplateRenderer.render(this.htmlTemplate, {
       firstName: data.firstName,
       lastName: data.lastName,
@@ -83,7 +106,7 @@ export class EmailService {
     });
   }
 
-  private createEmailText(data: ContactFormServerData): string {
+  private createEmailText(data: ContactFormData): string {
     return TemplateRenderer.render(this.textTemplate, {
       firstName: data.firstName,
       lastName: data.lastName,

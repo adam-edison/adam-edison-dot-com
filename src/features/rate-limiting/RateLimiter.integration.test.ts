@@ -12,6 +12,7 @@ import { RateLimiter } from './RateLimiter';
 import { RateLimiterDataStore } from './RateLimiterDataStore';
 import { describe, test, expect, beforeAll, afterEach } from 'vitest';
 import { generateUniqueIdentifier } from '@tests/utils/testHelpers';
+import assert from 'node:assert';
 
 describe('RateLimiter Integration Tests', () => {
   let rateLimiter: RateLimiter;
@@ -19,7 +20,7 @@ describe('RateLimiter Integration Tests', () => {
   const testPrefix = `${basePrefix}-integration-rate-limit`;
 
   beforeAll(() => {
-    rateLimiter = RateLimiter.fromEnv({ limit: 5, window: '10 m' });
+    rateLimiter = RateLimiter.fromEnv({ limit: 5, window: '10 m', limitType: 'ip' });
   });
 
   afterEach(async () => {
@@ -32,10 +33,11 @@ describe('RateLimiter Integration Tests', () => {
     const result = await rateLimiter.checkLimit(identifier);
 
     expect(result.success).toBe(true);
-    expect(result.limit).toBe(5);
-    expect(result.remaining).toBe(4);
-    expect(result.headers['X-RateLimit-Limit']).toBe('5');
-    expect(result.headers['X-RateLimit-Remaining']).toBe('4');
+    assert(result.success);
+    expect(result.data.limit).toBe(5);
+    expect(result.data.remaining).toBe(4);
+    expect(result.data.headers['X-RateLimit-Limit']).toBe('5');
+    expect(result.data.headers['X-RateLimit-Remaining']).toBe('4');
   });
 
   test('should enforce rate limit after exceeding threshold', async () => {
@@ -59,7 +61,8 @@ describe('RateLimiter Integration Tests', () => {
     expect(successful.length).toBe(5);
     expect(rateLimited.length).toBe(1);
 
-    expect(successful[0].remaining).toBe(4);
+    assert(successful[0].success);
+    expect(successful[0].data.remaining).toBe(4);
   });
 
   test('should have separate limits for different identifiers', async () => {
@@ -74,7 +77,8 @@ describe('RateLimiter Integration Tests', () => {
     // identifier2 should still be allowed
     const result = await rateLimiter.checkLimit(identifier2);
     expect(result.success).toBe(true);
-    expect(result.remaining).toBe(4);
+    assert(result.success);
+    expect(result.data.remaining).toBe(4);
   });
 
   test('should include proper headers in response', async () => {
@@ -82,15 +86,17 @@ describe('RateLimiter Integration Tests', () => {
 
     const result = await rateLimiter.checkLimit(identifier);
 
-    expect(result.headers).toHaveProperty('X-RateLimit-Limit');
-    expect(result.headers).toHaveProperty('X-RateLimit-Remaining');
-    expect(result.headers).toHaveProperty('X-RateLimit-Reset');
+    expect(result.success).toBe(true);
+    assert(result.success);
+    expect(result.data.headers).toHaveProperty('X-RateLimit-Limit');
+    expect(result.data.headers).toHaveProperty('X-RateLimit-Remaining');
+    expect(result.data.headers).toHaveProperty('X-RateLimit-Reset');
 
-    expect(parseInt(result.headers['X-RateLimit-Limit'])).toBe(5);
-    expect(parseInt(result.headers['X-RateLimit-Remaining'])).toBe(4);
+    expect(parseInt(result.data.headers['X-RateLimit-Limit'])).toBe(5);
+    expect(parseInt(result.data.headers['X-RateLimit-Remaining'])).toBe(4);
 
     // Reset time should be a valid ISO date string
-    expect(() => new Date(result.headers['X-RateLimit-Reset'])).not.toThrow();
+    expect(() => new Date(result.data.headers['X-RateLimit-Reset'])).not.toThrow();
   });
 
   test('should respect sliding window behavior', async () => {
@@ -105,8 +111,8 @@ describe('RateLimiter Integration Tests', () => {
     // 6th request should be rate limited
     const rateLimitedResult = await rateLimiter.checkLimit(identifier);
     expect(rateLimitedResult.success).toBe(false);
-    expect(rateLimitedResult.limit).toBe(5);
-    expect(rateLimitedResult.remaining).toBe(0);
+    assert(!rateLimitedResult.success);
+    expect(rateLimitedResult.error.code).toBe('RATE_LIMIT_ERROR');
   });
 
   test('should handle Redis errors gracefully (fail open)', async () => {
@@ -114,15 +120,16 @@ describe('RateLimiter Integration Tests', () => {
     const invalidRedis = new Redis({ url: 'https://invalid-url.invalid', token: 'invalid-token' });
     const invalidDataStore = new RateLimiterDataStore(invalidRedis, `${testPrefix}-fail-test`);
 
-    const failingRateLimiter = new RateLimiter(invalidDataStore, { limit: 5, window: '10 m' });
+    const failingRateLimiter = new RateLimiter(invalidDataStore, { limit: 5, window: '10 m', limitType: 'ip' });
 
     const identifier = generateUniqueIdentifier(`${testPrefix}-fail-test`);
     const result = await failingRateLimiter.checkLimit(identifier);
 
-    // Should fail open (allow the request)
+    // Should fail open (allow the request on infrastructure failure)
     expect(result.success).toBe(true);
-    expect(result.limit).toBe(0);
-    expect(result.remaining).toBe(0);
-    expect(Object.keys(result.headers)).toHaveLength(0);
+    assert(result.success);
+    expect(result.data.limit).toBe(0);
+    expect(result.data.remaining).toBe(0);
+    expect(Object.keys(result.data.headers)).toHaveLength(0);
   });
 });

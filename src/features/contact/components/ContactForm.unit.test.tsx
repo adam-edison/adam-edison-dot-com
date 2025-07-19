@@ -27,7 +27,7 @@ describe('ContactForm', () => {
 
     vi.mocked(fetch).mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
-        return new Response(JSON.stringify({ configured: true }), {
+        return new Response(JSON.stringify({ status: 'healthy' }), {
           status: 200,
           statusText: 'OK'
         });
@@ -103,7 +103,7 @@ describe('ContactForm', () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
-        return new Response(JSON.stringify({ configured: true }), {
+        return new Response(JSON.stringify({ status: 'healthy' }), {
           status: 200,
           statusText: 'OK'
         });
@@ -133,7 +133,7 @@ describe('ContactForm', () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
-        return new Response(JSON.stringify({ configured: true }), {
+        return new Response(JSON.stringify({ status: 'healthy' }), {
           status: 200,
           statusText: 'OK'
         });
@@ -170,7 +170,7 @@ describe('ContactForm', () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
-        return new Response(JSON.stringify({ configured: true }), {
+        return new Response(JSON.stringify({ status: 'healthy' }), {
           status: 200,
           statusText: 'OK'
         });
@@ -239,11 +239,11 @@ describe('ContactForm', () => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         return new Response(
           JSON.stringify({
-            configured: false
+            error: 'Email service configuration validation failed'
           }),
           {
-            status: 200,
-            statusText: 'OK'
+            status: 503,
+            statusText: 'Service Unavailable'
           }
         );
       }

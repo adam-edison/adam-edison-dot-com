@@ -8,12 +8,15 @@ test.describe('Contact Form', () => {
   });
 
   test('should show error when email service is not configured', async ({ page }) => {
-    // Mock the email service check to return disabled state
+    // Mock the email service check to return error state (503 status)
     await page.route('/api/email-service-check', (route) => {
       route.fulfill({
-        status: 200,
+        status: 503,
         contentType: 'application/json',
-        body: JSON.stringify({ configured: false })
+        body: JSON.stringify({
+          message: 'Email service is not properly configured',
+          code: 'SERVICE_UNAVAILABLE'
+        })
       });
     });
 

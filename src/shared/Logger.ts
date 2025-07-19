@@ -7,9 +7,11 @@ export class Logger {
 
   static create(): Logger {
     if (process.env.NODE_ENV === 'test') {
-      return new InMemoryLogger();
+      const inMemoryLogger = new InMemoryLogger();
+      return inMemoryLogger;
     }
-    return new Logger();
+    const logger = new Logger();
+    return logger;
   }
 
   error(message: string, ...args: unknown[]): void {

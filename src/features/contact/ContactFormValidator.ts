@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { ValidationPatterns } from '@/shared/patterns/ValidationPatterns';
 import { FormValidationConstants } from '@/shared/constants/FormValidationConstants';
+import { Result } from '@/shared/Result';
+import { ValidationError } from '@/shared/errors';
 
 // Extract constants for better readability
 const nameMinLength = FormValidationConstants.NAME_MIN_LENGTH;
@@ -15,7 +17,7 @@ const nonWhitespaceString = (minLength: number, maxLength: number) =>
       message: `Must contain at least ${minLength} non-whitespace characters`
     });
 
-const baseContactSchema = z.object({
+const contactFormSchema = z.object({
   firstName: z
     .string()
     .min(nameMinLength, `First name must be at least ${nameMinLength} characters`)
@@ -75,63 +77,34 @@ const baseContactSchema = z.object({
   message: nonWhitespaceString(50, 1000)
 });
 
-export type ContactFormData = z.infer<typeof baseContactSchema>;
-export type ContactFormSubmissionData = ContactFormData & { recaptchaToken: string };
-export type ContactFormServerData = ContactFormData;
+export type ContactFormData = z.infer<typeof contactFormSchema>;
 
 export class ContactFormValidator {
-  static readonly clientFormValidationSchema = baseContactSchema;
+  static readonly schema = contactFormSchema;
 
-  static readonly clientSubmissionSchema = baseContactSchema.extend({
-    recaptchaToken: z.string().min(1, 'Please complete the reCAPTCHA verification')
-  });
+  static validate(data: unknown): Result<ContactFormData, ValidationError> {
+    const result = this.schema.safeParse(data);
+    if (result.success) return Result.success(result.data);
 
-  static readonly serverProcessingSchema = baseContactSchema;
+    const issueDetails = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
+    const errorMessage = `Form validation failed: ${issueDetails}`;
+    const options = { internalMessage: errorMessage, details: result.error.errors };
+    const validationError = new ValidationError(errorMessage, options);
 
-  /**
-   * Validates form data for client-side use (without reCAPTCHA)
-   */
-  static validateFormData(data: unknown): z.SafeParseReturnType<unknown, ContactFormData> {
-    return this.clientFormValidationSchema.safeParse(data);
+    return Result.failure(validationError);
   }
 
-  /**
-   * Validates submission data including reCAPTCHA token
-   */
-  static validateSubmissionData(data: unknown): z.SafeParseReturnType<unknown, ContactFormSubmissionData> {
-    return this.clientSubmissionSchema.safeParse(data);
+  static extractRecaptchaToken(data: unknown): string | null {
+    if (typeof data !== 'object' || data === null) return null;
+    const obj = data as Record<string, unknown>;
+    return typeof obj.recaptchaToken === 'string' && obj.recaptchaToken.length > 0 ? obj.recaptchaToken : null;
   }
 
-  /**
-   * Validates server-side data (without reCAPTCHA)
-   */
-  static validateServerData(data: unknown): z.SafeParseReturnType<unknown, ContactFormServerData> {
-    return this.serverProcessingSchema.safeParse(data);
-  }
-
-  /**
-   * Parses form data and throws on validation error
-   */
-  static parseFormData(data: unknown): ContactFormData {
-    return this.clientFormValidationSchema.parse(data);
-  }
-
-  /**
-   * Parses submission data and throws on validation error
-   */
-  static parseSubmissionData(data: unknown): ContactFormSubmissionData {
-    return this.clientSubmissionSchema.parse(data);
-  }
-
-  /**
-   * Parses server data and throws on validation error
-   */
-  static parseServerData(data: unknown): ContactFormServerData {
-    return this.serverProcessingSchema.parse(data);
+  static extractFormData(data: unknown): unknown {
+    if (typeof data !== 'object' || data === null) return data;
+    const obj = data as Record<string, unknown>;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { recaptchaToken, ...formData } = obj;
+    return formData;
   }
 }
-
-// Legacy exports for backward compatibility (to be removed after migration)
-export const contactFormSchema = ContactFormValidator.clientFormValidationSchema;
-export const contactFormSubmissionSchema = ContactFormValidator.clientSubmissionSchema;
-export const contactFormServerSchema = ContactFormValidator.serverProcessingSchema;

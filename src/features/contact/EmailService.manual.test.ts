@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { EmailService } from './EmailService';
-import { ContactFormServerData } from './ContactFormValidator';
+import { ContactFormData } from './ContactFormValidator';
 import { fail } from 'assert';
 
 /* Run this test with:
@@ -22,14 +22,20 @@ describe('Resend Email Integration (Manual)', () => {
   });
 
   test('should send email successfully', async () => {
-    const testData: ContactFormServerData = {
+    const testData: ContactFormData = {
       firstName: 'Test',
       lastName: 'User',
       email: 'test@example.com',
       message: 'This is a manual integration test for email sending functionality.'
     };
 
-    const emailService = EmailService.fromEnv();
+    const emailServiceResult = EmailService.fromEnv();
+
+    if (!emailServiceResult.success) {
+      fail('Email service initialization failed');
+    }
+
+    const emailService = emailServiceResult.data;
     const result = await emailService.sendContactEmail(testData);
 
     expect(result).toMatchObject({

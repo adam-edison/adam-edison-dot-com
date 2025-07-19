@@ -1,19 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { strict as assert } from 'node:assert';
 import { EmailServiceConfigurationValidator } from './EmailServiceConfigurationValidator';
-import { logger, Logger } from './Logger';
 import { EmailConfiguration } from '@/features/contact/EmailService';
 
 describe('EmailServiceConfigurationValidator', () => {
-  let testLogger: Logger;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    testLogger = logger;
-    testLogger.clear();
   });
 
   describe('validate', () => {
-    it('should return configured: true when all required variables are present and valid', () => {
+    it('should return success when all required variables are present and valid', () => {
       const validConfig: EmailConfiguration = {
         apiKey: 'test-key',
         fromEmail: 'from@test.com',
@@ -25,12 +21,10 @@ describe('EmailServiceConfigurationValidator', () => {
 
       const result = EmailServiceConfigurationValidator.validate(validConfig);
 
-      expect(result).toEqual({
-        configured: true
-      });
+      expect(result.success).toBe(true);
     });
 
-    it('should return configured: false with specific problems when fields are invalid', () => {
+    it('should return failure with ValidationError when fields are invalid', () => {
       const invalidConfig: EmailConfiguration = {
         apiKey: '',
         fromEmail: 'invalid-email',
@@ -42,22 +36,18 @@ describe('EmailServiceConfigurationValidator', () => {
 
       const result = EmailServiceConfigurationValidator.validate(invalidConfig);
 
-      expect(result).toEqual({
-        configured: false,
-        problems: [
-          'RESEND_API_KEY: String must contain at least 1 character(s)',
-          'FROM_EMAIL: Invalid email',
-          'TO_EMAIL: Invalid email',
-          'EMAIL_SENDER_NAME: String must contain at least 1 character(s)',
-          'EMAIL_RECIPIENT_NAME: String must contain at least 1 character(s)'
-        ]
-      });
-
-      const output = testLogger.getOutput();
-      expect(output).toContain('ERROR Email service configuration validation failed');
+      expect(result.success).toBe(false);
+      assert(!result.success, 'Expected validation to fail');
+      expect(result.error.code).toBe('VALIDATION_ERROR');
+      expect(result.error.message).toContain('Email service configuration validation failed');
+      expect(result.error.message).toContain('RESEND_API_KEY: String must contain at least 1 character(s)');
+      expect(result.error.message).toContain('FROM_EMAIL: Invalid email');
+      expect(result.error.message).toContain('TO_EMAIL: Invalid email');
+      expect(result.error.message).toContain('EMAIL_SENDER_NAME: String must contain at least 1 character(s)');
+      expect(result.error.message).toContain('EMAIL_RECIPIENT_NAME: String must contain at least 1 character(s)');
     });
 
-    it('should return configured: true when sendEmailEnabled is false but other fields are valid', () => {
+    it('should return success when sendEmailEnabled is false but other fields are valid', () => {
       const validConfig: EmailConfiguration = {
         apiKey: 'test-key',
         fromEmail: 'from@test.com',
@@ -69,12 +59,10 @@ describe('EmailServiceConfigurationValidator', () => {
 
       const result = EmailServiceConfigurationValidator.validate(validConfig);
 
-      expect(result).toEqual({
-        configured: true
-      });
+      expect(result.success).toBe(true);
     });
 
-    it('should return configured: false with multiple validation errors', () => {
+    it('should return failure with multiple validation errors', () => {
       const invalidConfig: EmailConfiguration = {
         apiKey: '',
         fromEmail: 'invalid-email',
@@ -86,18 +74,15 @@ describe('EmailServiceConfigurationValidator', () => {
 
       const result = EmailServiceConfigurationValidator.validate(invalidConfig);
 
-      expect(result).toEqual({
-        configured: false,
-        problems: [
-          'RESEND_API_KEY: String must contain at least 1 character(s)',
-          'FROM_EMAIL: Invalid email',
-          'TO_EMAIL: Invalid email',
-          'EMAIL_RECIPIENT_NAME: String must contain at least 1 character(s)'
-        ]
-      });
+      expect(result.success).toBe(false);
+      assert(!result.success, 'Expected validation to fail');
+      expect(result.error.message).toContain('RESEND_API_KEY: String must contain at least 1 character(s)');
+      expect(result.error.message).toContain('FROM_EMAIL: Invalid email');
+      expect(result.error.message).toContain('TO_EMAIL: Invalid email');
+      expect(result.error.message).toContain('EMAIL_RECIPIENT_NAME: String must contain at least 1 character(s)');
     });
 
-    it('should return configured: false when all fields are empty', () => {
+    it('should return failure when all fields are empty', () => {
       const emptyConfig: EmailConfiguration = {
         apiKey: '',
         fromEmail: '',
@@ -109,16 +94,13 @@ describe('EmailServiceConfigurationValidator', () => {
 
       const result = EmailServiceConfigurationValidator.validate(emptyConfig);
 
-      expect(result).toEqual({
-        configured: false,
-        problems: [
-          'RESEND_API_KEY: String must contain at least 1 character(s)',
-          'FROM_EMAIL: Invalid email',
-          'TO_EMAIL: Invalid email',
-          'EMAIL_SENDER_NAME: String must contain at least 1 character(s)',
-          'EMAIL_RECIPIENT_NAME: String must contain at least 1 character(s)'
-        ]
-      });
+      expect(result.success).toBe(false);
+      assert(!result.success, 'Expected validation to fail');
+      expect(result.error.message).toContain('RESEND_API_KEY: String must contain at least 1 character(s)');
+      expect(result.error.message).toContain('FROM_EMAIL: Invalid email');
+      expect(result.error.message).toContain('TO_EMAIL: Invalid email');
+      expect(result.error.message).toContain('EMAIL_SENDER_NAME: String must contain at least 1 character(s)');
+      expect(result.error.message).toContain('EMAIL_RECIPIENT_NAME: String must contain at least 1 character(s)');
     });
 
     it('should correctly map field names to environment variable names in error messages', () => {
@@ -133,15 +115,13 @@ describe('EmailServiceConfigurationValidator', () => {
 
       const result = EmailServiceConfigurationValidator.validate(invalidConfig);
 
-      expect(result.problems).toEqual(
-        expect.arrayContaining([
-          expect.stringContaining('RESEND_API_KEY:'),
-          expect.stringContaining('FROM_EMAIL:'),
-          expect.stringContaining('TO_EMAIL:'),
-          expect.stringContaining('EMAIL_SENDER_NAME:'),
-          expect.stringContaining('EMAIL_RECIPIENT_NAME:')
-        ])
-      );
+      expect(result.success).toBe(false);
+      assert(!result.success, 'Expected validation to fail');
+      expect(result.error.message).toContain('RESEND_API_KEY:');
+      expect(result.error.message).toContain('FROM_EMAIL:');
+      expect(result.error.message).toContain('TO_EMAIL:');
+      expect(result.error.message).toContain('EMAIL_SENDER_NAME:');
+      expect(result.error.message).toContain('EMAIL_RECIPIENT_NAME:');
     });
   });
 });

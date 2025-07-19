@@ -1,133 +1,74 @@
 import { EmailService } from './EmailService';
 import { InputSanitizer } from './InputSanitizer';
-import { recaptchaService } from './RecaptchaService';
-import { ContactFormValidator, ContactFormSubmissionData } from './ContactFormValidator';
-import { logger } from '@/shared/Logger';
+import { RecaptchaService } from './RecaptchaService';
+import { ContactFormValidator, ContactFormData } from './ContactFormValidator';
+import { Result } from '@/shared/Result';
+import { ValidationError, RecaptchaError, InternalServerError } from '@/shared/errors';
 
-export interface ProcessFormResult {
-  success: boolean;
-  error?: {
-    type: 'validation' | 'recaptcha' | 'sanitization' | 'email' | 'server';
-    message: string;
-    errors?: unknown[];
-  };
-}
-
-interface ValidationResult {
-  success: boolean;
-  data?: ContactFormSubmissionData;
-  error?: ProcessFormResult['error'];
-}
+export type ProcessFormResult = Result<void, ValidationError | RecaptchaError | InternalServerError>;
 
 export class ContactFormProcessor {
-  static async processForm(formData: unknown): Promise<ProcessFormResult> {
-    const validatedData = this.validateAndExtractFormData(formData);
-    if (!validatedData) {
-      return this.createValidationError();
+  constructor(
+    private emailService: EmailService,
+    private recaptchaService: RecaptchaService
+  ) {}
+
+  static async fromEnv(): Promise<Result<ContactFormProcessor, InternalServerError>> {
+    const emailServiceResult = EmailService.fromEnv();
+
+    if (!emailServiceResult.success) {
+      const internalMessage = `Failed to initialize email service: ${emailServiceResult.error.message}`;
+      const clientMessage = 'Internal server error';
+      const serverError = new InternalServerError(clientMessage, { internalMessage });
+      return Result.failure(serverError);
     }
 
-    const recaptchaVerified = await this.verifyRecaptchaToken(validatedData.recaptchaToken);
-    if (!recaptchaVerified) {
-      return this.createRecaptchaError();
+    const recaptchaService = RecaptchaService.fromEnv();
+
+    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data, recaptchaService);
+    return Result.success(contactFormProcessor);
+  }
+
+  async processForm(formData: unknown): Promise<ProcessFormResult> {
+    const recaptchaToken = ContactFormValidator.extractRecaptchaToken(formData);
+    if (!recaptchaToken) {
+      const clientMessage = 'Please complete the reCAPTCHA verification';
+      const validationError = new ValidationError(clientMessage, { internalMessage: 'Missing recaptcha token' });
+      return Result.failure(validationError);
     }
 
-    const processedData = this.sanitizeAndValidateData(validatedData);
-    if (!processedData) {
-      return this.createSanitizationError();
+    const recaptchaVerified = await this.verifyRecaptchaToken(recaptchaToken);
+    if (!recaptchaVerified.success) return Result.failure(recaptchaVerified.error);
+
+    const formDataOnly = ContactFormValidator.extractFormData(formData);
+    const validatedFormData = ContactFormValidator.validate(formDataOnly);
+    if (!validatedFormData.success) return Result.failure(validatedFormData.error);
+
+    const sanitizedFormData = this.sanitizeFormData(validatedFormData.data);
+
+    if (!this.emailService.getConfiguration().sendEmailEnabled) return Result.success();
+
+    const emailSent = await this.sendContactEmail(sanitizedFormData);
+    if (!emailSent.success) return Result.failure(emailSent.error);
+
+    return Result.success();
+  }
+
+  private async verifyRecaptchaToken(token: string): Promise<Result<void, RecaptchaError>> {
+    const result = await this.recaptchaService.verifyToken(token);
+    if (result.success) {
+      return Result.success();
     }
 
-    return this.attemptEmailSend(processedData);
+    const clientMessage = 'Security verification failed. Please try again.';
+    const errorDetails = result.error.message || 'Unknown reCAPTCHA error';
+    const internalMessage = `reCAPTCHA verification failed: ${errorDetails}`;
+    const recaptchaError = new RecaptchaError(clientMessage, { internalMessage });
+
+    return Result.failure(recaptchaError);
   }
 
-  private static validateAndExtractFormData(formData: unknown): ContactFormSubmissionData | null {
-    const validationResult = this.validateFormData(formData);
-    return validationResult.success && validationResult.data ? validationResult.data : null;
-  }
-
-  private static async verifyRecaptchaToken(recaptchaToken: string): Promise<boolean> {
-    const recaptchaResult = await this.verifyRecaptcha(recaptchaToken);
-    return recaptchaResult.success;
-  }
-
-  private static sanitizeAndValidateData(
-    validatedData: ContactFormSubmissionData
-  ): ReturnType<typeof this.sanitizeFormData> | null {
-    const formDataOnly = {
-      firstName: validatedData.firstName,
-      lastName: validatedData.lastName,
-      email: validatedData.email,
-      message: validatedData.message
-    };
-    const sanitizedData = this.sanitizeFormData(formDataOnly);
-    const sanitizationResult = this.validateSanitizedData(sanitizedData);
-    return sanitizationResult.success ? sanitizedData : null;
-  }
-
-  private static createValidationError(): ProcessFormResult {
-    return {
-      success: false,
-      error: {
-        type: 'validation',
-        message: 'Invalid form data'
-      }
-    };
-  }
-
-  private static createRecaptchaError(): ProcessFormResult {
-    return {
-      success: false,
-      error: {
-        type: 'recaptcha',
-        message: 'reCAPTCHA verification failed'
-      }
-    };
-  }
-
-  private static createSanitizationError(): ProcessFormResult {
-    return {
-      success: false,
-      error: {
-        type: 'sanitization',
-        message: 'Invalid form data after sanitization'
-      }
-    };
-  }
-
-  private static validateFormData(formData: unknown): ValidationResult {
-    const validationResult = ContactFormValidator.validateSubmissionData(formData);
-    if (!validationResult.success) {
-      logger.error('Contact form validation failed:', validationResult.error.errors);
-      return {
-        success: false,
-        error: {
-          type: 'validation',
-          message: 'Invalid form data',
-          errors: validationResult.error.errors
-        }
-      };
-    }
-
-    return { success: true, data: validationResult.data };
-  }
-
-  private static async verifyRecaptcha(recaptchaToken: string): Promise<ProcessFormResult> {
-    const isValidRecaptcha = await recaptchaService.verifyToken(recaptchaToken);
-
-    if (!isValidRecaptcha) {
-      logger.error('reCAPTCHA verification failed');
-      return {
-        success: false,
-        error: {
-          type: 'recaptcha',
-          message: 'reCAPTCHA verification failed'
-        }
-      };
-    }
-
-    return { success: true };
-  }
-
-  private static sanitizeFormData(formData: Omit<ContactFormSubmissionData, 'recaptchaToken'>) {
+  private sanitizeFormData(formData: ContactFormData): ContactFormData {
     return {
       firstName: InputSanitizer.sanitize(formData.firstName),
       lastName: InputSanitizer.sanitize(formData.lastName),
@@ -136,62 +77,14 @@ export class ContactFormProcessor {
     };
   }
 
-  private static validateSanitizedData(sanitizedData: ReturnType<typeof this.sanitizeFormData>): ProcessFormResult {
-    const serverValidationResult = ContactFormValidator.validateServerData(sanitizedData);
+  private async sendContactEmail(emailData: ContactFormData): Promise<Result<void, InternalServerError>> {
+    const emailResult = await this.emailService.sendContactEmail(emailData);
 
-    if (!serverValidationResult.success) {
-      logger.error('Server validation failed after sanitization:', serverValidationResult.error.errors);
+    if (emailResult.success) return Result.success();
 
-      return {
-        success: false,
-        error: {
-          type: 'sanitization',
-          message: 'Invalid form data after sanitization',
-          errors: serverValidationResult.error.errors
-        }
-      };
-    }
-
-    return { success: true };
-  }
-
-  private static async attemptEmailSend(
-    sanitizedData: ReturnType<typeof this.sanitizeFormData>
-  ): Promise<ProcessFormResult> {
-    try {
-      const emailService = EmailService.fromEnv();
-      await emailService.sendContactEmail(sanitizedData);
-      return { success: true };
-    } catch (error) {
-      return this.handleEmailError(error);
-    }
-  }
-
-  private static handleEmailError(error: unknown): ProcessFormResult {
-    logger.error('Contact form processing error:', error);
-
-    if (this.isConfigurationError(error)) {
-      return {
-        success: false,
-        error: {
-          type: 'server',
-          message: 'Server configuration error'
-        }
-      };
-    }
-
-    return {
-      success: false,
-      error: {
-        type: 'server',
-        message: 'Failed to send message. Please try again later.'
-      }
-    };
-  }
-
-  private static isConfigurationError(error: unknown): boolean {
-    return (
-      error instanceof Error && (error.message.includes('configuration') || error.message.includes('not configured'))
-    );
+    const internalMessage = `Email service error: ${emailResult.error.message}`;
+    const clientMessage = 'Failed to send message. Please try again later.';
+    const serverError = new InternalServerError(clientMessage, { internalMessage });
+    return Result.failure(serverError);
   }
 }

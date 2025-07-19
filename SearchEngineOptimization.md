@@ -2,6 +2,10 @@ Great move using Next.js for your site — it gives you both performance and fle
 
 ---
 
+### -1. VERY FIRST THING - Official Documentation
+
+https://developers.google.com/search/docs
+
 ### 0. Use next-seo library
 
 https://www.npmjs.com/package/next-seo#add-seo-to-page
