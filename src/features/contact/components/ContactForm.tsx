@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { LazyReCaptchaProvider } from './LazyReCaptchaProvider';
 import { ContactFormInner } from './ContactFormInner';
 import { ContactFormErrorBoundary } from './ContactFormErrorBoundary';
 import { logger } from '@/shared/Logger';
@@ -10,16 +9,10 @@ interface ContactFormProps {
 
 export function ContactForm({ className }: ContactFormProps) {
   const [configStatus, setConfigStatus] = useState<'loading' | 'ready' | 'error'>('loading');
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   useEffect(() => {
-    if (!siteKey) {
-      setConfigStatus('error');
-      return;
-    }
-
     checkServerConfig();
-  }, [siteKey]);
+  }, []);
 
   const checkServerConfig = async () => {
     try {
@@ -53,10 +46,8 @@ export function ContactForm({ className }: ContactFormProps) {
   }
 
   return (
-    <LazyReCaptchaProvider siteKey={siteKey!}>
-      <ContactFormErrorBoundary>
-        <ContactFormInner className={className} />
-      </ContactFormErrorBoundary>
-    </LazyReCaptchaProvider>
+    <ContactFormErrorBoundary>
+      <ContactFormInner className={className} />
+    </ContactFormErrorBoundary>
   );
 }
