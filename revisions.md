@@ -28,7 +28,7 @@
   - ✅ Scrutinize validation, factory method, and constructor patterns (EmailService, etc)
   - ✅ Make top-level error handler reused across API endpoints if possible, and simplify error handling
 
-- Bandwidth improvements via caching - see [BandWidth](./bandwidth.md)
+- ✅ Bandwidth improvements via caching - see [BandWidth](./bandwidth.md)
 
 - Captcha Improvements
   - Fix unconditional skipping of recaptcha, might as well not be there
