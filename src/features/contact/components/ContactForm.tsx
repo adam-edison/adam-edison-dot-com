@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
+import { LazyReCaptchaProvider } from './LazyReCaptchaProvider';
 import { ContactFormInner } from './ContactFormInner';
 import { ContactFormErrorBoundary } from './ContactFormErrorBoundary';
 import { logger } from '@/shared/Logger';
@@ -53,16 +53,10 @@ export function ContactForm({ className }: ContactFormProps) {
   }
 
   return (
-    <GoogleReCaptchaProvider
-      reCaptchaKey={siteKey!}
-      scriptProps={{
-        async: true,
-        defer: true
-      }}
-    >
+    <LazyReCaptchaProvider siteKey={siteKey!}>
       <ContactFormErrorBoundary>
         <ContactFormInner className={className} />
       </ContactFormErrorBoundary>
-    </GoogleReCaptchaProvider>
+    </LazyReCaptchaProvider>
   );
 }

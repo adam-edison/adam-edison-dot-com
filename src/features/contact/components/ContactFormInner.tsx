@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { useReCaptcha } from './LazyReCaptchaProvider';
 import { ContactFormValidator, ContactFormData } from '@/features/contact/ContactFormValidator';
 import { ContactSuccessMessage } from './ContactSuccessMessage';
 import { StatusCard } from '@/shared/components/ui/StatusCard';
@@ -19,7 +19,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const { executeRecaptcha } = useGoogleReCaptcha();
+  const { executeRecaptcha } = useReCaptcha();
 
   const {
     register,
@@ -46,7 +46,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         executeRecaptcha('contact_form'),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('reCAPTCHA timeout')), timeoutMs))
       ]);
-      return recaptchaToken;
+      return recaptchaToken || '';
     } catch (error) {
       logger.warn('reCAPTCHA failed, proceeding anyway (fail-open):', error);
       return '';

@@ -63,7 +63,7 @@ const nextConfig: NextConfig = {
         ]
       }
     ];
-  },
+  }
   // Production optimizations ready for future use
   // experimental: {
   //   optimizeCss: true  // Disabled due to critters module conflicts

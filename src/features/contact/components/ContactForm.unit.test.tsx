@@ -6,10 +6,11 @@ import { ContactForm } from './ContactForm';
 import { logger } from '@/shared/Logger';
 
 const mockExecuteRecaptcha = vi.fn();
-vi.mock('react-google-recaptcha-v3', () => ({
-  GoogleReCaptchaProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useGoogleReCaptcha: () => ({
-    executeRecaptcha: mockExecuteRecaptcha
+vi.mock('./LazyReCaptchaProvider', () => ({
+  LazyReCaptchaProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useReCaptcha: () => ({
+    executeRecaptcha: mockExecuteRecaptcha,
+    isLoaded: true
   })
 }));
 
