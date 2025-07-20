@@ -1,9 +1,10 @@
 interface SubmitButtonProps {
   isSubmitting: boolean;
   disabled?: boolean;
+  'data-testid'?: string;
 }
 
-export function SubmitButton({ isSubmitting, disabled = false }: SubmitButtonProps) {
+export function SubmitButton({ isSubmitting, disabled = false, 'data-testid': dataTestId }: SubmitButtonProps) {
   const isDisabled = isSubmitting || disabled;
 
   return (
@@ -11,6 +12,7 @@ export function SubmitButton({ isSubmitting, disabled = false }: SubmitButtonPro
       type="submit"
       disabled={isDisabled}
       className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+      data-testid={dataTestId}
     >
       {isSubmitting ? (
         <div className="flex items-center justify-center">

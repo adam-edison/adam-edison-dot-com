@@ -14,6 +14,7 @@ interface TextareaFieldProps {
   minLength: number;
   maxLength: number;
   watchedValue: string;
+  'data-testid'?: string;
 }
 
 const textareaClasses =
@@ -29,7 +30,8 @@ export function TextareaField({
   error,
   minLength,
   maxLength,
-  watchedValue
+  watchedValue,
+  'data-testid': dataTestId
 }: TextareaFieldProps) {
   return (
     <FormFieldBase id={id} label={label} required={required} error={error}>
@@ -41,6 +43,7 @@ export function TextareaField({
           className={textareaClasses}
           placeholder={placeholder}
           maxLength={maxLength}
+          data-testid={dataTestId}
         />
         <CharacterCounter value={watchedValue} minLength={minLength} maxLength={maxLength} />
       </div>

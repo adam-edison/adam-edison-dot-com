@@ -6,9 +6,17 @@ interface StatusCardProps {
   message?: string;
   showIcon?: boolean;
   className?: string;
+  'data-testid'?: string;
 }
 
-export function StatusCard({ variant, children, message, showIcon = false, className }: StatusCardProps) {
+export function StatusCard({
+  variant,
+  children,
+  message,
+  showIcon = false,
+  className,
+  'data-testid': dataTestId
+}: StatusCardProps) {
   const variantClasses = {
     error: 'bg-red-950 border border-red-800 text-red-300',
     success: 'bg-green-950 border border-green-800 text-green-400',
@@ -73,7 +81,7 @@ export function StatusCard({ variant, children, message, showIcon = false, class
 
   if (message) {
     return (
-      <div className={containerClasses}>
+      <div className={containerClasses} data-testid={dataTestId}>
         <div className="flex items-center">
           {showIcon && <div className="mr-3 flex-shrink-0">{getIcon()}</div>}
           <div className="text-sm font-medium">{message}</div>
@@ -82,5 +90,9 @@ export function StatusCard({ variant, children, message, showIcon = false, class
     );
   }
 
-  return <div className={containerClasses}>{children}</div>;
+  return (
+    <div className={containerClasses} data-testid={dataTestId}>
+      {children}
+    </div>
+  );
 }
