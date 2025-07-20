@@ -45,18 +45,21 @@ describe('ContactFormValidator', () => {
       ];
 
       validNames.forEach((firstName) => {
-        const result = ContactFormValidator.validate(createFormData({ firstName }));
+        const formData = createFormData({ firstName });
+        const result = ContactFormValidator.validate(formData);
         expect(result.success).toBe(true);
       });
     });
 
     test('should reject first names that are too short', () => {
-      const result = ContactFormValidator.validate(createFormData({ firstName: 'A' }));
+      const formData = createFormData({ firstName: 'A' });
+      const result = ContactFormValidator.validate(formData);
       expectValidationError(result, 'First name must be at least 2 characters');
     });
 
     test('should reject first names that are too long', () => {
-      const result = ContactFormValidator.validate(createFormData({ firstName: 'A'.repeat(51) }));
+      const formData = createFormData({ firstName: 'A'.repeat(51) });
+      const result = ContactFormValidator.validate(formData);
       expectValidationError(result, 'First name must be at most 50 characters');
     });
 
@@ -64,7 +67,8 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['123', '456789', '00'];
 
       invalidNames.forEach((firstName) => {
-        const result = ContactFormValidator.validate(createFormData({ firstName }));
+        const formData = createFormData({ firstName });
+        const result = ContactFormValidator.validate(formData);
         expectValidationError(result, 'First name must contain at least one letter');
       });
     });
@@ -73,7 +77,8 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['!@#', '$$$$', '***', '&&&'];
 
       invalidNames.forEach((firstName) => {
-        const result = ContactFormValidator.validate(createFormData({ firstName }));
+        const formData = createFormData({ firstName });
+        const result = ContactFormValidator.validate(formData);
         expectValidationError(result, 'First name must contain at least one letter');
       });
     });
@@ -82,7 +87,8 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['123!@#', '999$$$', '---'];
 
       invalidNames.forEach((firstName) => {
-        const result = ContactFormValidator.validate(createFormData({ firstName }));
+        const formData = createFormData({ firstName });
+        const result = ContactFormValidator.validate(formData);
         expectValidationError(result, 'First name must contain at least one letter');
       });
     });
@@ -91,7 +97,8 @@ describe('ContactFormValidator', () => {
       const validNames = ['John123', 'Mary@Jane', 'Test$Name', 'User.Name', 'Name!'];
 
       validNames.forEach((firstName) => {
-        const result = ContactFormValidator.validate(createFormData({ firstName }));
+        const formData = createFormData({ firstName });
+        const result = ContactFormValidator.validate(formData);
         expect(result.success).toBe(true);
       });
     });
@@ -116,24 +123,22 @@ describe('ContactFormValidator', () => {
       ];
 
       validNames.forEach((lastName) => {
-        const result = ContactFormValidator.validate(createFormData({ lastName }));
+        const formData = createFormData({ lastName });
+        const result = ContactFormValidator.validate(formData);
         expect(result.success).toBe(true);
       });
     });
 
     test('should reject last names that are too short', () => {
-      const result = ContactFormValidator.validate(createFormData({ lastName: 'A' }));
+      const formData = createFormData({ lastName: 'A' });
+      const result = ContactFormValidator.validate(formData);
       expectValidationError(result, 'Last name must be at least 2 characters');
     });
 
     test('should reject last names that are too long', () => {
       const longName = 'A'.repeat(51);
-      const result = ContactFormValidator.validate({
-        firstName: 'John',
-        lastName: longName,
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      });
+      const formData = createFormData({ lastName: longName });
+      const result = ContactFormValidator.validate(formData);
 
       assert(!result.success);
       const expectedMessage = 'Last name must be at most 50 characters';
@@ -145,7 +150,8 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['123', '456789', '00'];
 
       invalidNames.forEach((lastName) => {
-        const result = ContactFormValidator.validate(createFormData({ lastName }));
+        const formData = createFormData({ lastName });
+        const result = ContactFormValidator.validate(formData);
         expectValidationError(result, 'Last name must contain at least one letter');
       });
     });
@@ -154,7 +160,8 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['!@#', '$$$$', '***', '&&&'];
 
       invalidNames.forEach((lastName) => {
-        const result = ContactFormValidator.validate(createFormData({ lastName }));
+        const formData = createFormData({ lastName });
+        const result = ContactFormValidator.validate(formData);
         expectValidationError(result, 'Last name must contain at least one letter');
       });
     });
@@ -163,7 +170,8 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['123!@#', '999$$$', '---'];
 
       invalidNames.forEach((lastName) => {
-        const result = ContactFormValidator.validate(createFormData({ lastName }));
+        const formData = createFormData({ lastName });
+        const result = ContactFormValidator.validate(formData);
         expectValidationError(result, 'Last name must contain at least one letter');
       });
     });
@@ -196,18 +204,15 @@ describe('ContactFormValidator', () => {
       ];
 
       validEmails.forEach((email) => {
-        const result = ContactFormValidator.validate(createFormData({ email }));
+        const formData = createFormData({ email });
+        const result = ContactFormValidator.validate(formData);
         expect(result.success).toBe(true);
       });
     });
 
     test('should reject empty email', () => {
-      const result = ContactFormValidator.validate({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: '',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      });
+      const formData = createFormData({ email: '' });
+      const result = ContactFormValidator.validate(formData);
 
       assert(!result.success);
       const expectedMessage = 'Email is required';
@@ -244,12 +249,8 @@ describe('ContactFormValidator', () => {
 
     test('should reject emails that are too long', () => {
       const longEmail = 'a'.repeat(90) + '@example.com';
-      const result = ContactFormValidator.validate({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: longEmail,
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      });
+      const formData = createFormData({ email: longEmail });
+      const result = ContactFormValidator.validate(formData);
 
       assert(!result.success);
       const expectedMessage = 'Email must be at most 100 characters';
@@ -277,12 +278,8 @@ describe('ContactFormValidator', () => {
     });
 
     test('should reject emails with consecutive dots', () => {
-      const result = ContactFormValidator.validate({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'user..name@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      });
+      const formData = createFormData({ email: 'user..name@example.com' });
+      const result = ContactFormValidator.validate(formData);
 
       assert(!result.success);
       const expectedMessage = 'valid email';
@@ -320,18 +317,15 @@ describe('ContactFormValidator', () => {
       ];
 
       validMessages.forEach((message) => {
-        const result = ContactFormValidator.validate(createFormData({ message }));
+        const formData = createFormData({ message });
+        const result = ContactFormValidator.validate(formData);
         expect(result.success).toBe(true);
       });
     });
 
     test('should reject messages that are too short', () => {
-      const result = ContactFormValidator.validate({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'Short'
-      });
+      const formData = createFormData({ message: 'Short' });
+      const result = ContactFormValidator.validate(formData);
 
       assert(!result.success);
       const expectedMessage = 'Must be at least 50 characters';
@@ -341,12 +335,8 @@ describe('ContactFormValidator', () => {
 
     test('should reject messages that are too long', () => {
       const longMessage = 'A'.repeat(1001);
-      const result = ContactFormValidator.validate({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: longMessage
-      });
+      const formData = createFormData({ message: longMessage });
+      const result = ContactFormValidator.validate(formData);
 
       assert(!result.success);
       const expectedMessage = 'Must be at most 1000 characters';
@@ -358,13 +348,8 @@ describe('ContactFormValidator', () => {
       const whitespaceMessages = [' '.repeat(50), '\t'.repeat(50), '\n'.repeat(50), ' \t\n '.repeat(25)];
 
       whitespaceMessages.forEach((message) => {
-        const result = ContactFormValidator.validate({
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'test@example.com',
-          message,
-          mathAnswer: '7'
-        });
+        const formData = createFormData({ message });
+        const result = ContactFormValidator.validate(formData);
 
         assert(!result.success);
         const expectedMessage = 'Must contain at least 50 non-whitespace characters';
@@ -375,13 +360,8 @@ describe('ContactFormValidator', () => {
 
     test('should accept messages with leading/trailing whitespace if content is sufficient', () => {
       const messageWithWhitespace = '   ' + 'A'.repeat(50) + '   ';
-      const result = ContactFormValidator.validate({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: messageWithWhitespace,
-        mathAnswer: '7'
-      });
+      const formData = createFormData({ message: messageWithWhitespace });
+      const result = ContactFormValidator.validate(formData);
 
       expect(result.success).toBe(true);
     });
@@ -406,7 +386,9 @@ describe('ContactFormValidator', () => {
 
       const result = ContactFormValidator.extractAntiBotData(data);
       expect(result.success).toBe(true);
-      expect(result.data).toEqual(data.antiBotData);
+      if (result.success) {
+        expect(result.data).toEqual(data.antiBotData);
+      }
     });
 
     test('should fail for missing anti-bot data', () => {
@@ -419,7 +401,9 @@ describe('ContactFormValidator', () => {
 
       const result = ContactFormValidator.extractAntiBotData(data);
       expect(result.success).toBe(false);
-      expect(result.error.message).toBe('Security verification data missing');
+      if (!result.success) {
+        expect(result.error.message).toBe('Security verification data missing');
+      }
     });
 
     test('should extract form data without anti-bot data', () => {
