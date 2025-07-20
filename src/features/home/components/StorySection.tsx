@@ -39,6 +39,7 @@ export function StorySection({ step, isFirst = false, isLast = false }: StorySec
               priority={step.imageSrc.includes('circle_cropped_anime_avatar.webp')}
               sizes="(max-width: 768px) 256px, 256px"
               loading={step.imageSrc.includes('circle_cropped_anime_avatar.webp') ? 'eager' : 'lazy'}
+              quality={step.imageSrc.includes('circle_cropped_anime_avatar.webp') ? 65 : 40}
             />
           </div>
 
