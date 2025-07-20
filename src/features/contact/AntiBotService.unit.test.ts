@@ -22,16 +22,14 @@ describe('AntiBotService', () => {
 
     it('should generate different challenges on subsequent calls', () => {
       const challenge1 = antiBotService.generateMathChallenge();
-      const challenge2 = antiBotService.generateMathChallenge();
-
-      // Should be different at least sometimes (not a guarantee with random, but very likely)
-      const isDifferent = challenge1.num1 !== challenge2.num1 || challenge1.num2 !== challenge2.num2;
+      const challenge1Key = `${challenge1.num1}+${challenge1.num2}`;
 
       // Run multiple times to ensure randomness (very low chance of false negative)
-      let foundDifference = isDifferent;
+      let foundDifference = false;
       for (let i = 0; i < 10 && !foundDifference; i++) {
         const newChallenge = antiBotService.generateMathChallenge();
-        foundDifference = challenge1.num1 !== newChallenge.num1 || challenge1.num2 !== newChallenge.num2;
+        const newChallengeKey = `${newChallenge.num1}+${newChallenge.num2}`;
+        foundDifference = challenge1Key !== newChallengeKey;
       }
 
       expect(foundDifference).toBe(true);
