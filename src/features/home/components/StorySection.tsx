@@ -16,7 +16,8 @@ export function StorySection({ step, isFirst = false, isLast = false }: StorySec
     if (imageSrc.includes('circle_cropped_anime_avatar.webp')) {
       return { width: 618, height: 638 };
     }
-    return { width: 1024, height: 1536 };
+    // Optimized dimensions for actual display size (256px width)
+    return { width: 512, height: 768 };
   };
 
   const { width, height } = getImageDimensions(step.imageSrc);
@@ -36,6 +37,8 @@ export function StorySection({ step, isFirst = false, isLast = false }: StorySec
               height={height}
               className="w-64 h-auto rounded-lg"
               priority={step.imageSrc.includes('circle_cropped_anime_avatar.webp')}
+              sizes="(max-width: 768px) 256px, 256px"
+              loading={step.imageSrc.includes('circle_cropped_anime_avatar.webp') ? 'eager' : 'lazy'}
             />
           </div>
 
