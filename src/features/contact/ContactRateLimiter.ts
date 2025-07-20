@@ -1,13 +1,6 @@
-import { RateLimiter, RateLimitData } from '@/features/rate-limiting/RateLimiter';
+import { RateLimiter } from '@/features/rate-limiting/RateLimiter';
 import { Result } from '@/shared/Result';
 import { RateLimitError, InternalServerError } from '@/shared/errors';
-
-export interface ContactRateLimitResult {
-  ipLimitExceeded: boolean;
-  globalLimitExceeded: boolean;
-  ipResult: RateLimitData;
-  globalResult: RateLimitData;
-}
 
 export class ContactRateLimiter {
   private globalRateLimiter: RateLimiter;

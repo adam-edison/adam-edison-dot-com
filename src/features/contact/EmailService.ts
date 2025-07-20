@@ -17,11 +17,6 @@ export interface EmailConfiguration {
   recipientName: string;
 }
 
-export interface EmailSendResult {
-  data: { id: string } | null;
-  error: Error | null;
-}
-
 export class EmailService {
   private readonly resend: Resend;
   private readonly config: EmailConfiguration;

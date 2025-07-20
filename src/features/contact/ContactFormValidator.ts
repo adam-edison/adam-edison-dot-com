@@ -101,10 +101,23 @@ export class ContactFormValidator {
     return Result.failure(validationError);
   }
 
-  static extractAntiBotData(data: unknown): unknown | null {
-    if (typeof data !== 'object' || data === null) return null;
+  static extractAntiBotData(data: unknown): Result<unknown, ValidationError> {
+    if (typeof data !== 'object' || data === null) {
+      const error = new ValidationError('Invalid request data', {
+        internalMessage: 'Expected object but received: ' + typeof data
+      });
+      return Result.failure(error);
+    }
+
     const obj = data as Record<string, unknown>;
-    return obj.antiBotData || null;
+    if (!obj.antiBotData) {
+      const error = new ValidationError('Security verification data missing', {
+        internalMessage: 'Missing antiBotData field in request'
+      });
+      return Result.failure(error);
+    }
+
+    return Result.success(obj.antiBotData);
   }
 
   static extractFormData(data: unknown): unknown {

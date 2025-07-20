@@ -51,8 +51,7 @@ describe('AntiBotService', () => {
     it('should pass validation for legitimate human submission', () => {
       const result = antiBotService.validateAntiBotData(validData);
 
-      expect(result.isValid).toBe(true);
-      expect(result.reason).toBeUndefined();
+      expect(result.success).toBe(true);
     });
 
     it('should fail validation when subject is filled', () => {
@@ -60,8 +59,8 @@ describe('AntiBotService', () => {
 
       const result = antiBotService.validateAntiBotData(data);
 
-      expect(result.isValid).toBe(false);
-      expect(result.reason).toBe('Backup field detected');
+      expect(result.success).toBe(false);
+      expect(result.error.message).toBe('Backup field detected');
     });
 
     it('should fail validation when phone is filled', () => {
@@ -69,8 +68,8 @@ describe('AntiBotService', () => {
 
       const result = antiBotService.validateAntiBotData(data);
 
-      expect(result.isValid).toBe(false);
-      expect(result.reason).toBe('Backup field detected');
+      expect(result.success).toBe(false);
+      expect(result.error.message).toBe('Backup field detected');
     });
 
     it('should fail validation when form submitted too quickly', () => {
@@ -78,8 +77,8 @@ describe('AntiBotService', () => {
 
       const result = antiBotService.validateAntiBotData(data);
 
-      expect(result.isValid).toBe(false);
-      expect(result.reason).toBe('Form submitted too quickly');
+      expect(result.success).toBe(false);
+      expect(result.error.message).toBe('Form submitted too quickly');
     });
 
     it('should fail validation when math answer is incorrect', () => {
@@ -87,8 +86,8 @@ describe('AntiBotService', () => {
 
       const result = antiBotService.validateAntiBotData(data);
 
-      expect(result.isValid).toBe(false);
-      expect(result.reason).toBe('Incorrect math answer');
+      expect(result.success).toBe(false);
+      expect(result.error.message).toBe('Incorrect math answer');
     });
 
     it('should fail validation when math answer is empty', () => {
@@ -96,8 +95,8 @@ describe('AntiBotService', () => {
 
       const result = antiBotService.validateAntiBotData(data);
 
-      expect(result.isValid).toBe(false);
-      expect(result.reason).toBe('Incorrect math answer');
+      expect(result.success).toBe(false);
+      expect(result.error.message).toBe('Incorrect math answer');
     });
 
     it('should fail validation when math answer is not a number', () => {
@@ -105,8 +104,8 @@ describe('AntiBotService', () => {
 
       const result = antiBotService.validateAntiBotData(data);
 
-      expect(result.isValid).toBe(false);
-      expect(result.reason).toBe('Incorrect math answer');
+      expect(result.success).toBe(false);
+      expect(result.error.message).toBe('Incorrect math answer');
     });
 
     it('should handle edge case of minimum time threshold', () => {
@@ -114,7 +113,7 @@ describe('AntiBotService', () => {
 
       const result = antiBotService.validateAntiBotData(data);
 
-      expect(result.isValid).toBe(true);
+      expect(result.success).toBe(true);
     });
 
     it('should handle very old form load times', () => {
@@ -122,7 +121,7 @@ describe('AntiBotService', () => {
 
       const result = antiBotService.validateAntiBotData(data);
 
-      expect(result.isValid).toBe(true);
+      expect(result.success).toBe(true);
     });
   });
 

@@ -69,17 +69,17 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
     const result = antiBotService.validateAntiBotData(validationData);
 
-    if (!result.isValid) {
+    if (!result.success) {
       setSubmitStatus('error');
 
-      if (result.reason === 'Incorrect math answer') {
+      if (result.error.message === 'Incorrect math answer') {
         setErrorMessage('Incorrect answer to the security question. Please try again.');
         generateNewMathChallenge();
         return false;
-      } else if (result.reason === 'Form submitted too quickly') {
+      } else if (result.error.message === 'Form submitted too quickly') {
         setErrorMessage('Please wait a moment before submitting the form.');
         return false;
-      } else if (result.reason === 'Backup field detected') {
+      } else if (result.error.message === 'Backup field detected') {
         setErrorMessage('Security verification failed. Please try again.');
         return false;
       } else {

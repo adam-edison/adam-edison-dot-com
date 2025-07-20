@@ -506,11 +506,12 @@ describe('ContactFormValidator', () => {
         }
       };
 
-      const antiBotData = ContactFormValidator.extractAntiBotData(data);
-      expect(antiBotData).toEqual(data.antiBotData);
+      const result = ContactFormValidator.extractAntiBotData(data);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(data.antiBotData);
     });
 
-    test('should return null for missing anti-bot data', () => {
+    test('should fail for missing anti-bot data', () => {
       const data = {
         firstName: 'John',
         lastName: 'Doe',
@@ -518,8 +519,9 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       };
 
-      const antiBotData = ContactFormValidator.extractAntiBotData(data);
-      expect(antiBotData).toBeNull();
+      const result = ContactFormValidator.extractAntiBotData(data);
+      expect(result.success).toBe(false);
+      expect(result.error.message).toBe('Security verification data missing');
     });
 
     test('should extract form data without anti-bot data', () => {

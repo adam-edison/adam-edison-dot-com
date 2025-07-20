@@ -18,7 +18,7 @@ vi.mock('@/features/contact/AntiBotService', () => ({
         mathNum1: 3,
         mathNum2: 4
       }),
-      validateAntiBotData: () => ({ isValid: true })
+      validateAntiBotData: () => ({ success: true, data: undefined })
     })
   }
 }));

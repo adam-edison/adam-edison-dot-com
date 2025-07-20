@@ -45,7 +45,8 @@ describe('ContactFormInner', () => {
     });
 
     mockValidateAntiBotData.mockReturnValue({
-      isValid: true
+      success: true,
+      data: undefined
     });
 
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -90,8 +91,8 @@ describe('ContactFormInner', () => {
 
   it('should generate new math challenge when wrong answer is submitted', async () => {
     mockValidateAntiBotData.mockReturnValue({
-      isValid: false,
-      reason: 'Incorrect math answer'
+      success: false,
+      error: { message: 'Incorrect math answer' }
     });
 
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -131,8 +132,8 @@ describe('ContactFormInner', () => {
 
   it('should not submit form when backup fields are filled', async () => {
     mockValidateAntiBotData.mockReturnValue({
-      isValid: false,
-      reason: 'Backup field detected'
+      success: false,
+      error: { message: 'Backup field detected' }
     });
 
     render(<ContactFormInner />);
@@ -162,8 +163,8 @@ describe('ContactFormInner', () => {
 
   it('should not submit form when submitted too quickly', async () => {
     mockValidateAntiBotData.mockReturnValue({
-      isValid: false,
-      reason: 'Form submitted too quickly'
+      success: false,
+      error: { message: 'Form submitted too quickly' }
     });
 
     render(<ContactFormInner />);

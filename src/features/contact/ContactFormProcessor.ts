@@ -30,14 +30,10 @@ export class ContactFormProcessor {
   }
 
   async processForm(formData: unknown): Promise<ProcessFormResult> {
-    const antiBotData = ContactFormValidator.extractAntiBotData(formData);
-    if (!antiBotData) {
-      const clientMessage = 'Security verification data missing';
-      const validationError = new ValidationError(clientMessage, { internalMessage: 'Missing anti-bot data' });
-      return Result.failure(validationError);
-    }
+    const antiBotDataResult = ContactFormValidator.extractAntiBotData(formData);
+    if (!antiBotDataResult.success) return Result.failure(antiBotDataResult.error);
 
-    const antiBotVerified = this.verifyAntiBotData(antiBotData as AntiBotData);
+    const antiBotVerified = this.antiBotService.validateAntiBotData(antiBotDataResult.data as AntiBotData);
     if (!antiBotVerified.success) return Result.failure(antiBotVerified.error);
 
     const formDataOnly = ContactFormValidator.extractFormData(formData);
@@ -52,19 +48,6 @@ export class ContactFormProcessor {
     if (!emailSent.success) return Result.failure(emailSent.error);
 
     return Result.success();
-  }
-
-  private verifyAntiBotData(antiBotData: AntiBotData): Result<void, ValidationError> {
-    const result = this.antiBotService.validateAntiBotData(antiBotData);
-    if (result.isValid) {
-      return Result.success();
-    }
-
-    const clientMessage = result.reason || 'Security verification failed. Please try again.';
-    const internalMessage = `Anti-bot verification failed: ${result.reason}`;
-    const validationError = new ValidationError(clientMessage, { internalMessage });
-
-    return Result.failure(validationError);
   }
 
   private sanitizeFormData(formData: ContactFormData): ContactFormData {
