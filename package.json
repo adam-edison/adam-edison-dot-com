@@ -63,7 +63,8 @@
     "tw-animate-css": "^1.3.5",
     "typescript": "^5",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "webpack-bundle-analyzer": "^4.10.2"
   },
   "optionalDependencies": {
     "@tailwindcss/oxide-linux-x64-gnu": "^4.1.11",

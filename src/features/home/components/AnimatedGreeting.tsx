@@ -1,4 +1,4 @@
-import SplitText from '@/blocks/TextAnimations/SplitText/SplitText';
+import SplitTextLazy from '@/blocks/TextAnimations/SplitText/SplitTextLazy';
 import { useState, useEffect } from 'react';
 
 export function AnimatedGreeting() {
@@ -15,5 +15,5 @@ export function AnimatedGreeting() {
     return () => clearInterval(interval);
   }, []);
 
-  return <SplitText key={key} text="Hello, there!" ease="elastic.out(1, 0.3)" duration={2} threshold={0.2} />;
+  return <SplitTextLazy key={key} text="Hello, there!" ease="elastic.out(1, 0.3)" duration={2} threshold={0.2} />;
 }
