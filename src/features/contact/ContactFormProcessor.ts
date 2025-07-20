@@ -1,16 +1,16 @@
 import { EmailService } from './EmailService';
 import { InputSanitizer } from './InputSanitizer';
-import { RecaptchaService } from './RecaptchaService';
+import { AntiBotService, type AntiBotData } from './AntiBotService';
 import { ContactFormValidator, ContactFormData } from './ContactFormValidator';
 import { Result } from '@/shared/Result';
-import { ValidationError, RecaptchaError, InternalServerError } from '@/shared/errors';
+import { ValidationError, InternalServerError } from '@/shared/errors';
 
-export type ProcessFormResult = Result<void, ValidationError | RecaptchaError | InternalServerError>;
+export type ProcessFormResult = Result<void, ValidationError | InternalServerError>;
 
 export class ContactFormProcessor {
   constructor(
     private emailService: EmailService,
-    private recaptchaService: RecaptchaService
+    private antiBotService: AntiBotService
   ) {}
 
   static async fromEnv(): Promise<Result<ContactFormProcessor, InternalServerError>> {
@@ -23,22 +23,22 @@ export class ContactFormProcessor {
       return Result.failure(serverError);
     }
 
-    const recaptchaService = RecaptchaService.fromEnv();
+    const antiBotService = AntiBotService.create();
 
-    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data, recaptchaService);
+    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data, antiBotService);
     return Result.success(contactFormProcessor);
   }
 
   async processForm(formData: unknown): Promise<ProcessFormResult> {
-    const recaptchaToken = ContactFormValidator.extractRecaptchaToken(formData);
-    if (!recaptchaToken) {
-      const clientMessage = 'Please complete the reCAPTCHA verification';
-      const validationError = new ValidationError(clientMessage, { internalMessage: 'Missing recaptcha token' });
+    const antiBotData = ContactFormValidator.extractAntiBotData(formData);
+    if (!antiBotData) {
+      const clientMessage = 'Security verification data missing';
+      const validationError = new ValidationError(clientMessage, { internalMessage: 'Missing anti-bot data' });
       return Result.failure(validationError);
     }
 
-    const recaptchaVerified = await this.verifyRecaptchaToken(recaptchaToken);
-    if (!recaptchaVerified.success) return Result.failure(recaptchaVerified.error);
+    const antiBotVerified = this.verifyAntiBotData(antiBotData as AntiBotData);
+    if (!antiBotVerified.success) return Result.failure(antiBotVerified.error);
 
     const formDataOnly = ContactFormValidator.extractFormData(formData);
     const validatedFormData = ContactFormValidator.validate(formDataOnly);
@@ -54,18 +54,17 @@ export class ContactFormProcessor {
     return Result.success();
   }
 
-  private async verifyRecaptchaToken(token: string): Promise<Result<void, RecaptchaError>> {
-    const result = await this.recaptchaService.verifyToken(token);
-    if (result.success) {
+  private verifyAntiBotData(antiBotData: AntiBotData): Result<void, ValidationError> {
+    const result = this.antiBotService.validateAntiBotData(antiBotData);
+    if (result.isValid) {
       return Result.success();
     }
 
-    const clientMessage = 'Security verification failed. Please try again.';
-    const errorDetails = result.error.message || 'Unknown reCAPTCHA error';
-    const internalMessage = `reCAPTCHA verification failed: ${errorDetails}`;
-    const recaptchaError = new RecaptchaError(clientMessage, { internalMessage });
+    const clientMessage = result.reason || 'Security verification failed. Please try again.';
+    const internalMessage = `Anti-bot verification failed: ${result.reason}`;
+    const validationError = new ValidationError(clientMessage, { internalMessage });
 
-    return Result.failure(recaptchaError);
+    return Result.failure(validationError);
   }
 
   private sanitizeFormData(formData: ContactFormData): ContactFormData {
@@ -73,7 +72,13 @@ export class ContactFormProcessor {
       firstName: InputSanitizer.sanitize(formData.firstName),
       lastName: InputSanitizer.sanitize(formData.lastName),
       email: InputSanitizer.sanitize(formData.email),
-      message: InputSanitizer.sanitize(formData.message)
+      message: InputSanitizer.sanitize(formData.message),
+      subject: formData.subject,
+      phone: formData.phone,
+      mathAnswer: formData.mathAnswer,
+      formLoadTime: formData.formLoadTime,
+      mathNum1: formData.mathNum1,
+      mathNum2: formData.mathNum2
     };
   }
 
