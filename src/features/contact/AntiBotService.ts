@@ -1,3 +1,6 @@
+import { Result } from '@/shared/Result';
+import { ValidationError } from '@/shared/errors';
+
 export interface MathChallenge {
   num1: number;
   num2: number;
@@ -13,9 +16,6 @@ export interface AntiBotData {
   mathNum1: number;
   mathNum2: number;
 }
-
-import { Result } from '@/shared/Result';
-import { ValidationError } from '@/shared/errors';
 
 export class AntiBotService {
   private static readonly MIN_FORM_TIME_MS = 3000; // 3 seconds minimum
