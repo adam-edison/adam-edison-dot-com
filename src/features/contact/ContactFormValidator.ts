@@ -74,7 +74,14 @@ const contactFormSchema = z.object({
       const domainParts = domain.split('.');
       return domainParts.length >= 2 && domainParts[domainParts.length - 1].length >= 2;
     }, 'Please enter a valid email address'),
-  message: nonWhitespaceString(50, 1000)
+  message: nonWhitespaceString(50, 1000),
+  // Anti-bot fields
+  subject: z.string().optional(),
+  phone: z.string().optional(),
+  mathAnswer: z.string().min(1, 'Please answer the security question'),
+  formLoadTime: z.number().optional(),
+  mathNum1: z.number().optional(),
+  mathNum2: z.number().optional()
 });
 
 export type ContactFormData = z.infer<typeof contactFormSchema>;
@@ -94,17 +101,17 @@ export class ContactFormValidator {
     return Result.failure(validationError);
   }
 
-  static extractRecaptchaToken(data: unknown): string | null {
+  static extractAntiBotData(data: unknown): unknown | null {
     if (typeof data !== 'object' || data === null) return null;
     const obj = data as Record<string, unknown>;
-    return typeof obj.recaptchaToken === 'string' && obj.recaptchaToken.length > 0 ? obj.recaptchaToken : null;
+    return obj.antiBotData || null;
   }
 
   static extractFormData(data: unknown): unknown {
     if (typeof data !== 'object' || data === null) return data;
     const obj = data as Record<string, unknown>;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { recaptchaToken, ...formData } = obj;
+    const { antiBotData, ...formData } = obj;
     return formData;
   }
 }
