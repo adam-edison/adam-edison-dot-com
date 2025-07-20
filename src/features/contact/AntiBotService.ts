@@ -38,7 +38,7 @@ export class AntiBotService {
   }
 
   validateAntiBotData(data: AntiBotData): Result<void, ValidationError> {
-    // Check backup fields - bots tend to fill all fields
+    // Check honeypot fields - bots tend to fill all fields
     if (data.subject.trim() !== '' || data.phone.trim() !== '') {
       const error = new ValidationError('Backup field detected', {
         internalMessage: 'Honeypot fields were filled'
