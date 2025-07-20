@@ -14,7 +14,7 @@ test.describe('Rate Limiting', () => {
     const formLoadTime = Date.now() - 4000; // 4 seconds ago to pass timing validation
     const mathNum1 = 5;
     const mathNum2 = 3;
-    const mathAnswer = (mathNum1 + mathNum2).toString();
+    const mathAnswer = '8';
 
     const contactData = {
       firstName: 'Test',
