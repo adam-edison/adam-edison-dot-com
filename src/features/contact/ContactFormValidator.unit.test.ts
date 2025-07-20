@@ -27,7 +27,8 @@ describe('ContactFormValidator', () => {
           firstName,
           lastName: 'Doe',
           email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         expect(result.success).toBe(true);
@@ -39,7 +40,8 @@ describe('ContactFormValidator', () => {
         firstName: 'A',
         lastName: 'Doe',
         email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+        message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+        mathAnswer: '7'
       });
 
       assert(!result.success);
@@ -71,7 +73,8 @@ describe('ContactFormValidator', () => {
           firstName,
           lastName: 'Doe',
           email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         assert(!result.success);
@@ -89,7 +92,8 @@ describe('ContactFormValidator', () => {
           firstName,
           lastName: 'Doe',
           email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         assert(!result.success);
@@ -107,7 +111,8 @@ describe('ContactFormValidator', () => {
           firstName,
           lastName: 'Doe',
           email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         assert(!result.success);
@@ -125,7 +130,8 @@ describe('ContactFormValidator', () => {
           firstName,
           lastName: 'Doe',
           email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         expect(result.success).toBe(true);
@@ -156,7 +162,8 @@ describe('ContactFormValidator', () => {
           firstName: 'John',
           lastName,
           email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         expect(result.success).toBe(true);
@@ -200,7 +207,8 @@ describe('ContactFormValidator', () => {
           firstName: 'John',
           lastName,
           email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         assert(!result.success);
@@ -218,7 +226,8 @@ describe('ContactFormValidator', () => {
           firstName: 'John',
           lastName,
           email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         assert(!result.success);
@@ -236,7 +245,8 @@ describe('ContactFormValidator', () => {
           firstName: 'John',
           lastName,
           email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         assert(!result.success);
@@ -254,7 +264,8 @@ describe('ContactFormValidator', () => {
           firstName: 'John',
           lastName,
           email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         expect(result.success).toBe(true);
@@ -277,7 +288,8 @@ describe('ContactFormValidator', () => {
           firstName: 'John',
           lastName: 'Doe',
           email,
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         expect(result.success).toBe(true);
@@ -314,7 +326,8 @@ describe('ContactFormValidator', () => {
           firstName: 'John',
           lastName: 'Doe',
           email,
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         assert(!result.success);
@@ -347,7 +360,8 @@ describe('ContactFormValidator', () => {
           firstName: 'John',
           lastName: 'Doe',
           email,
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         assert(!result.success);
@@ -379,7 +393,8 @@ describe('ContactFormValidator', () => {
           firstName: 'John',
           lastName: 'Doe',
           email,
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+          mathAnswer: '7'
         });
 
         assert(!result.success);
@@ -404,7 +419,8 @@ describe('ContactFormValidator', () => {
           firstName: 'John',
           lastName: 'Doe',
           email: 'test@example.com',
-          message
+          message,
+          mathAnswer: '7'
         });
 
         expect(result.success).toBe(true);
@@ -448,7 +464,8 @@ describe('ContactFormValidator', () => {
           firstName: 'John',
           lastName: 'Doe',
           email: 'test@example.com',
-          message
+          message,
+          mathAnswer: '7'
         });
 
         assert(!result.success);
@@ -464,28 +481,36 @@ describe('ContactFormValidator', () => {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
-        message: messageWithWhitespace
+        message: messageWithWhitespace,
+        mathAnswer: '7'
       });
 
       expect(result.success).toBe(true);
     });
   });
 
-  describe('recaptcha token extraction', () => {
-    test('should extract valid recaptcha token', () => {
+  describe('anti-bot data extraction', () => {
+    test('should extract anti-bot data when present', () => {
       const data = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-        recaptchaToken: 'valid-recaptcha-token'
+        antiBotData: {
+          subject: '',
+          phone: '',
+          formLoadTime: Date.now(),
+          mathAnswer: '7',
+          mathNum1: 3,
+          mathNum2: 4
+        }
       };
 
-      const token = ContactFormValidator.extractRecaptchaToken(data);
-      expect(token).toBe('valid-recaptcha-token');
+      const antiBotData = ContactFormValidator.extractAntiBotData(data);
+      expect(antiBotData).toEqual(data.antiBotData);
     });
 
-    test('should return null for missing recaptcha token', () => {
+    test('should return null for missing anti-bot data', () => {
       const data = {
         firstName: 'John',
         lastName: 'Doe',
@@ -493,30 +518,24 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       };
 
-      const token = ContactFormValidator.extractRecaptchaToken(data);
-      expect(token).toBeNull();
+      const antiBotData = ContactFormValidator.extractAntiBotData(data);
+      expect(antiBotData).toBeNull();
     });
 
-    test('should return null for empty recaptcha token', () => {
+    test('should extract form data without anti-bot data', () => {
       const data = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-        recaptchaToken: ''
-      };
-
-      const token = ContactFormValidator.extractRecaptchaToken(data);
-      expect(token).toBeNull();
-    });
-
-    test('should extract form data without recaptcha token', () => {
-      const data = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-        recaptchaToken: 'valid-recaptcha-token'
+        antiBotData: {
+          subject: '',
+          phone: '',
+          formLoadTime: Date.now(),
+          mathAnswer: '7',
+          mathNum1: 3,
+          mathNum2: 4
+        }
       };
 
       const formData = ContactFormValidator.extractFormData(data);
@@ -535,7 +554,8 @@ describe('ContactFormValidator', () => {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+        message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+        mathAnswer: '7'
       };
 
       const result = ContactFormValidator.validate(validData);
@@ -564,7 +584,8 @@ describe('ContactFormValidator', () => {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+        message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+        mathAnswer: '7'
       };
 
       expect(formData).toBeDefined();

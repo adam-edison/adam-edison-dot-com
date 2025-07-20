@@ -5,13 +5,22 @@ import '@testing-library/jest-dom';
 import { ContactForm } from './ContactForm';
 import { logger } from '@/shared/Logger';
 
-const mockExecuteRecaptcha = vi.fn();
-vi.mock('./LazyReCaptchaProvider', () => ({
-  LazyReCaptchaProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useReCaptcha: () => ({
-    executeRecaptcha: mockExecuteRecaptcha,
-    isLoaded: true
-  })
+// Mock the anti-bot service
+vi.mock('@/features/contact/AntiBotService', () => ({
+  AntiBotService: {
+    create: () => ({
+      generateMathChallenge: () => ({ num1: 3, num2: 4, question: 'What is 3 + 4?', correctAnswer: 7 }),
+      createFormInitialData: () => ({
+        subject: '',
+        phone: '',
+        formLoadTime: Date.now(),
+        mathAnswer: '',
+        mathNum1: 3,
+        mathNum2: 4
+      }),
+      validateAntiBotData: () => ({ isValid: true })
+    })
+  }
 }));
 
 global.fetch = vi.fn() as unknown as typeof fetch;
@@ -19,11 +28,7 @@ global.fetch = vi.fn() as unknown as typeof fetch;
 describe('ContactForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockExecuteRecaptcha.mockResolvedValue('test-recaptcha-token');
 
-    vi.stubEnv('NEXT_PUBLIC_RECAPTCHA_SITE_KEY', 'test-site-key');
-    vi.stubEnv('RECAPTCHA_SECRET_KEY', 'test-secret-key');
-    vi.stubEnv('RECAPTCHA_SCORE_THRESHOLD', '0');
     vi.stubEnv('SEND_EMAIL_ENABLED', 'false');
 
     vi.mocked(fetch).mockImplementation(async (url) => {
@@ -49,6 +54,14 @@ describe('ContactForm', () => {
       screen.getByLabelText(/message/i),
       'This is a test message with enough characters to meet the minimum requirement.'
     );
+
+    // Fill math answer
+    const mathQuestion = screen.getByTestId('math-question').textContent;
+    const match = mathQuestion?.match(/(\d+) \+ (\d+)/);
+    if (match) {
+      const answer = parseInt(match[1]) + parseInt(match[2]);
+      await user.type(screen.getByTestId('math-answer'), answer.toString());
+    }
   };
 
   test('should render the contact form', async () => {
@@ -76,22 +89,12 @@ describe('ContactForm', () => {
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
     await waitFor(() => {
-      expect(mockExecuteRecaptcha).toHaveBeenCalledWith('contact_form');
-    });
-
-    await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john@example.com',
-          message: 'This is a test message with enough characters to meet the minimum requirement.',
-          recaptchaToken: 'test-recaptcha-token'
-        })
+        body: expect.stringContaining('"firstName":"John"')
       });
     });
 
@@ -100,7 +103,7 @@ describe('ContactForm', () => {
     });
   });
 
-  test('should display error message when reCAPTCHA fails', async () => {
+  test('should display error message when anti-bot validation fails', async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
@@ -110,7 +113,7 @@ describe('ContactForm', () => {
         });
       }
 
-      return new Response(JSON.stringify({ message: 'reCAPTCHA verification failed' }), {
+      return new Response(JSON.stringify({ message: 'Security verification failed' }), {
         status: 400,
         statusText: 'Bad Request'
       });
