@@ -2,6 +2,28 @@ import { describe, expect, test } from 'vitest';
 import { strict as assert } from 'node:assert';
 import { ContactFormValidator, type ContactFormData } from './ContactFormValidator';
 
+// Helper function to create form data with overrides
+const createFormData = (overrides: Partial<ContactFormData> = {}): ContactFormData => ({
+  firstName: 'John',
+  lastName: 'Doe',
+  email: 'test@example.com',
+  message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
+  mathAnswer: '7',
+  ...overrides
+});
+
+// Helper function to check validation errors
+const expectValidationError = (result: unknown, expectedMessage: string) => {
+  assert(typeof result === 'object' && result !== null);
+  assert('success' in result && result.success === false);
+  assert('error' in result && typeof result.error === 'object' && result.error !== null);
+  assert('message' in result.error && typeof result.error.message === 'string');
+  assert('internalMessage' in result.error && typeof result.error.internalMessage === 'string');
+
+  expect(result.error.message).toContain(expectedMessage);
+  expect(result.error.internalMessage).toContain(expectedMessage);
+};
+
 describe('ContactFormValidator', () => {
   describe('firstName validation', () => {
     test('should accept valid first names', () => {
@@ -23,64 +45,27 @@ describe('ContactFormValidator', () => {
       ];
 
       validNames.forEach((firstName) => {
-        const result = ContactFormValidator.validate({
-          firstName,
-          lastName: 'Doe',
-          email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-          mathAnswer: '7'
-        });
-
+        const result = ContactFormValidator.validate(createFormData({ firstName }));
         expect(result.success).toBe(true);
       });
     });
 
     test('should reject first names that are too short', () => {
-      const result = ContactFormValidator.validate({
-        firstName: 'A',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-        mathAnswer: '7'
-      });
-
-      assert(!result.success);
-      const expectedMessage = 'First name must be at least 2 characters';
-      expect(result.error.message).toContain(expectedMessage);
-      expect(result.error.internalMessage).toContain(expectedMessage);
+      const result = ContactFormValidator.validate(createFormData({ firstName: 'A' }));
+      expectValidationError(result, 'First name must be at least 2 characters');
     });
 
     test('should reject first names that are too long', () => {
-      const longName = 'A'.repeat(51);
-      const result = ContactFormValidator.validate({
-        firstName: longName,
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      });
-
-      assert(!result.success);
-      const expectedMessage = 'First name must be at most 50 characters';
-      expect(result.error.message).toContain(expectedMessage);
-      expect(result.error.internalMessage).toContain(expectedMessage);
+      const result = ContactFormValidator.validate(createFormData({ firstName: 'A'.repeat(51) }));
+      expectValidationError(result, 'First name must be at most 50 characters');
     });
 
     test('should reject first names that are purely numbers', () => {
       const invalidNames = ['123', '456789', '00'];
 
       invalidNames.forEach((firstName) => {
-        const result = ContactFormValidator.validate({
-          firstName,
-          lastName: 'Doe',
-          email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-          mathAnswer: '7'
-        });
-
-        assert(!result.success);
-        const expectedMessage = 'First name must contain at least one letter';
-        expect(result.error.message).toContain(expectedMessage);
-        expect(result.error.internalMessage).toContain(expectedMessage);
+        const result = ContactFormValidator.validate(createFormData({ firstName }));
+        expectValidationError(result, 'First name must contain at least one letter');
       });
     });
 
@@ -88,18 +73,8 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['!@#', '$$$$', '***', '&&&'];
 
       invalidNames.forEach((firstName) => {
-        const result = ContactFormValidator.validate({
-          firstName,
-          lastName: 'Doe',
-          email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-          mathAnswer: '7'
-        });
-
-        assert(!result.success);
-        const expectedMessage = 'First name must contain at least one letter';
-        expect(result.error.message).toContain(expectedMessage);
-        expect(result.error.internalMessage).toContain(expectedMessage);
+        const result = ContactFormValidator.validate(createFormData({ firstName }));
+        expectValidationError(result, 'First name must contain at least one letter');
       });
     });
 
@@ -107,18 +82,8 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['123!@#', '999$$$', '---'];
 
       invalidNames.forEach((firstName) => {
-        const result = ContactFormValidator.validate({
-          firstName,
-          lastName: 'Doe',
-          email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-          mathAnswer: '7'
-        });
-
-        assert(!result.success);
-        const expectedMessage = 'First name must contain at least one letter';
-        expect(result.error.message).toContain(expectedMessage);
-        expect(result.error.internalMessage).toContain(expectedMessage);
+        const result = ContactFormValidator.validate(createFormData({ firstName }));
+        expectValidationError(result, 'First name must contain at least one letter');
       });
     });
 
@@ -126,14 +91,7 @@ describe('ContactFormValidator', () => {
       const validNames = ['John123', 'Mary@Jane', 'Test$Name', 'User.Name', 'Name!'];
 
       validNames.forEach((firstName) => {
-        const result = ContactFormValidator.validate({
-          firstName,
-          lastName: 'Doe',
-          email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-          mathAnswer: '7'
-        });
-
+        const result = ContactFormValidator.validate(createFormData({ firstName }));
         expect(result.success).toBe(true);
       });
     });
@@ -158,30 +116,14 @@ describe('ContactFormValidator', () => {
       ];
 
       validNames.forEach((lastName) => {
-        const result = ContactFormValidator.validate({
-          firstName: 'John',
-          lastName,
-          email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-          mathAnswer: '7'
-        });
-
+        const result = ContactFormValidator.validate(createFormData({ lastName }));
         expect(result.success).toBe(true);
       });
     });
 
     test('should reject last names that are too short', () => {
-      const result = ContactFormValidator.validate({
-        firstName: 'John',
-        lastName: 'A',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      });
-
-      assert(!result.success);
-      const expectedMessage = 'Last name must be at least 2 characters';
-      expect(result.error.message).toContain(expectedMessage);
-      expect(result.error.internalMessage).toContain(expectedMessage);
+      const result = ContactFormValidator.validate(createFormData({ lastName: 'A' }));
+      expectValidationError(result, 'Last name must be at least 2 characters');
     });
 
     test('should reject last names that are too long', () => {
@@ -203,18 +145,8 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['123', '456789', '00'];
 
       invalidNames.forEach((lastName) => {
-        const result = ContactFormValidator.validate({
-          firstName: 'John',
-          lastName,
-          email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-          mathAnswer: '7'
-        });
-
-        assert(!result.success);
-        const expectedMessage = 'Last name must contain at least one letter';
-        expect(result.error.message).toContain(expectedMessage);
-        expect(result.error.internalMessage).toContain(expectedMessage);
+        const result = ContactFormValidator.validate(createFormData({ lastName }));
+        expectValidationError(result, 'Last name must contain at least one letter');
       });
     });
 
@@ -222,18 +154,8 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['!@#', '$$$$', '***', '&&&'];
 
       invalidNames.forEach((lastName) => {
-        const result = ContactFormValidator.validate({
-          firstName: 'John',
-          lastName,
-          email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-          mathAnswer: '7'
-        });
-
-        assert(!result.success);
-        const expectedMessage = 'Last name must contain at least one letter';
-        expect(result.error.message).toContain(expectedMessage);
-        expect(result.error.internalMessage).toContain(expectedMessage);
+        const result = ContactFormValidator.validate(createFormData({ lastName }));
+        expectValidationError(result, 'Last name must contain at least one letter');
       });
     });
 
@@ -241,18 +163,8 @@ describe('ContactFormValidator', () => {
       const invalidNames = ['123!@#', '999$$$', '---'];
 
       invalidNames.forEach((lastName) => {
-        const result = ContactFormValidator.validate({
-          firstName: 'John',
-          lastName,
-          email: 'test@example.com',
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-          mathAnswer: '7'
-        });
-
-        assert(!result.success);
-        const expectedMessage = 'Last name must contain at least one letter';
-        expect(result.error.message).toContain(expectedMessage);
-        expect(result.error.internalMessage).toContain(expectedMessage);
+        const result = ContactFormValidator.validate(createFormData({ lastName }));
+        expectValidationError(result, 'Last name must contain at least one letter');
       });
     });
 
@@ -284,14 +196,7 @@ describe('ContactFormValidator', () => {
       ];
 
       validEmails.forEach((email) => {
-        const result = ContactFormValidator.validate({
-          firstName: 'John',
-          lastName: 'Doe',
-          email,
-          message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-          mathAnswer: '7'
-        });
-
+        const result = ContactFormValidator.validate(createFormData({ email }));
         expect(result.success).toBe(true);
       });
     });
@@ -415,14 +320,7 @@ describe('ContactFormValidator', () => {
       ];
 
       validMessages.forEach((message) => {
-        const result = ContactFormValidator.validate({
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'test@example.com',
-          message,
-          mathAnswer: '7'
-        });
-
+        const result = ContactFormValidator.validate(createFormData({ message }));
         expect(result.success).toBe(true);
       });
     });
