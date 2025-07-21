@@ -1,5 +1,6 @@
 import { EmailService } from './EmailService';
 import { InputSanitizer } from './InputSanitizer';
+import { TurnstileService } from './TurnstileService';
 import { ContactFormValidator, ContactFormData } from './ContactFormValidator';
 import { Result } from '@/shared/Result';
 import { ValidationError, InternalServerError } from '@/shared/errors';
@@ -7,7 +8,10 @@ import { ValidationError, InternalServerError } from '@/shared/errors';
 export type ProcessFormResult = Result<void, ValidationError | InternalServerError>;
 
 export class ContactFormProcessor {
-  constructor(private emailService: EmailService) {}
+  constructor(
+    private emailService: EmailService,
+    private turnstileService?: TurnstileService
+  ) {}
 
   static async fromEnv(): Promise<Result<ContactFormProcessor, InternalServerError>> {
     const emailServiceResult = EmailService.fromEnv();
@@ -19,11 +23,45 @@ export class ContactFormProcessor {
       return Result.failure(serverError);
     }
 
-    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data);
+    // Initialize Turnstile service if enabled
+    let turnstileService: TurnstileService | undefined;
+    if (TurnstileService.isEnabled()) {
+      const turnstileResult = TurnstileService.fromEnv();
+      if (!turnstileResult.success) {
+        return Result.failure(turnstileResult.error);
+      }
+      turnstileService = turnstileResult.data;
+    }
+
+    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data, turnstileService);
     return Result.success(contactFormProcessor);
   }
 
-  async processForm(formData: unknown): Promise<ProcessFormResult> {
+  async processForm(formData: unknown, remoteIp?: string): Promise<ProcessFormResult> {
+    // Extract Turnstile token if present
+    let turnstileToken: string | undefined;
+    if (typeof formData === 'object' && formData !== null) {
+      const data = formData as Record<string, unknown>;
+      turnstileToken = typeof data.turnstileToken === 'string' ? data.turnstileToken : undefined;
+      // Remove token from form data before validation
+      delete data.turnstileToken;
+    }
+
+    // Verify Turnstile token if service is enabled
+    if (this.turnstileService) {
+      if (!turnstileToken) {
+        const error = new ValidationError('Security verification required', {
+          internalMessage: 'Turnstile token is missing but Turnstile is enabled'
+        });
+        return Result.failure(error);
+      }
+
+      const verificationResult = await this.turnstileService.verifyToken(turnstileToken, remoteIp);
+      if (!verificationResult.success) {
+        return Result.failure(verificationResult.error);
+      }
+    }
+
     const validatedFormData = ContactFormValidator.validate(formData);
     if (!validatedFormData.success) return Result.failure(validatedFormData.error);
 

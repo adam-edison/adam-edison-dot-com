@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const processorResult = await ContactFormProcessor.fromEnv();
   if (!processorResult.success) return ApiErrorHandler.handle(res, processorResult.error, requestContext);
 
-  const formResult = await processorResult.data.processForm(req.body);
+  const formResult = await processorResult.data.processForm(req.body, ip);
   if (!formResult.success) return ApiErrorHandler.handle(res, formResult.error, requestContext);
 
   res.status(200).json({ message: 'Message sent successfully' });
