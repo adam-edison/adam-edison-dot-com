@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ContactFormValidator, ContactFormData } from '@/features/contact/ContactFormValidator';
@@ -19,7 +19,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const turnstileResetRef = useRef<(() => void) | null>(null);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
 
   const {
     register,
@@ -34,15 +34,37 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
   const watchedMessage = useWatch({ control, name: 'message' });
 
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await fetch('/api/csrf-token');
+        if (!response.ok) {
+          throw new Error('Failed to fetch security token');
+        }
+        const data = await response.json();
+        setCsrfToken(data.token);
+      } catch (error) {
+        handleUnexpectedError(error);
+      }
+    };
+
+    fetchCsrfToken();
+  }, []);
+
   const submitContactForm = async (data: ContactFormData): Promise<Response> => {
     if (!turnstileToken) {
       throw new Error('Please complete the security verification');
     }
 
+    if (!csrfToken) {
+      throw new Error('A security token is required to send a message');
+    }
+
     return fetch('/api/contact', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken
       },
       body: JSON.stringify({
         ...data,
@@ -70,12 +92,6 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   };
 
   const onSubmit = async (data: ContactFormData) => {
-    if (!turnstileToken) {
-      setSubmitStatus('error');
-      setErrorMessage('Please complete the security verification');
-      return;
-    }
-
     setIsSubmitting(true);
     setSubmitStatus('idle');
     setErrorMessage('');
@@ -91,10 +107,8 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
       setSubmitStatus('success');
       reset();
       setTurnstileToken(null);
-      // Reset Turnstile widget
-      if (turnstileResetRef.current) {
-        turnstileResetRef.current();
-      }
+      // Reset Turnstile widget - This is a limitation now.
+      // A full reset would require a page reload.
     } catch (error) {
       handleUnexpectedError(error);
     } finally {
@@ -105,7 +119,6 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   const handleSendAnother = () => {
     setSubmitStatus('idle');
     setErrorMessage('');
-    setTurnstileToken(null);
   };
 
   const handleTurnstileVerify = (token: string) => {
@@ -191,7 +204,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
       <SubmitButton
         isSubmitting={isSubmitting}
-        disabled={!turnstileToken && !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+        disabled={(!turnstileToken && !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) || !csrfToken}
         data-testid="submit-button"
       />
     </form>

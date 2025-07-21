@@ -6,6 +6,8 @@ import { RequestContext } from '@/shared/RequestContext';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseTimeProtector } from '@/shared/ResponseTimeProtector';
 import { ApiSuccessHandler } from '@/shared/ApiSuccessHandler';
+import { CsrfService } from '@/features/contact/CsrfService';
+import { CsrfError } from '@/shared/errors/CsrfError';
 
 function setRateLimitHeaders(res: NextApiResponse, headers: Record<string, string | number>) {
   Object.entries(headers).forEach(([key, value]) => {
@@ -21,6 +23,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!methodValidation.success) {
     return ApiErrorHandler.handle(res, {
       error: methodValidation.error,
+      timeProtector,
+      context: requestContext
+    });
+  }
+
+  // CSRF Token Validation
+  const csrfService = new CsrfService();
+  const csrfToken = req.headers['x-csrf-token'] as string | undefined;
+
+  if (!csrfToken || !(await csrfService.validateToken(csrfToken))) {
+    return ApiErrorHandler.handle(res, {
+      error: new CsrfError('Invalid security token.', {
+        internalMessage: 'CSRF token validation failed.'
+      }),
       timeProtector,
       context: requestContext
     });
