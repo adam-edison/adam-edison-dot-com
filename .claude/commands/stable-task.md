@@ -70,8 +70,53 @@ If the validation agent rejects your todo list:
 
 Once your todo list is approved:
 1. Execute todos one by one
-2. Commit after each todo completion
-3. Run quality checks between todos
+2. Run quality checks after each todo:
+   ```bash
+   npm run format
+   npm run lint
+   npm run build
+   npm run test:all
+   ```
+3. Create proper commit for each todo completion
+
+### Commit Message Process
+
+Before committing each todo, gather context:
+- Run: `git status`
+- Run: `git diff HEAD` 
+- Run: `git branch --show-current`
+- Run: `git log --oneline -10`
+
+Create conventional commit with this format:
+```
+<type>: <brief description>
+
+<detailed body with:>
+- Problems solved
+- Implementation decisions and reasoning  
+- Effects on codebase
+- What changed and why
+```
+
+**Commit Types:**
+- `feat` - New features or functionality
+- `fix` - Bug fixes
+- `refactor` - Code restructuring without behavior change
+- `test` - Adding or updating tests
+- `chore` - Maintenance tasks, dependency updates
+- `docs` - Documentation updates
+- `style` - Code formatting, whitespace changes
+
+**Example Good Commit:**
+```
+feat: add TurnstileService with token verification
+
+- Added TurnstileService.ts following existing service patterns
+- Implements verifyToken method with Cloudflare API integration
+- Returns Result<boolean> type matching codebase error handling
+- Includes proper TypeScript interfaces for API response
+- Added fail-open behavior for empty tokens as specified
+```
 
 ## START WITH PHASE 1
 
