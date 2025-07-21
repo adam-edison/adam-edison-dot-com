@@ -1,6 +1,7 @@
 import { Result } from '@/shared/Result';
 import { ValidationError, InternalServerError } from '@/shared/errors';
 import { logger } from '@/shared/Logger';
+import { TurnstileTokenTracker } from './TurnstileTokenTracker';
 
 interface TurnstileVerifyResponse {
   success: boolean;
@@ -15,7 +16,10 @@ export class TurnstileService {
   private static readonly VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
   private static readonly TIMEOUT_MS = 10000; // 10 seconds
 
-  constructor(private secretKey: string) {}
+  constructor(
+    private secretKey: string,
+    private tokenTracker: TurnstileTokenTracker
+  ) {}
 
   static fromEnv(): Result<TurnstileService, InternalServerError> {
     const secretKey = process.env.TURNSTILE_SECRET_KEY;
@@ -27,13 +31,23 @@ export class TurnstileService {
       return Result.failure(error);
     }
 
-    return Result.success(new TurnstileService(secretKey));
+    const tokenTracker = TurnstileTokenTracker.fromEnv();
+    return Result.success(new TurnstileService(secretKey, tokenTracker));
   }
 
   async verifyToken(token: string, remoteIp?: string): Promise<Result<void, ValidationError | InternalServerError>> {
     if (!token) {
       const error = new ValidationError('Security verification required', {
         internalMessage: 'Turnstile token is missing'
+      });
+      return Result.failure(error);
+    }
+
+    // Check for token replay attack
+    const tokenTracking = await this.tokenTracker.checkAndMarkTokenUsed(token);
+    if (tokenTracking.isUsed) {
+      const error = new ValidationError('Security verification has already been used', {
+        internalMessage: 'Turnstile token replay attack detected'
       });
       return Result.failure(error);
     }

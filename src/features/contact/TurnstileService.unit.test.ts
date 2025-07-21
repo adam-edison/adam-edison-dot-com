@@ -4,6 +4,17 @@ import { TurnstileService } from './TurnstileService';
 // Mock fetch globally
 global.fetch = vi.fn();
 
+// Mock TurnstileTokenTracker
+const mockTokenTracker = {
+  checkAndMarkTokenUsed: vi.fn()
+};
+
+vi.mock('./TurnstileTokenTracker', () => ({
+  TurnstileTokenTracker: {
+    fromEnv: vi.fn(() => mockTokenTracker)
+  }
+}));
+
 describe('TurnstileService', () => {
   const mockSecretKey = 'test-secret-key';
   const mockToken = 'test-token';
@@ -12,6 +23,12 @@ describe('TurnstileService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv('TURNSTILE_SECRET_KEY', mockSecretKey);
+
+    // Default token tracker behavior - token not used
+    mockTokenTracker.checkAndMarkTokenUsed.mockResolvedValue({
+      isUsed: false,
+      markedAsUsed: true
+    });
   });
 
   afterEach(() => {
@@ -44,7 +61,7 @@ describe('TurnstileService', () => {
     let service: TurnstileService;
 
     beforeEach(() => {
-      service = new TurnstileService(mockSecretKey);
+      service = new TurnstileService(mockSecretKey, mockTokenTracker);
     });
 
     it('should verify valid token successfully', async () => {
@@ -181,6 +198,36 @@ describe('TurnstileService', () => {
       const body = fetchCall[1].body as URLSearchParams;
 
       expect(body.get('remoteip')).toBe(mockIp);
+    });
+
+    it('should prevent token replay attacks', async () => {
+      // Mock token already used
+      mockTokenTracker.checkAndMarkTokenUsed.mockResolvedValue({
+        isUsed: true,
+        markedAsUsed: false
+      });
+
+      const result = await service.verifyToken(mockToken);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.message).toBe('Security verification has already been used');
+      }
+      // Should not call Turnstile API if token is already used
+      expect(global.fetch).not.toHaveBeenCalled();
+      expect(mockTokenTracker.checkAndMarkTokenUsed).toHaveBeenCalledWith(mockToken);
+    });
+
+    it('should mark new tokens as used', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true })
+      });
+
+      const result = await service.verifyToken(mockToken);
+
+      expect(result.success).toBe(true);
+      expect(mockTokenTracker.checkAndMarkTokenUsed).toHaveBeenCalledWith(mockToken);
     });
   });
 
