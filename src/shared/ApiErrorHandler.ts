@@ -2,6 +2,7 @@ import type { NextApiResponse } from 'next';
 import { logger } from './Logger';
 import { BaseError } from './errors';
 import { RequestContext } from './RequestContext';
+import { ResponseTimeProtector } from './ResponseTimeProtector';
 
 export interface ErrorResponse {
   statusCode: number;
@@ -11,8 +12,15 @@ export interface ErrorResponse {
   };
 }
 
+interface ErrorHandlerOptions {
+  error: BaseError;
+  timeProtector: ResponseTimeProtector;
+  context?: RequestContext;
+}
+
 export class ApiErrorHandler {
-  static handle(res: NextApiResponse, error: BaseError, context?: RequestContext): ErrorResponse {
+  static async handle(res: NextApiResponse, options: ErrorHandlerOptions): Promise<ErrorResponse> {
+    const { error, timeProtector, context } = options;
     const statusCode = error.httpStatusCode;
     const response = this.buildResponse(error);
 
@@ -35,6 +43,7 @@ export class ApiErrorHandler {
       requestContext: context
     });
 
+    await timeProtector.endAndProtect();
     res.status(statusCode).json(response);
 
     return { statusCode, response };
