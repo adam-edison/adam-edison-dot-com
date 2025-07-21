@@ -1,9 +1,12 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { ContactFormProcessor } from './ContactFormProcessor';
-import { EmailService } from './EmailService';
-import { TurnstileService } from './TurnstileService';
 import { ContactRateLimiter } from './ContactRateLimiter';
-import { Result } from '@/shared/Result';
+
+type MockedFunction<T> = T & {
+  mockResolvedValueOnce: (value: unknown) => void;
+  mockRejectedValueOnce: (error: unknown) => void;
+  mock: { calls: unknown[][] };
+};
 
 // Mock environment variables
 const mockEnv = {
@@ -37,13 +40,13 @@ describe('Contact Form Turnstile Integration', () => {
   describe('Full contact form flow with Turnstile', () => {
     it('should successfully process form with valid Turnstile token', async () => {
       // Mock Turnstile verification success
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, challenge_ts: '2024-01-01T00:00:00Z' })
       });
 
       // Mock email sending (Resend API)
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ id: 'email-123' })
       });
@@ -112,7 +115,7 @@ describe('Contact Form Turnstile Integration', () => {
 
     it('should reject form with invalid Turnstile token', async () => {
       // Mock Turnstile verification failure
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: false,
@@ -155,7 +158,7 @@ describe('Contact Form Turnstile Integration', () => {
       // Mock Turnstile API timeout
       const abortError = new Error('Aborted');
       abortError.name = 'AbortError';
-      (global.fetch as any).mockRejectedValueOnce(abortError);
+      (global.fetch as MockedFunction<typeof fetch>).mockRejectedValueOnce(abortError);
 
       const processorResult = await ContactFormProcessor.fromEnv();
       expect(processorResult.success).toBe(true);
@@ -185,7 +188,7 @@ describe('Contact Form Turnstile Integration', () => {
       vi.stubEnv('TURNSTILE_SECRET_KEY', '');
 
       // Mock email sending
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ id: 'email-123' })
       });
@@ -227,7 +230,7 @@ describe('Contact Form Turnstile Integration', () => {
       // Mock rate limiter to return limit exceeded
       const rateLimiter = await ContactRateLimiter.fromEnv();
       if (rateLimiter.success) {
-        (rateLimiter.data as any).redisClient = mockRedisClient;
+        (rateLimiter.data as { redisClient: unknown }).redisClient = mockRedisClient;
       }
 
       // This test would require more complex mocking of the actual API endpoint
@@ -238,7 +241,7 @@ describe('Contact Form Turnstile Integration', () => {
   describe('Error scenarios', () => {
     it('should handle Turnstile service unavailable', async () => {
       // Mock Turnstile API returning 503
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: false,
         status: 503,
         statusText: 'Service Unavailable'
@@ -269,13 +272,13 @@ describe('Contact Form Turnstile Integration', () => {
 
     it('should sanitize form data after Turnstile verification', async () => {
       // Mock Turnstile verification success
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true })
       });
 
       // Mock email sending
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ id: 'email-123' })
       });
@@ -301,7 +304,7 @@ describe('Contact Form Turnstile Integration', () => {
       expect(result.success).toBe(true);
 
       // Check that email was sent with sanitized data
-      const emailCall = (global.fetch as any).mock.calls[1];
+      const emailCall = (global.fetch as MockedFunction<typeof fetch>).mock.calls[1];
       const emailBody = JSON.parse(emailCall[1].body);
 
       // Verify HTML was escaped

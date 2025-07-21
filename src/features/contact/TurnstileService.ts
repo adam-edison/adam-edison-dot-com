@@ -75,7 +75,7 @@ export class TurnstileService {
       const data: TurnstileVerifyResponse = await response.json();
 
       if (!data.success) {
-        const errorCodes = data['error-codes'] || [];
+        const errorCodes = (data['error-codes'] as string[]) || [];
         logger.warn('Turnstile verification failed', {
           errorCodes,
           hostname: data.hostname
@@ -103,7 +103,7 @@ export class TurnstileService {
 
         const error = new ValidationError(userMessage, {
           internalMessage,
-          details: { errorCodes }
+          details: errorCodes
         });
         return Result.failure(error);
       }

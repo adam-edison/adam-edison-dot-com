@@ -8,9 +8,11 @@ global.fetch = vi.fn();
 
 // Mock TurnstileWidget
 vi.mock('./TurnstileWidget', () => ({
-  TurnstileWidget: ({ onVerify, onExpire }: any) => {
+  TurnstileWidget: ({ onVerify, onExpire }: { onVerify: (token: string) => void; onExpire: () => void }) => {
     // Store callbacks globally so tests can trigger them
-    (window as any).__turnstileCallbacks = { onVerify, onExpire };
+    (
+      window as typeof window & { __turnstileCallbacks?: { onVerify: (token: string) => void; onExpire: () => void } }
+    ).__turnstileCallbacks = { onVerify, onExpire };
     return (
       <div data-testid="turnstile-widget">
         <button onClick={() => onVerify('test-token')}>Complete Verification</button>
@@ -25,7 +27,9 @@ describe('ContactFormInner', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Clear any stored callbacks
-    delete (window as any).__turnstileCallbacks;
+    delete (
+      window as typeof window & { __turnstileCallbacks?: { onVerify: (token: string) => void; onExpire: () => void } }
+    ).__turnstileCallbacks;
     // Mock environment variable
     vi.stubEnv('NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'test-site-key');
 
@@ -336,7 +340,9 @@ describe('ContactFormInner', () => {
       expect(screen.getByRole('button', { name: /send message/i })).not.toBeDisabled();
 
       // Simulate token expiration
-      const callbacks = (window as any).__turnstileCallbacks;
+      const callbacks = (
+        window as typeof window & { __turnstileCallbacks?: { onVerify: (token: string) => void; onExpire: () => void } }
+      ).__turnstileCallbacks;
       if (callbacks && callbacks.onExpire) {
         act(() => {
           callbacks.onExpire();

@@ -26,19 +26,22 @@ You MUST follow this exact process for implementing code review fixes.
 ### Item Filtering Rules
 
 **Items to SKIP:**
+
 - Any line containing both a number/title AND ✅ (completed)
 - Any line containing both a number/title AND ⏭️ (skipped)
 
 **Items to IMPLEMENT:**
+
 - Numbered items without ✅ or ⏭️ markers
 - Items marked with ❌ (needs fixing)
 
 **Examples:**
+
 ```
 #### 1. Missing CSRF Protection ✅
 - SKIP: Already completed
 
-#### 2. No Content Security Policy (CSP) Headers ⏭️  
+#### 2. No Content Security Policy (CSP) Headers ⏭️
 - SKIP: Intentionally skipped
 
 #### 3. Missing Security Headers
@@ -51,6 +54,7 @@ You MUST follow this exact process for implementing code review fixes.
 ### Phase 2: Implementation Strategy
 
 **Work through each numbered fix item that needs implementation:**
+
 - **Filter out completed (✅) and skipped (⏭️) items**
 - Treat each remaining numbered item as one logical commit
 - Implement the complete fix described in that item
@@ -66,11 +70,12 @@ For each numbered fix item:
    - Follow existing codebase patterns and your ~/.claude/ standards
    - For new code, write comprehensive tests covering:
      - Happy path scenarios (expected behavior)
-     - Unhappy path scenarios (error conditions) 
+     - Unhappy path scenarios (error conditions)
      - Edge cases (boundary conditions, null/undefined inputs)
      - Integration scenarios (how it works with existing code)
 
 2. **Quality checks:**
+
    ```bash
    npm run format
    npm run lint
@@ -100,6 +105,7 @@ Addresses: [specific item number or description from code review]
 ```
 
 **Example commit:**
+
 ```
 security: implement CSRF protection for contact form API
 
@@ -122,14 +128,16 @@ Addresses: Security Review item #1 - Missing CSRF Protection
 When implementing fixes that add new functionality:
 
 **Required test scenarios:**
-- **Happy Path**: Normal operation with valid inputs  
+
+- **Happy Path**: Normal operation with valid inputs
 - **Error Handling**: Invalid inputs, network failures, API errors
 - **Edge Cases**: Empty strings, null/undefined, boundary values
 - **Security Cases**: Test the specific security vulnerability being fixed
 
 **Test patterns to follow:**
+
 - Examine existing similar tests for assertion patterns
-- Use same mocking strategies as existing tests  
+- Use same mocking strategies as existing tests
 - Follow existing test file organization and naming
 - Include security-specific test cases for security fixes
 

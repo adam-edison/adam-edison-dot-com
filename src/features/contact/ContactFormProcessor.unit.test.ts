@@ -10,8 +10,8 @@ vi.mock('./EmailService');
 vi.mock('./TurnstileService');
 
 describe('ContactFormProcessor', () => {
-  let mockEmailService: any;
-  let mockTurnstileService: any;
+  let mockEmailService: { sendEmail: vi.Mock };
+  let mockTurnstileService: { verifyToken: vi.Mock };
 
   const validFormData = {
     firstName: 'John',
@@ -35,9 +35,9 @@ describe('ContactFormProcessor', () => {
     };
 
     // Mock static methods
-    (EmailService.fromEnv as any) = vi.fn().mockReturnValue(Result.success(mockEmailService));
-    (TurnstileService.fromEnv as any) = vi.fn().mockReturnValue(Result.success(mockTurnstileService));
-    (TurnstileService.isEnabled as any) = vi.fn().mockReturnValue(true);
+    (EmailService.fromEnv as unknown as vi.Mock) = vi.fn().mockReturnValue(Result.success(mockEmailService));
+    (TurnstileService.fromEnv as unknown as vi.Mock) = vi.fn().mockReturnValue(Result.success(mockTurnstileService));
+    (TurnstileService.isEnabled as unknown as vi.Mock) = vi.fn().mockReturnValue(true);
   });
 
   describe('fromEnv', () => {
@@ -50,7 +50,7 @@ describe('ContactFormProcessor', () => {
     });
 
     it('should create processor without Turnstile when disabled', async () => {
-      (TurnstileService.isEnabled as any).mockReturnValue(false);
+      (TurnstileService.isEnabled as unknown as vi.Mock).mockReturnValue(false);
 
       const result = await ContactFormProcessor.fromEnv();
 
@@ -63,7 +63,7 @@ describe('ContactFormProcessor', () => {
       const error = new InternalServerError('Email service error', {
         internalMessage: 'Email service initialization failed'
       });
-      (EmailService.fromEnv as any).mockReturnValue(Result.failure(error));
+      (EmailService.fromEnv as unknown as vi.Mock).mockReturnValue(Result.failure(error));
 
       const result = await ContactFormProcessor.fromEnv();
 
@@ -77,7 +77,7 @@ describe('ContactFormProcessor', () => {
       const error = new InternalServerError('Turnstile config error', {
         internalMessage: 'Turnstile service initialization failed'
       });
-      (TurnstileService.fromEnv as any).mockReturnValue(Result.failure(error));
+      (TurnstileService.fromEnv as unknown as vi.Mock).mockReturnValue(Result.failure(error));
 
       const result = await ContactFormProcessor.fromEnv();
 

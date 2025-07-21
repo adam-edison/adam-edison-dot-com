@@ -4,6 +4,7 @@ import { EmailServiceConfigurationFactory } from '@/shared/EmailServiceConfigura
 import { RequestValidator } from '@/shared/RequestValidator';
 import { ApiErrorHandler } from '@/shared/ApiErrorHandler';
 import { RequestContext } from '@/shared/RequestContext';
+import { ResponseTimeProtector } from '@/shared/ResponseTimeProtector';
 import { ServiceUnavailableError } from '@/shared/errors';
 
 interface HealthyResponse {
@@ -14,7 +15,12 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Health
   const requestContext = RequestContext.from(req);
 
   const methodValidation = RequestValidator.validateMethod(req, 'GET');
-  if (!methodValidation.success) return ApiErrorHandler.handle(res, methodValidation.error, requestContext);
+  if (!methodValidation.success)
+    return ApiErrorHandler.handle(res, {
+      error: methodValidation.error,
+      timeProtector: new ResponseTimeProtector(),
+      context: requestContext
+    });
 
   const config = EmailServiceConfigurationFactory.fromEnv();
   const result = EmailServiceConfigurationValidator.validate(config);
@@ -26,5 +32,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Health
   const internalMessage = `Email service configuration validation failed: ${result.error.message}`;
   const clientMessage = 'Email service is not properly configured';
   const serviceError = new ServiceUnavailableError(clientMessage, { internalMessage });
-  return ApiErrorHandler.handle(res, serviceError, requestContext);
+  return ApiErrorHandler.handle(res, {
+    error: serviceError,
+    timeProtector: new ResponseTimeProtector(),
+    context: requestContext
+  });
 }

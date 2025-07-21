@@ -25,12 +25,12 @@ describe('TurnstileWidget', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (window as any).turnstile = mockTurnstile;
+    (window as typeof window & { turnstile?: typeof mockTurnstile }).turnstile = mockTurnstile;
     mockTurnstile.render.mockReturnValue('widget-123');
   });
 
   afterEach(() => {
-    delete (window as any).turnstile;
+    delete (window as typeof window & { turnstile?: typeof mockTurnstile }).turnstile;
   });
 
   it('should render loading state initially', () => {
@@ -41,7 +41,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should load Turnstile script and render widget', async () => {
-    (loadTurnstileScript as any).mockResolvedValue(undefined);
+    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
 
@@ -62,7 +62,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should call onVerify when verification succeeds', async () => {
-    (loadTurnstileScript as any).mockResolvedValue(undefined);
+    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
     const mockToken = 'test-token-123';
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
@@ -74,7 +74,7 @@ describe('TurnstileWidget', () => {
     // Simulate successful verification
     const renderCall = mockTurnstile.render.mock.calls[0];
     const callbacks = renderCall[1];
-    
+
     act(() => {
       callbacks.callback(mockToken);
     });
@@ -84,7 +84,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should show error message when verification fails', async () => {
-    (loadTurnstileScript as any).mockResolvedValue(undefined);
+    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} onError={mockOnError} />);
 
@@ -95,7 +95,7 @@ describe('TurnstileWidget', () => {
     // Simulate error
     const renderCall = mockTurnstile.render.mock.calls[0];
     const callbacks = renderCall[1];
-    
+
     act(() => {
       callbacks['error-callback']();
     });
@@ -106,7 +106,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should handle expired token', async () => {
-    (loadTurnstileScript as any).mockResolvedValue(undefined);
+    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} onExpire={mockOnExpire} />);
 
@@ -117,7 +117,7 @@ describe('TurnstileWidget', () => {
     // Simulate token expiration
     const renderCall = mockTurnstile.render.mock.calls[0];
     const callbacks = renderCall[1];
-    
+
     act(() => {
       callbacks['expired-callback']();
     });
@@ -126,7 +126,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should handle timeout', async () => {
-    (loadTurnstileScript as any).mockResolvedValue(undefined);
+    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
 
@@ -137,7 +137,7 @@ describe('TurnstileWidget', () => {
     // Simulate timeout
     const renderCall = mockTurnstile.render.mock.calls[0];
     const callbacks = renderCall[1];
-    
+
     act(() => {
       callbacks['timeout-callback']();
     });
@@ -146,7 +146,9 @@ describe('TurnstileWidget', () => {
   });
 
   it('should handle script loading failure', async () => {
-    (loadTurnstileScript as any).mockRejectedValue(new Error('Failed to load'));
+    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockRejectedValue(
+      new Error('Failed to load')
+    );
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
 
@@ -156,11 +158,9 @@ describe('TurnstileWidget', () => {
   });
 
   it('should refresh widget when try again is clicked', async () => {
-    (loadTurnstileScript as any).mockResolvedValue(undefined);
+    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
 
-    const { rerender } = render(
-      <TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} onError={mockOnError} />
-    );
+    render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} onError={mockOnError} />);
 
     await waitFor(() => {
       expect(mockTurnstile.render).toHaveBeenCalled();
@@ -169,14 +169,14 @@ describe('TurnstileWidget', () => {
     // Simulate error
     const renderCall = mockTurnstile.render.mock.calls[0];
     const callbacks = renderCall[1];
-    
+
     act(() => {
       callbacks['error-callback']();
     });
 
     // Click try again
     const tryAgainButton = screen.getByText('Try again');
-    
+
     act(() => {
       fireEvent.click(tryAgainButton);
     });
@@ -188,7 +188,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should cleanup on unmount', async () => {
-    (loadTurnstileScript as any).mockResolvedValue(undefined);
+    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
 
     const { unmount } = render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
 
@@ -209,7 +209,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should show help text when not verified', async () => {
-    (loadTurnstileScript as any).mockResolvedValue(undefined);
+    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
 
