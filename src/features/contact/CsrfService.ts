@@ -7,7 +7,7 @@ import { randomBytes } from 'crypto';
 export class CsrfService {
   private readonly redis: Redis;
   private readonly tokenPrefix = 'csrf:';
-  private readonly tokenTtlSeconds = 900; // 15 minutes
+  private readonly tokenTtlSeconds = parseInt(process.env.CSRF_TOKEN_TTL_SECONDS || '900', 10);
 
   constructor() {
     const url = process.env.UPSTASH_REDIS_REST_URL;

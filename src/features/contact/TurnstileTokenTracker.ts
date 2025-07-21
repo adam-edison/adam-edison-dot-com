@@ -13,7 +13,7 @@ export interface TokenTrackingResult {
  */
 export class TurnstileTokenTracker {
   private static readonly TOKEN_PREFIX = 'turnstile:used:';
-  private static readonly DEFAULT_EXPIRY_SECONDS = 300; // 5 minutes - typical Turnstile token lifetime
+  private static readonly DEFAULT_EXPIRY_SECONDS = parseInt(process.env.TURNSTILE_TOKEN_EXPIRY_SECONDS || '300', 10);
 
   constructor(private redis: Redis) {}
 

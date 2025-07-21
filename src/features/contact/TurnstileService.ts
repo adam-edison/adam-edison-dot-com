@@ -14,7 +14,7 @@ interface TurnstileVerifyResponse {
 
 export class TurnstileService {
   private static readonly VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
-  private static readonly TIMEOUT_MS = 10000; // 10 seconds
+  private static readonly TIMEOUT_MS = parseInt(process.env.TURNSTILE_TIMEOUT_MS || '10000', 10);
 
   constructor(
     private secretKey: string,
