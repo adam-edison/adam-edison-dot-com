@@ -71,19 +71,18 @@ EMAIL_RECIPIENT_NAME=Your Name
 3. Generate API key from dashboard
 4. Set contact email addresses and display names
 
-#### Spam Protection (reCAPTCHA)
+#### Spam Protection (Cloudflare Turnstile)
 
 ```env
-NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-site-key
-RECAPTCHA_SECRET_KEY=your-secret-key
-RECAPTCHA_SCORE_THRESHOLD=0.5
-NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS=10000
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=your-site-key
+TURNSTILE_SECRET_KEY=your-secret-key
 ```
 
-1. Visit [Google reCAPTCHA Console](https://www.google.com/recaptcha/admin/create)
-2. Create reCAPTCHA v3 site
-3. Add domain (use `localhost` for development)
-4. Copy site key and secret key
+1. Visit [Cloudflare Turnstile Dashboard](https://dash.cloudflare.com/?to=/:account/turnstile)
+2. Create a new Turnstile widget
+3. Select "Managed" mode for checkbox verification
+4. Add your domain (use `localhost` for development)
+5. Copy site key and secret key
 
 #### Rate Limiting (Upstash Redis)
 
@@ -174,7 +173,7 @@ For detailed test scenarios, see [MANUAL-TESTING.md](./MANUAL-TESTING.md).
 ### Communication & Security
 
 - **[Resend](https://resend.com)** - Email delivery service
-- **[reCAPTCHA](https://www.google.com/recaptcha)** - Spam protection
+- **[Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/)** - Spam protection
 - **[Upstash](https://upstash.com)** - Redis for rate limiting
 
 ### Testing & Development
@@ -190,7 +189,7 @@ For detailed test scenarios, see [MANUAL-TESTING.md](./MANUAL-TESTING.md).
 ### Contact Form Features
 
 - **Email Delivery**: Powered by Resend with domain verification
-- **Spam Protection**: reCAPTCHA v3 with configurable score threshold
+- **Spam Protection**: Cloudflare Turnstile with VPN-friendly checkbox mode
 - **Rate Limiting**: Dual-layer protection (per-IP + global) using Upstash Redis
 - **Form Validation**: Client and server-side validation with Zod schemas
 - **Error Handling**: Graceful degradation with detailed error messages
@@ -206,15 +205,15 @@ For detailed test scenarios, see [MANUAL-TESTING.md](./MANUAL-TESTING.md).
 
 - **Resend**: Better deliverability than SMTP, developer-friendly API
 - **Upstash**: Serverless Redis perfect for Next.js/Vercel deployments
-- **reCAPTCHA v3**: Invisible spam protection with risk scoring
+- **Cloudflare Turnstile**: VPN-friendly spam protection with better privacy
 - **Zod**: Type-safe validation that works client and server-side
 
 ## Deployment
 
 ### Environment Setup
 
-- **Development**: Use `localhost` in reCAPTCHA domains
-- **Production**: Update reCAPTCHA domains to include your actual domain
+- **Development**: Use `localhost` in Turnstile domains
+- **Production**: Update Turnstile domains to include your actual domain
 - **Environment Files**: Use `.env.local` for development, configure environment variables in your hosting platform
 
 ### Netlify Deployment

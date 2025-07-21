@@ -64,14 +64,18 @@ The contact form uses **Resend** for email delivery instead of traditional SMTP:
 - **Reply-To**: Automatically set to the form submitter's email
 - **Domain**: Requires domain verification in Resend dashboard for production use
 
-## reCAPTCHA Configuration
+## Turnstile Configuration
 
-The contact form uses Google reCAPTCHA v3 for spam protection:
+The contact form uses Cloudflare Turnstile for spam protection:
 
-- **Site Key**: Set `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` in environment variables
-- **Secret Key**: Set `RECAPTCHA_SECRET_KEY` in environment variables
-- **Score Threshold**: Set `RECAPTCHA_SCORE_THRESHOLD` in environment variables (0.0-1.0)
-- **Timeout**: Set `NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS` in environment variables (milliseconds)
+- **Site Key**: Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in environment variables
+- **Secret Key**: Set `TURNSTILE_SECRET_KEY` in environment variables
+- **Mode**: Checkbox mode with VPN-friendly configuration
+- **Features**:
+  - Manual retry control (`retry: 'never'`)
+  - User-controlled refresh (`refresh-timeout: 'manual'`)
+  - Loads on page render (`execution: 'render'`)
+  - Better for VPN users with clear feedback
 
 ## Rate Limiting Configuration
 
