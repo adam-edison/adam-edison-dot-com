@@ -10,6 +10,21 @@ import { SubmitButton } from './SubmitButton';
 import { TurnstileWidget } from './TurnstileWidget';
 import { logger } from '@/shared/Logger';
 
+interface ServiceStatus {
+  status: 'healthy' | 'degraded' | 'error';
+  services: {
+    email: {
+      enabled: boolean;
+      ready: boolean;
+    };
+    turnstile: {
+      enabled: boolean;
+      ready: boolean;
+      siteKey?: string;
+    };
+  };
+}
+
 interface ContactFormInnerProps {
   className?: string;
 }
@@ -20,6 +35,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const [serviceStatus, setServiceStatus] = useState<ServiceStatus | null>(null);
 
   const {
     register,
@@ -35,20 +51,31 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   const watchedMessage = useWatch({ control, name: 'message' });
 
   useEffect(() => {
-    const fetchCsrfToken = async () => {
+    const fetchServiceData = async () => {
       try {
-        const response = await fetch('/api/csrf-token');
-        if (!response.ok) {
+        // Fetch both CSRF token and service status concurrently
+        const [csrfResponse, serviceResponse] = await Promise.all([
+          fetch('/api/csrf-token'),
+          fetch('/api/email-service-check')
+        ]);
+
+        if (!csrfResponse.ok) {
           throw new Error('Failed to fetch security token');
         }
-        const data = await response.json();
-        setCsrfToken(data.token);
+        if (!serviceResponse.ok) {
+          throw new Error('Failed to fetch service status');
+        }
+
+        const [csrfData, serviceData] = await Promise.all([csrfResponse.json(), serviceResponse.json()]);
+
+        setCsrfToken(csrfData.token);
+        setServiceStatus(serviceData);
       } catch (error) {
         handleUnexpectedError(error);
       }
     };
 
-    fetchCsrfToken();
+    fetchServiceData();
   }, []);
 
   const submitContactForm = async (data: ContactFormData): Promise<Response> => {
@@ -193,9 +220,9 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
       />
 
       {/* Cloudflare Turnstile Widget */}
-      {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+      {serviceStatus?.services.turnstile.enabled && serviceStatus.services.turnstile.siteKey && (
         <TurnstileWidget
-          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+          siteKey={serviceStatus.services.turnstile.siteKey}
           onVerify={handleTurnstileVerify}
           onExpire={handleTurnstileExpire}
           className="my-6"
@@ -204,7 +231,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
       <SubmitButton
         isSubmitting={isSubmitting}
-        disabled={(!turnstileToken && !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) || !csrfToken}
+        disabled={(!turnstileToken && serviceStatus?.services.turnstile.enabled) || !csrfToken || !serviceStatus}
         data-testid="submit-button"
       />
     </form>

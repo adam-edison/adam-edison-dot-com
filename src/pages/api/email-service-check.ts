@@ -1,17 +1,28 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { EmailServiceConfigurationValidator } from '@/shared/EmailServiceConfigurationValidator';
 import { EmailServiceConfigurationFactory } from '@/shared/EmailServiceConfigurationFactory';
+import { TurnstileService } from '@/features/contact/TurnstileService';
 import { RequestValidator } from '@/shared/RequestValidator';
 import { ApiErrorHandler } from '@/shared/ApiErrorHandler';
 import { RequestContext } from '@/shared/RequestContext';
 import { ResponseTimeProtector } from '@/shared/ResponseTimeProtector';
-import { ServiceUnavailableError } from '@/shared/errors';
 
-interface HealthyResponse {
-  status: 'healthy';
+interface ServiceStatusResponse {
+  status: 'healthy' | 'degraded' | 'error';
+  services: {
+    email: {
+      enabled: boolean;
+      ready: boolean;
+    };
+    turnstile: {
+      enabled: boolean;
+      ready: boolean;
+      siteKey?: string;
+    };
+  };
 }
 
-export default function handler(req: NextApiRequest, res: NextApiResponse<HealthyResponse>) {
+export default function handler(req: NextApiRequest, res: NextApiResponse<ServiceStatusResponse>) {
   const requestContext = RequestContext.from(req);
 
   const methodValidation = RequestValidator.validateMethod(req, 'GET');
@@ -22,19 +33,37 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Health
       context: requestContext
     });
 
-  const config = EmailServiceConfigurationFactory.fromEnv();
-  const result = EmailServiceConfigurationValidator.validate(config);
+  // Check Email Service
+  const emailConfig = EmailServiceConfigurationFactory.fromEnv();
+  const emailResult = EmailServiceConfigurationValidator.validate(emailConfig);
 
-  if (result.success) {
-    return res.status(200).json({ status: 'healthy' });
+  // Check Turnstile Service
+  const turnstileEnabled = TurnstileService.isEnabled();
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  let turnstileReady = false;
+
+  if (turnstileEnabled) {
+    const turnstileServiceResult = TurnstileService.fromEnv();
+    turnstileReady = turnstileServiceResult.success;
   }
 
-  const internalMessage = `Email service configuration validation failed: ${result.error.message}`;
-  const clientMessage = 'Email service is not properly configured';
-  const serviceError = new ServiceUnavailableError(clientMessage, { internalMessage });
-  return ApiErrorHandler.handle(res, {
-    error: serviceError,
-    timeProtector: new ResponseTimeProtector(),
-    context: requestContext
-  });
+  const emailReady = emailResult.success;
+  const overallHealthy = emailReady && (!turnstileEnabled || turnstileReady);
+
+  const response: ServiceStatusResponse = {
+    status: overallHealthy ? 'healthy' : 'degraded',
+    services: {
+      email: {
+        enabled: true, // Email is always required
+        ready: emailReady
+      },
+      turnstile: {
+        enabled: turnstileEnabled,
+        ready: turnstileReady,
+        ...(turnstileEnabled && turnstileSiteKey ? { siteKey: turnstileSiteKey } : {})
+      }
+    }
+  };
+
+  return res.status(200).json(response);
 }
