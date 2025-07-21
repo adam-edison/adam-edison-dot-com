@@ -12,7 +12,7 @@ Do the following in this exact order.
 
 2. When you are finished with each current todo, run the following in order, one by one.
    If there are problems reported from any command, fix those problems.
-   Then start again from the beginning of the command list.
+   Then start again from the beginning of the command list (npm run format).
 
 ```bash
 npm run format
