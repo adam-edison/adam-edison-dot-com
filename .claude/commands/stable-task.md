@@ -10,6 +10,9 @@ Do the following in this exact order.
 1. Follow the instructions that were given to you:
    #$ARGUMENTS
 
+   If it is possible to do so, use a TDD approach, writing automated tests first.
+   Do not attempt starting the server in order to verify behavior - instead use an e2e test(with playwright) or a contract test (with supertest) if necessary.
+
 2. When you are finished with each current todo, run the following in order, one by one.
    If there are problems reported from any command, fix those problems.
    Then start again from the beginning of the command list (npm run format).
