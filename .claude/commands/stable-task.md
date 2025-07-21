@@ -1,103 +1,58 @@
 ---
 allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git push:*), Bash(git branch:*), Bash(git log:*), Bash(git diff:*), Bash(npm:*), Editor
-description: Complete development task using TDD approach with proper testing and commit workflow
+description: Complete task in small commits following codebase patterns
 ---
 
 ## Your Task
 
-Complete this development task exactly as specified:
+Complete this development task:
 
 #$ARGUMENTS
 
-## CRITICAL: Do Not Create Your Own Plan
+## Follow Codebase Patterns
 
-- Do NOT create todo lists or your own interpretation of the task
-- Do NOT make technology decisions unless explicitly asked
-- Do NOT add requirements or assumptions beyond what's specified
-- Start implementation immediately following the process below
+Before writing code, examine existing similar code for:
+- Assertion patterns in tests
+- Service/component structure  
+- Error handling approaches
+- File organization
 
-## Required Process - Follow Every Step
+Apply standards from ~/.claude/ files:
+- @~/.claude/CODE_QUALITY.md
+- @~/.claude/ARCHITECTURE.md  
+- @~/.claude/SECURITY.md
 
-**IMPORTANT**: Execute each step completely before moving to the next. Do not skip steps or combine them.
+## Work in Small Increments
 
-### Step 1: Immediate Analysis (No Planning Phase)
+Make one small, logical change at a time. Examples of good increments:
+- Add a new service method
+- Update a component to use new service
+- Fix failing tests
+- Add new test coverage
+- Remove old code
 
-1. Examine the current codebase to understand what exists
-2. Begin implementing the requested changes using TDD
-3. Make changes incrementally without pre-planning the entire approach
+## Quality Process for Each Increment
 
-### Step 2: TDD Implementation Cycle
+1. Make your small change
+2. Run quality checks (fix any failures):
+   ```bash
+   npm run format
+   npm run lint
+   npm run build
+   npm run test:all
+   ```
+3. Commit with conventional format and detailed body
+4. Move to next increment
 
-For each planned change, follow this exact cycle:
+## Critical Rules
 
-**2.1 Test First**
+- ❌ No giant commits with multiple unrelated changes
+- ❌ No elaborate planning or todo lists
+- ✅ Work incrementally - one logical change per commit
+- ✅ Run tests after each change, fix what breaks
+- ✅ Follow existing code patterns exactly
+- ✅ Commit frequently with good messages
 
-- Write or update tests for the expected behavior BEFORE implementing
-- Ensure tests fail initially (red phase)
-- Use existing test patterns and setup from the codebase
-- Prefer contract tests with supertest over server startup
-- Use Playwright e2e tests only when contract tests aren't sufficient
+## Start Implementation
 
-**2.2 Implement**
-
-- Make the minimal code changes to make tests pass (green phase)
-- Keep changes small and focused
-
-**2.3 Quality Checks**
-Run these commands in exact order. If ANY command fails, fix the issue and restart from the beginning:
-
-```bash
-npm run format
-npm run lint
-npm run build
-npm run test:all
-```
-
-**Critical Rule**: You MUST NOT:
-
-- Remove tests
-- Skip tests
-- Comment out tests
-- Bypass test failures
-
-If tests fail, find the root cause and fix it properly.
-
-**2.4 Commit Changes**
-Before committing, gather context:
-
-- Run: `git status`
-- Run: `git diff HEAD`
-- Run: `git branch --show-current`
-- Run: `git log --oneline -10`
-
-Create a conventional commit with format:
-
-```
-<type>: <brief description>
-
-<detailed body explaining:>
-- Problems solved
-- Implementation decisions and reasoning
-- Effects on codebase
-- What changed and why
-```
-
-Use appropriate type: feat, fix, chore, refactor, test, docs, style
-
-### Step 3: Verification and Completion
-
-- Verify all requirements are met
-- Confirm all tests pass
-- Ensure codebase is in stable state
-- Push final changes
-
-## Execution Guidelines
-
-- Start coding immediately after understanding current state
-- Work incrementally with frequent small commits
-- Do not create todo lists, plans, or technology decision summaries
-- Do not start servers to test - use automated tests only
-- Fix any linting, formatting, or build issues immediately
-- Ask for clarification only when requirements are genuinely unclear
-- Do not provide status updates unless blocked and need user intervention
-- Follow the task specification exactly without adding your own interpretation
+Begin with the first logical increment of your task.
