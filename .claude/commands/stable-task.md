@@ -7,22 +7,31 @@ description: Complete the task and verify stable state before commit
 
 Do the following in this exact order.
 
+Do not stop to inform the user of your progress 
+unless you need clarification on requirements, 
+or require user intervention to continue 
+(e.g. adding environment variables to a `.env*` file).
+
 1. Follow the instructions that were given to you:
-  #$ARGUMENTS
 
-  If it is possible to do so, use a TDD approach.
-  First, consider existing tests where the expected behavior will change.
-  Second, consider additional tests you may need to write to verify new behavior.
+#$ARGUMENTS
 
-  Do not attempt starting the server in order to verify behavior.
-  Instead use an a contract test (with supertest).
-  And if that is not going to work due to visibility, consider an e2e test with playwright.
+You must work in small pieces, so that you can make small stable commits as you work through the task at hand. Each commit must be stable, but working in small pieces leaves a commit trail that is easy to review.
 
-  When writing tests, follow the existing setup and patterns in the codebase.
+If it is possible to do so, use a TDD approach.
+First, consider existing tests where the expected behavior will change.
+Second, consider additional tests you may need to write to verify new behavior.
+
+Do not attempt starting the server in order to verify behavior.
+Instead use an a contract test (with supertest).
+And if that is not going to work due to visibility, consider an e2e test with playwright.
+
+When writing tests, follow the existing setup and patterns in the codebase.
 
 2. When you are finished with each current todo, run the following in order, one by one.
-  If there are problems reported from any command, fix those problems.
-  Then start again from the beginning of the command list (npm run format).
+   
+If there are problems reported from any command, fix those problems.
+Then start again from the beginning of the command list (npm run format).
 
 ```bash
 npm run format
