@@ -69,26 +69,30 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
     const result = antiBotService.validateAntiBotData(validationData);
 
-    if (!result.success) {
-      setSubmitStatus('error');
-
-      if (result.error.message === 'Incorrect math answer') {
-        setErrorMessage('Incorrect answer to the security question. Please try again.');
-        generateNewMathChallenge();
-        return false;
-      } else if (result.error.message === 'Form submitted too quickly') {
-        setErrorMessage('Please wait a moment before submitting the form.');
-        return false;
-      } else if (result.error.message === 'Backup field detected') {
-        setErrorMessage('Security verification failed. Please try again.');
-        return false;
-      } else {
-        setErrorMessage('Security verification failed. Please try again.');
-        return false;
-      }
+    if (result.success) {
+      return true;
     }
 
-    return true;
+    setSubmitStatus('error');
+
+    if (result.error.message === 'Incorrect math answer') {
+      setErrorMessage('Incorrect answer to the security question. Please try again.');
+      generateNewMathChallenge();
+      return false;
+    }
+
+    if (result.error.message === 'Form submitted too quickly') {
+      setErrorMessage('Please wait a moment before submitting the form.');
+      return false;
+    }
+
+    if (result.error.message === 'Backup field detected') {
+      setErrorMessage('Security verification failed. Please try again.');
+      return false;
+    }
+
+    setErrorMessage('Security verification failed. Please try again.');
+    return false;
   };
 
   const submitContactForm = async (data: ContactFormData): Promise<Response> => {
@@ -134,21 +138,20 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
     if (error instanceof Error) {
       setErrorMessage(error.message);
-    } else {
-      setErrorMessage('An unexpected error occurred. Please try again.');
+      return;
     }
+
+    setErrorMessage('An unexpected error occurred. Please try again.');
   };
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
 
-    // Validate anti-bot fields first (client-side)
     if (!validateAntiBotFields(data)) {
       setIsSubmitting(false);
       return;
     }
 
-    // Only reset status/error if validation passed
     setSubmitStatus('idle');
     setErrorMessage('');
 
@@ -162,7 +165,6 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
       setSubmitStatus('success');
       reset();
-      // Generate new anti-bot data for next form
       setFormData(antiBotService.createFormInitialData());
     } catch (error) {
       handleUnexpectedError(error);
