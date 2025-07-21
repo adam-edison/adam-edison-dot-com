@@ -94,10 +94,17 @@ UPSTASH_REDIS_REST_TOKEN=your-redis-token
 Optional rate limit configuration:
 
 ```env
-RATE_LIMIT_REQUESTS=5
-RATE_LIMIT_WINDOW=10 m
-GLOBAL_RATE_LIMIT_REQUESTS=10
-GLOBAL_RATE_LIMIT_WINDOW=1 h
+# Per-IP contact form submissions
+CONTACT_IP_RATE_LIMIT_REQUESTS=5
+CONTACT_IP_RATE_LIMIT_WINDOW=10 m
+
+# Total contact form submissions across all users
+CONTACT_GLOBAL_RATE_LIMIT_REQUESTS=10
+CONTACT_GLOBAL_RATE_LIMIT_WINDOW=1 h
+
+# Per-email contact form submissions with Gmail normalization
+CONTACT_EMAIL_RATE_LIMIT_REQUESTS=3
+CONTACT_EMAIL_RATE_LIMIT_WINDOW=1 h
 ```
 
 #### Social Media URLs
@@ -190,16 +197,22 @@ For detailed test scenarios, see [MANUAL-TESTING.md](./MANUAL-TESTING.md).
 
 - **Email Delivery**: Powered by Resend with domain verification
 - **Spam Protection**: Cloudflare Turnstile with VPN-friendly checkbox mode
-- **Rate Limiting**: Dual-layer protection (per-IP + global) using Upstash Redis
+- **Rate Limiting**: Three-layer protection (per-IP + global + per-email) using Upstash Redis
 - **Form Validation**: Client and server-side validation with Zod schemas
 - **Error Handling**: Graceful degradation with detailed error messages
 
 ### Rate Limiting Strategy
 
-- **Per-IP Limits**: Prevent individual abuse (default: 5 requests/10 minutes)
-- **Global Limits**: Protect against distributed attacks (default: 10 requests/hour)
+The contact form uses a three-layer rate limiting approach for comprehensive spam protection:
+
+- **Per-IP Limits**: Prevent individual abuse from specific locations
+- **Global Limits**: Protect against distributed attacks across all users
+- **Per-Email Limits**: Prevent abuse from specific email addresses with smart Gmail normalization
+- **Email Normalization**: Handles Gmail aliases (`user+spam@gmail.com` → `user@gmail.com`) and dot-removal (`u.ser@gmail.com` → `user@gmail.com`)
 - **Sliding Window**: Smooth rate limiting without sudden resets
 - **Fail-Open**: Service remains available if Redis is unavailable
+
+All three limits are checked simultaneously - requests must pass **all** rate limits to succeed. This prevents bypass attempts using multiple IPs, email aliases, or coordinated attacks while maintaining legitimate user access.
 
 ### Why These Technologies?
 

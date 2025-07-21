@@ -7,7 +7,7 @@ test.describe('Rate Limiting', () => {
     await cleanupE2EKeys();
   });
   test('should rate limit after 5 requests in 10 minutes', async ({ request }) => {
-    // This test uses the default rate limiting configuration (5 requests per 10 minutes)
+    // This test uses the configured rate limiting (5 requests per 10 minutes)
     // Set in playwright.config.ts webServer env
 
     const contactData = {

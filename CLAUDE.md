@@ -79,17 +79,22 @@ The contact form uses Cloudflare Turnstile for spam protection:
 
 ## Rate Limiting Configuration
 
-The contact form uses configurable rate limiting with two layers:
+The contact form uses configurable rate limiting with three layers:
 
 **Per-IP Rate Limiting:**
 
-- **Requests**: Set `RATE_LIMIT_REQUESTS` in environment variables (default: 5)
-- **Window**: Set `RATE_LIMIT_WINDOW` in environment variables (default: '10 m')
+- **Requests**: Set `CONTACT_IP_RATE_LIMIT_REQUESTS` in environment variables
+- **Window**: Set `CONTACT_IP_RATE_LIMIT_WINDOW` in environment variables
 
 **Global Rate Limiting:**
 
-- **Requests**: Set `GLOBAL_RATE_LIMIT_REQUESTS` in environment variables (default: 10)
-- **Window**: Set `GLOBAL_RATE_LIMIT_WINDOW` in environment variables (default: '1 h')
+- **Requests**: Set `CONTACT_GLOBAL_RATE_LIMIT_REQUESTS` in environment variables
+- **Window**: Set `CONTACT_GLOBAL_RATE_LIMIT_WINDOW` in environment variables
+
+**Per-Email Rate Limiting:**
+
+- **Requests**: Set `CONTACT_EMAIL_RATE_LIMIT_REQUESTS` in environment variables
+- **Window**: Set `CONTACT_EMAIL_RATE_LIMIT_WINDOW` in environment variables
 
 **Redis**: Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
 

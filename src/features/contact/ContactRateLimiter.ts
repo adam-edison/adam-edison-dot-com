@@ -15,21 +15,21 @@ export class ContactRateLimiter {
 
   static fromEnv(): ContactRateLimiter {
     const globalRateLimiter = RateLimiter.fromEnv({
-      limit: parseInt(process.env.GLOBAL_RATE_LIMIT_REQUESTS!),
-      window: process.env.GLOBAL_RATE_LIMIT_WINDOW!,
+      limit: parseInt(process.env.CONTACT_GLOBAL_RATE_LIMIT_REQUESTS!),
+      window: process.env.CONTACT_GLOBAL_RATE_LIMIT_WINDOW!,
       limitType: 'global'
     });
 
     const ipRateLimiter = RateLimiter.fromEnv({
-      limit: parseInt(process.env.RATE_LIMIT_REQUESTS!),
-      window: process.env.RATE_LIMIT_WINDOW!,
+      limit: parseInt(process.env.CONTACT_IP_RATE_LIMIT_REQUESTS!),
+      window: process.env.CONTACT_IP_RATE_LIMIT_WINDOW!,
       limitType: 'ip'
     });
 
-    // Email rate limiting with more restrictive limits (optional - defaults provided)
+    // Email rate limiting with more restrictive limits (optional - fallback values provided)
     const emailRateLimiter = RateLimiter.fromEnv({
-      limit: parseInt(process.env.EMAIL_RATE_LIMIT_REQUESTS || '3'), // Default: 3 submissions per hour per email
-      window: process.env.EMAIL_RATE_LIMIT_WINDOW || '1 h',
+      limit: parseInt(process.env.CONTACT_EMAIL_RATE_LIMIT_REQUESTS || '3'), // Fallback: 3 submissions per hour per email
+      window: process.env.CONTACT_EMAIL_RATE_LIMIT_WINDOW || '1 h',
       limitType: 'email'
     });
 

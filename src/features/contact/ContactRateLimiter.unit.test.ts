@@ -38,10 +38,10 @@ describe('ContactRateLimiter', () => {
     vi.clearAllMocks();
 
     // Mock environment variables
-    vi.stubEnv('GLOBAL_RATE_LIMIT_REQUESTS', '10');
-    vi.stubEnv('GLOBAL_RATE_LIMIT_WINDOW', '1 h');
-    vi.stubEnv('RATE_LIMIT_REQUESTS', '5');
-    vi.stubEnv('RATE_LIMIT_WINDOW', '10 m');
+    vi.stubEnv('CONTACT_GLOBAL_RATE_LIMIT_REQUESTS', '10');
+    vi.stubEnv('CONTACT_GLOBAL_RATE_LIMIT_WINDOW', '1 h');
+    vi.stubEnv('CONTACT_IP_RATE_LIMIT_REQUESTS', '5');
+    vi.stubEnv('CONTACT_IP_RATE_LIMIT_WINDOW', '10 m');
 
     rateLimiter = ContactRateLimiter.fromEnv();
 
