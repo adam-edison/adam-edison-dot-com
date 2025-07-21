@@ -6,7 +6,7 @@ import { RateLimitError, InternalServerError } from '@/shared/errors';
 export interface RateLimiterOptions {
   limit: number;
   window: string;
-  limitType: 'ip' | 'global';
+  limitType: 'ip' | 'global' | 'email';
 }
 
 export interface RateLimitData {
@@ -20,7 +20,7 @@ export class RateLimiter {
   private dataStore: RateLimiterDataStore;
   private limit: number;
   private window: string;
-  private limitType: 'ip' | 'global';
+  private limitType: 'ip' | 'global' | 'email';
 
   constructor(dataStore: RateLimiterDataStore, { limit, window, limitType }: RateLimiterOptions) {
     this.dataStore = dataStore;

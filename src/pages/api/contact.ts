@@ -44,7 +44,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const ip = RequestValidator.extractClientIp(req);
 
-  const rateLimitResult = await ContactRateLimiter.fromEnv().checkLimits(ip);
+  // Extract email for additional rate limiting (basic validation only for rate limiting)
+  const email = typeof req.body?.email === 'string' ? req.body.email.trim() : undefined;
+
+  const rateLimitResult = await ContactRateLimiter.fromEnv().checkLimits(ip, email);
   if (!rateLimitResult.success) {
     return ApiErrorHandler.handle(res, {
       error: rateLimitResult.error,
