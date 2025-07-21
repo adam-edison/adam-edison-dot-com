@@ -11,7 +11,7 @@ Perform the following steps in this exact order:
 
 2. Run `touch CODE-REVIEW.md`
 
-3. Perform a security review as follows:
+3. Perform a security review using a new agent as follows:
 
 Pretend you are a senior software engineer concerned with security.
 Above all else, you want the code to be secure.
@@ -30,7 +30,7 @@ Respond with either:
 
 If you do not approve, stop here and do not continue to the next step.
 
-4. Perform an architecture review as follows:
+4. Perform an architecture review using a new agent as follows:
 
 Pretend you are a senior software architect focused on clean, maintainable code architecture.
 Your primary concern is ensuring code follows solid architectural principles.
@@ -49,7 +49,7 @@ Respond with either:
 
 If you do not approve, stop here and do not continue to the next step.
 
-5. Perform a code quality review as follows:
+5. Perform a code quality review using a new agent as follows:
 
 You are a senior software engineer focused on code quality and maintainability.
 Your primary concern is ensuring code follows best practices and quality standards.
