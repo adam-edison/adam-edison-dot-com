@@ -15,13 +15,26 @@ You MUST complete this validation process before writing ANY code.
 
 ### Phase 1: Create Initial Todo List
 
-Create a todo list where each item represents exactly one small commit.
+Create a todo list where each item represents one **logical, cohesive change** that can be reviewed as a unit.
 
 **Todo Requirements:**
-- Each todo = one file change or one small logical feature
-- Each todo should take 5-20 lines of code maximum
-- Each todo must be independently committable
-- Follow this pattern: "Add/Update/Remove [specific thing] in [specific file]"
+- Each todo = one logical feature/change that belongs together
+- Each todo should result in a meaningful, reviewable commit
+- Group related changes that serve the same purpose
+- Follow this pattern: "[Action] [logical grouping] to [achieve goal]"
+
+**Examples of GOOD logical groupings:**
+- "Implement UserService with authentication logic and types"
+- "Update form validation to use new validation schema" 
+- "Integrate payment component into checkout flow"
+- "Replace legacy API calls with new GraphQL queries across user features"
+- "Remove deprecated authentication system files and references"
+- "Update documentation and environment configuration for new feature"
+
+**Examples of BAD groupings:**
+- "Add one import statement" (too granular)
+- "Update entire application architecture" (too broad)
+- "Fix validation and add component and update API" (multiple unrelated concerns)
 
 ### Phase 2: Todo Validation Agent
 
@@ -30,30 +43,29 @@ After creating your todo list, validate it using this agent:
 **Todo Validation Agent:**
 
 You are a senior engineering manager reviewing a development plan.
-Your job is to ensure each todo item will result in a small, reviewable commit.
+Your job is to ensure each todo item represents a logical, cohesive change that can be meaningfully reviewed.
 
 Review each todo item and check:
-1. Is it small enough? (5-20 lines of code max)
-2. Is it specific enough? (mentions exact files/components)
-3. Is it independently committable?
-4. Does it follow atomic change principles?
+1. Is it a complete logical unit? (implements one cohesive feature/change)
+2. Are related changes grouped together? (files that change for the same reason)
+3. Is it independently reviewable? (reviewer can understand the complete change)
+4. Does it represent meaningful progress? (not just busy work)
 
 **Examples of BAD todos:**
-- "Update ContactFormInner to use Turnstile instead of AntiBotService" (too big)
-- "Add Turnstile integration" (too vague)
-- "Update validation and form handling" (multiple concerns)
+- "Add one import to UserComponent" (too granular)
+- "Update everything to use new system" (too broad)
+- "Add service and update API and change UI" (multiple unrelated concerns)
 
 **Examples of GOOD todos:**
-- "Add TurnstileService.ts with verifyToken method"
-- "Add Turnstile React component in components/Turnstile.tsx" 
-- "Update ContactFormValidator to accept turnstileToken field"
-- "Remove antiBotData validation from ContactFormValidator"
-- "Update ContactFormInner to import and render Turnstile component"
-- "Remove AntiBotService import from ContactFormInner"
+- "Implement UserService with authentication, error handling, and TypeScript types"
+- "Update FormValidator to replace old validation with new schema validation" 
+- "Integrate PaymentComponent into CheckoutFlow with proper error states and loading"
+- "Replace LegacyAPI with GraphQLAPI in all user management features"
+- "Remove LegacyService files and clean up unused legacy references"
 
 For each todo, respond:
-- "✅ Good todo - appropriately sized and specific"
-- "❌ Bad todo - [specific reason why it's too big/vague/complex]"
+- "✅ Good todo - represents logical, reviewable change"
+- "❌ Bad todo - [specific reason: too granular/too broad/mixed concerns]"
 
 Then provide overall assessment:
 - "✅ Todo list approved - proceed with implementation"  
@@ -69,19 +81,66 @@ If the validation agent rejects your todo list:
 ### Phase 4: Implementation (only after approval)
 
 Once your todo list is approved:
-1. Execute todos one by one
-2. Run quality checks after each todo:
-   ```bash
-   npm run format
-   npm run lint
-   npm run build
-   npm run test:all
-   ```
-3. Create proper commit for each todo completion
+1. Execute todos one by one as logical units
+2. For each todo that adds new code:
+   - **Write comprehensive tests covering:**
+     - Happy path scenarios (expected behavior)
+     - Unhappy path scenarios (error conditions)
+     - Edge cases (boundary conditions, null/undefined inputs)
+     - Integration scenarios (how it works with existing code)
+   - Follow existing test patterns in the codebase
+   - Use proper mocking for external dependencies
+3. For each todo completion:
+   - Run quality checks:
+     ```bash
+     npm run format
+     npm run lint
+     npm run build
+     npm run test:all
+     ```
+   - Create one meaningful commit for the logical grouping
+4. Move to next todo
+
+### Test Requirements for New Code
+
+**Required test scenarios:**
+- **Happy Path**: Normal operation with valid inputs
+- **Error Handling**: Invalid inputs, network failures, API errors
+- **Edge Cases**: Empty strings, null/undefined, boundary values
+- **Integration**: How new code interacts with existing systems
+
+**Test patterns to follow:**
+- Examine existing similar tests for assertion patterns
+- Use same mocking strategies as existing tests
+- Follow existing test file organization and naming
+- Include both unit tests and integration tests where appropriate
+
+**Example test coverage for a new service:**
+```typescript
+describe('UserService', () => {
+  // Happy path
+  it('should authenticate valid user credentials')
+  it('should return user data on successful login')
+  
+  // Error handling  
+  it('should handle invalid credentials gracefully')
+  it('should handle network timeouts')
+  it('should handle malformed API responses')
+  
+  // Edge cases
+  it('should handle empty email input')
+  it('should handle extremely long passwords')
+  it('should handle special characters in credentials')
+  
+  // Integration
+  it('should work with existing session management')
+  it('should integrate with existing error handling')
+})
+```
 
 ### Commit Message Process
 
-Before committing each todo, gather context:
+Before committing each logical grouping, gather context:
 - Run: `git status`
 - Run: `git diff HEAD` 
 - Run: `git branch --show-current`
@@ -89,13 +148,14 @@ Before committing each todo, gather context:
 
 Create conventional commit with this format:
 ```
-<type>: <brief description>
+<type>: <brief description of logical change>
 
-<detailed body with:>
-- Problems solved
+<detailed body explaining:>
+- What logical change was made
+- Why this grouping of changes belongs together
 - Implementation decisions and reasoning  
 - Effects on codebase
-- What changed and why
+- Key files changed and their purpose
 ```
 
 **Commit Types:**
@@ -109,13 +169,17 @@ Create conventional commit with this format:
 
 **Example Good Commit:**
 ```
-feat: add TurnstileService with token verification
+feat: implement user authentication service with JWT validation
 
-- Added TurnstileService.ts following existing service patterns
-- Implements verifyToken method with Cloudflare API integration
-- Returns Result<boolean> type matching codebase error handling
-- Includes proper TypeScript interfaces for API response
-- Added fail-open behavior for empty tokens as specified
+- Added UserService.ts with complete authentication logic
+- Includes TypeScript interfaces for auth API responses
+- Implements token refresh and logout functionality
+- Added proper error handling with Result<User> return type
+- Follows existing service patterns for dependency injection
+- Key files: UserService.ts, auth.d.ts, AuthError.ts
+
+This establishes the core authentication logic that will be integrated
+into the login flow and protected routes in subsequent commits.
 ```
 
 ## START WITH PHASE 1
