@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ContactFormValidator, ContactFormData } from '@/features/contact/ContactFormValidator';
@@ -8,35 +8,27 @@ import { InputField } from './InputField';
 import { TextareaField } from './TextareaField';
 import { SubmitButton } from './SubmitButton';
 import { TurnstileWidget } from './TurnstileWidget';
-import { logger } from '@/shared/Logger';
-
-interface ServiceStatus {
-  status: 'healthy' | 'degraded' | 'error';
-  services: {
-    email: {
-      enabled: boolean;
-      ready: boolean;
-    };
-    turnstile: {
-      enabled: boolean;
-      ready: boolean;
-      siteKey?: string;
-    };
-  };
-}
+import { useServiceStatus } from './ServiceStatusManager';
+import { useFormSubmission } from './FormSubmissionHandler';
+import { useTurnstileManager } from './TurnstileManager';
 
 interface ContactFormInnerProps {
   className?: string;
 }
 
 export function ContactFormInner({ className }: ContactFormInnerProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [csrfToken, setCsrfToken] = useState<string | null>(null);
-  const [serviceStatus, setServiceStatus] = useState<ServiceStatus | null>(null);
+  // Service status and CSRF token management
+  const { serviceStatus, csrfToken, isLoading: servicesLoading, error: servicesError } = useServiceStatus();
 
+  // Form submission state and actions
+  const { isSubmitting, submitStatus, errorMessage, submitForm, resetSubmissionState, setSubmissionError } =
+    useFormSubmission();
+
+  // Turnstile token management
+  const { turnstileToken, handleTurnstileVerify, handleTurnstileExpire, resetTurnstileToken, clearVerificationError } =
+    useTurnstileManager();
+
+  // React Hook Form setup
   const {
     register,
     handleSubmit,
@@ -50,116 +42,57 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
   const watchedMessage = useWatch({ control, name: 'message' });
 
-  useEffect(() => {
-    const fetchServiceData = async () => {
-      try {
-        // Fetch both CSRF token and service status concurrently
-        const [csrfResponse, serviceResponse] = await Promise.all([
-          fetch('/api/csrf-token'),
-          fetch('/api/email-service-check')
-        ]);
-
-        if (!csrfResponse.ok) {
-          throw new Error('Failed to fetch security token');
-        }
-        if (!serviceResponse.ok) {
-          throw new Error('Failed to fetch service status');
-        }
-
-        const [csrfData, serviceData] = await Promise.all([csrfResponse.json(), serviceResponse.json()]);
-
-        setCsrfToken(csrfData.token);
-        setServiceStatus(serviceData);
-      } catch (error) {
-        handleUnexpectedError(error);
-      }
-    };
-
-    fetchServiceData();
-  }, []);
-
-  const submitContactForm = async (data: ContactFormData): Promise<Response> => {
-    if (!turnstileToken) {
-      throw new Error('Please complete the security verification');
-    }
-
-    if (!csrfToken) {
-      throw new Error('A security token is required to send a message');
-    }
-
-    return fetch('/api/contact', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': csrfToken
-      },
-      body: JSON.stringify({
-        ...data,
-        turnstileToken
-      })
-    });
-  };
-
-  const handleApiError = async (response: Response): Promise<void> => {
-    const errorData = await response.json();
-    setSubmitStatus('error');
-    setErrorMessage(errorData.message || 'Failed to send message');
-  };
-
-  const handleUnexpectedError = (error: unknown): void => {
-    logger.error('Contact form submission error:', error);
-    setSubmitStatus('error');
-
-    if (error instanceof Error) {
-      setErrorMessage(error.message);
-      return;
-    }
-
-    setErrorMessage('An unexpected error occurred. Please try again.');
+  // Enhanced Turnstile verification handler that clears related errors
+  const handleEnhancedTurnstileVerify = (token: string) => {
+    handleTurnstileVerify(token);
+    clearVerificationError(errorMessage, resetSubmissionState);
   };
 
   const onSubmit = async (data: ContactFormData) => {
-    setIsSubmitting(true);
-    setSubmitStatus('idle');
-    setErrorMessage('');
+    if (!turnstileToken || !csrfToken) {
+      const message = !turnstileToken
+        ? 'Please complete the security verification'
+        : 'A security token is required to send a message';
+      setSubmissionError(message);
+      return;
+    }
 
     try {
-      const response = await submitContactForm(data);
-
-      if (!response.ok) {
-        await handleApiError(response);
-        return;
+      await submitForm(data, turnstileToken, csrfToken);
+      if (submitStatus !== 'error') {
+        reset();
+        resetTurnstileToken();
       }
-
-      setSubmitStatus('success');
-      reset();
-      setTurnstileToken(null);
-      // Reset Turnstile widget - This is a limitation now.
-      // A full reset would require a page reload.
-    } catch (error) {
-      handleUnexpectedError(error);
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      // Error handling is done in submitForm
     }
   };
 
   const handleSendAnother = () => {
-    setSubmitStatus('idle');
-    setErrorMessage('');
+    resetSubmissionState();
   };
 
-  const handleTurnstileVerify = (token: string) => {
-    setTurnstileToken(token);
-    // Clear any previous verification errors
-    if (submitStatus === 'error' && errorMessage === 'Please complete the security verification') {
-      setSubmitStatus('idle');
-      setErrorMessage('');
-    }
-  };
+  // Handle service loading errors
+  if (servicesError) {
+    return (
+      <div className={className}>
+        <StatusCard variant="error" message={servicesError} showIcon data-testid="services-error" />
+      </div>
+    );
+  }
 
-  const handleTurnstileExpire = () => {
-    setTurnstileToken(null);
-  };
+  // Show loading state while services are being fetched
+  if (servicesLoading) {
+    return (
+      <div className={className}>
+        <div className="animate-pulse space-y-6">
+          <div className="h-10 bg-gray-700 rounded"></div>
+          <div className="h-10 bg-gray-700 rounded"></div>
+          <div className="h-32 bg-gray-700 rounded"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (submitStatus === 'success') {
     return <ContactSuccessMessage className={className} onSendAnother={handleSendAnother} />;
@@ -223,7 +156,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
       {serviceStatus?.services.turnstile.enabled && serviceStatus.services.turnstile.siteKey && (
         <TurnstileWidget
           siteKey={serviceStatus.services.turnstile.siteKey}
-          onVerify={handleTurnstileVerify}
+          onVerify={handleEnhancedTurnstileVerify}
           onExpire={handleTurnstileExpire}
           className="my-6"
         />
