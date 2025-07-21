@@ -1,6 +1,6 @@
 ---
 allowed-tools: Bash(rm:*), Bash(touch:*)
-description: Complete the task and verify stable state before commit
+description: Review the changes on the current branch
 ---
 
 ## Your task
