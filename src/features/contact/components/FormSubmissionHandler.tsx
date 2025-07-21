@@ -10,7 +10,7 @@ export interface FormSubmissionState {
 }
 
 export interface FormSubmissionActions {
-  submitForm: (data: ContactFormData, turnstileToken: string, csrfToken: string) => Promise<void>;
+  submitForm: (data: ContactFormData, turnstileToken: string | null, csrfToken: string) => Promise<void>;
   resetSubmissionState: () => void;
   setSubmissionError: (message: string) => void;
 }
@@ -22,20 +22,22 @@ export function useFormSubmission(): FormSubmissionState & FormSubmissionActions
 
   const submitContactForm = async (
     data: ContactFormData,
-    turnstileToken: string,
+    turnstileToken: string | null,
     csrfToken: string
   ): Promise<Result<void, string>> => {
     try {
+      const requestBody: ContactFormData & { turnstileToken?: string } = { ...data };
+      if (turnstileToken) {
+        requestBody.turnstileToken = turnstileToken;
+      }
+
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken
         },
-        body: JSON.stringify({
-          ...data,
-          turnstileToken
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -51,13 +53,7 @@ export function useFormSubmission(): FormSubmissionState & FormSubmissionActions
     }
   };
 
-  const submitForm = async (data: ContactFormData, turnstileToken: string, csrfToken: string): Promise<void> => {
-    if (!turnstileToken) {
-      setSubmitStatus('error');
-      setErrorMessage('Please complete the security verification');
-      return;
-    }
-
+  const submitForm = async (data: ContactFormData, turnstileToken: string | null, csrfToken: string): Promise<void> => {
     if (!csrfToken) {
       setSubmitStatus('error');
       setErrorMessage('A security token is required to send a message');

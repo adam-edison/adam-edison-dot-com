@@ -153,7 +153,7 @@ describe('TurnstileWidget', () => {
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to load security verification. Please refresh the page.')).toBeInTheDocument();
+      expect(screen.getByText('Failed to load security verification: Failed to load')).toBeInTheDocument();
     });
   });
 

@@ -13,11 +13,26 @@ describe('ContactForm', () => {
     vi.stubEnv('SEND_EMAIL_ENABLED', 'false');
 
     vi.mocked(fetch).mockImplementation(async (url) => {
-      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
-        return new Response(JSON.stringify({ status: 'healthy' }), {
+      if (typeof url === 'string' && url.includes('/api/csrf-token')) {
+        return new Response(JSON.stringify({ token: 'test-csrf-token' }), {
           status: 200,
           statusText: 'OK'
         });
+      }
+      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
+        return new Response(
+          JSON.stringify({
+            status: 'healthy',
+            services: {
+              email: { enabled: true, ready: true },
+              turnstile: { enabled: false, ready: false }
+            }
+          }),
+          {
+            status: 200,
+            statusText: 'OK'
+          }
+        );
       }
 
       return new Response(JSON.stringify({ message: 'Message sent successfully' }), {
@@ -65,7 +80,8 @@ describe('ContactForm', () => {
       expect(fetch).toHaveBeenCalledWith('/api/contact', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': 'test-csrf-token'
         },
         body: expect.stringContaining('"firstName":"John"')
       });
@@ -79,11 +95,26 @@ describe('ContactForm', () => {
   test('should display error message when anti-bot validation fails', async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockImplementation(async (url) => {
-      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
-        return new Response(JSON.stringify({ status: 'healthy' }), {
+      if (typeof url === 'string' && url.includes('/api/csrf-token')) {
+        return new Response(JSON.stringify({ token: 'test-csrf-token' }), {
           status: 200,
           statusText: 'OK'
         });
+      }
+      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
+        return new Response(
+          JSON.stringify({
+            status: 'healthy',
+            services: {
+              email: { enabled: true, ready: true },
+              turnstile: { enabled: false, ready: false }
+            }
+          }),
+          {
+            status: 200,
+            statusText: 'OK'
+          }
+        );
       }
 
       return new Response(JSON.stringify({ message: 'Security verification failed' }), {
@@ -109,11 +140,26 @@ describe('ContactForm', () => {
   test('should display error message when API returns error', async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockImplementation(async (url) => {
-      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
-        return new Response(JSON.stringify({ status: 'healthy' }), {
+      if (typeof url === 'string' && url.includes('/api/csrf-token')) {
+        return new Response(JSON.stringify({ token: 'test-csrf-token' }), {
           status: 200,
           statusText: 'OK'
         });
+      }
+      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
+        return new Response(
+          JSON.stringify({
+            status: 'healthy',
+            services: {
+              email: { enabled: true, ready: true },
+              turnstile: { enabled: false, ready: false }
+            }
+          }),
+          {
+            status: 200,
+            statusText: 'OK'
+          }
+        );
       }
 
       return new Response(JSON.stringify({ message: 'Failed to send message' }), {
@@ -146,11 +192,26 @@ describe('ContactForm', () => {
   test('should display error message when fetch fails', async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockImplementation(async (url) => {
-      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
-        return new Response(JSON.stringify({ status: 'healthy' }), {
+      if (typeof url === 'string' && url.includes('/api/csrf-token')) {
+        return new Response(JSON.stringify({ token: 'test-csrf-token' }), {
           status: 200,
           statusText: 'OK'
         });
+      }
+      if (typeof url === 'string' && url.includes('/api/email-service-check')) {
+        return new Response(
+          JSON.stringify({
+            status: 'healthy',
+            services: {
+              email: { enabled: true, ready: true },
+              turnstile: { enabled: false, ready: false }
+            }
+          }),
+          {
+            status: 200,
+            statusText: 'OK'
+          }
+        );
       }
 
       throw new Error('Network error');

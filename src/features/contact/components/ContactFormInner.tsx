@@ -49,19 +49,24 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   };
 
   const onSubmit = async (data: ContactFormData) => {
-    if (!turnstileToken || !csrfToken) {
-      const message = !turnstileToken
-        ? 'Please complete the security verification'
-        : 'A security token is required to send a message';
+    const turnstileRequired = serviceStatus?.services.turnstile.enabled;
+
+    if ((turnstileRequired && !turnstileToken) || !csrfToken) {
+      const message =
+        turnstileRequired && !turnstileToken
+          ? 'Please complete the security verification'
+          : 'A security token is required to send a message';
       setSubmissionError(message);
       return;
     }
 
     try {
-      await submitForm(data, turnstileToken, csrfToken);
+      await submitForm(data, turnstileRequired ? turnstileToken : null, csrfToken);
       if (submitStatus !== 'error') {
         reset();
-        resetTurnstileToken();
+        if (turnstileRequired) {
+          resetTurnstileToken();
+        }
       }
     } catch {
       // Error handling is done in submitForm
