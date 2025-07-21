@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { TurnstileWidget } from './TurnstileWidget';
 import { loadTurnstileScript } from '../utils/turnstile-loader';
-import { ContactFormInner } from './ContactFormInner';
-import { Result } from '@/shared/Result';
 
 // Mock the turnstile loader
 vi.mock('../utils/turnstile-loader', () => ({
@@ -37,7 +35,7 @@ const mockTurnstile = {
 
 describe('TurnstileWidget Integration Tests', () => {
   const mockSiteKey = 'test-site-key';
-  
+
   beforeEach(() => {
     vi.clearAllMocks();
     (window as typeof window & { turnstile?: typeof mockTurnstile }).turnstile = mockTurnstile;
@@ -55,14 +53,7 @@ describe('TurnstileWidget Integration Tests', () => {
       const onError = vi.fn();
       const onExpire = vi.fn();
 
-      render(
-        <TurnstileWidget
-          siteKey={mockSiteKey}
-          onVerify={onVerify}
-          onError={onError}
-          onExpire={onExpire}
-        />
-      );
+      render(<TurnstileWidget siteKey={mockSiteKey} onVerify={onVerify} onError={onError} onExpire={onExpire} />);
 
       // Phase 1: Initial loading state
       expect(screen.getByText('Loading security verification...')).toBeInTheDocument();
@@ -115,7 +106,7 @@ describe('TurnstileWidget Integration Tests', () => {
     it('should handle script loading failures gracefully with Result pattern', async () => {
       const mockError = new Error('Network failure');
       (loadTurnstileScript as ReturnType<typeof vi.fn>).mockRejectedValue(mockError);
-      
+
       const onVerify = vi.fn();
 
       render(<TurnstileWidget siteKey={mockSiteKey} onVerify={onVerify} />);
@@ -176,9 +167,7 @@ describe('TurnstileWidget Integration Tests', () => {
     });
 
     it('should handle different site keys correctly', async () => {
-      const { rerender } = render(
-        <TurnstileWidget siteKey="site-key-1" onVerify={vi.fn()} />
-      );
+      const { rerender } = render(<TurnstileWidget siteKey="site-key-1" onVerify={vi.fn()} />);
 
       await waitFor(() => {
         expect(mockTurnstile.render).toHaveBeenCalledTimes(1);
@@ -202,7 +191,7 @@ describe('TurnstileWidget Integration Tests', () => {
   describe('Error Recovery Integration', () => {
     it('should properly clean up and reinitialize after multiple failures', async () => {
       const onVerify = vi.fn();
-      
+
       render(<TurnstileWidget siteKey={mockSiteKey} onVerify={onVerify} />);
 
       await waitFor(() => {
@@ -264,9 +253,7 @@ describe('TurnstileWidget Integration Tests', () => {
       const onVerify = vi.fn();
 
       // First mount
-      const { unmount, rerender } = render(
-        <TurnstileWidget siteKey={mockSiteKey} onVerify={onVerify} />
-      );
+      const { unmount } = render(<TurnstileWidget siteKey={mockSiteKey} onVerify={onVerify} />);
 
       await waitFor(() => {
         expect(mockTurnstile.render).toHaveBeenCalledTimes(1);
@@ -277,9 +264,7 @@ describe('TurnstileWidget Integration Tests', () => {
       expect(mockTurnstile.remove).toHaveBeenCalledWith('widget-123');
 
       // Second mount with different props
-      const { unmount: unmount2 } = render(
-        <TurnstileWidget siteKey="different-key" onVerify={vi.fn()} />
-      );
+      const { unmount: unmount2 } = render(<TurnstileWidget siteKey="different-key" onVerify={vi.fn()} />);
 
       mockTurnstile.render.mockReturnValue('widget-456');
 
@@ -311,7 +296,9 @@ describe('TurnstileWidget Integration Tests', () => {
       });
 
       // Check accessibility after load
-      expect(screen.getByText('This verification helps protect against spam while respecting your privacy.')).toBeInTheDocument();
+      expect(
+        screen.getByText('This verification helps protect against spam while respecting your privacy.')
+      ).toBeInTheDocument();
 
       // Simulate error state and check accessibility
       const renderCall = mockTurnstile.render.mock.calls[0];

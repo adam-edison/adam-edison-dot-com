@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis';
 import { Duration, Ratelimit } from '@upstash/ratelimit';
+import { isDurationString } from '@/shared/TypeGuards';
 
 export interface RateLimitResult {
   success: boolean;
@@ -33,6 +34,11 @@ export class RateLimiterDataStore {
   }
 
   async checkRateLimit(identifier: string, limit: number, window: string): Promise<RateLimitResult> {
+    if (!isDurationString(window)) {
+      throw new Error(
+        `Invalid window duration format: ${window}. Expected format: "number unit" (e.g., "10 m", "1 h")`
+      );
+    }
     const windowDuration = window as Duration;
 
     const ratelimit = new Ratelimit({

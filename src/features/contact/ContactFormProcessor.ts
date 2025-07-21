@@ -4,6 +4,7 @@ import { TurnstileService } from './TurnstileService';
 import { ContactFormValidator, ContactFormData } from './ContactFormValidator';
 import { Result } from '@/shared/Result';
 import { ValidationError, InternalServerError } from '@/shared/errors';
+import { isFormDataWithTurnstile, getStringProperty } from '@/shared/TypeGuards';
 
 export type ProcessFormResult = Result<void, ValidationError | InternalServerError>;
 
@@ -40,11 +41,10 @@ export class ContactFormProcessor {
   async processForm(formData: unknown, remoteIp?: string): Promise<ProcessFormResult> {
     // Extract Turnstile token if present
     let turnstileToken: string | undefined;
-    if (typeof formData === 'object' && formData !== null) {
-      const data = formData as Record<string, unknown>;
-      turnstileToken = typeof data.turnstileToken === 'string' ? data.turnstileToken : undefined;
+    if (isFormDataWithTurnstile(formData)) {
+      turnstileToken = getStringProperty(formData, 'turnstileToken');
       // Remove token from form data before validation
-      delete data.turnstileToken;
+      delete formData.turnstileToken;
     }
 
     // Verify Turnstile token if service is enabled
