@@ -17,6 +17,35 @@ export function TurnstileWidget({ siteKey, onVerify, onError, onExpire, classNam
   const [error, setError] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
 
+  const createTurnstileConfig = useCallback(
+    () => ({
+      sitekey: siteKey,
+      theme: 'auto' as const,
+      size: 'normal' as const,
+      retry: 'never' as const, // Manual retry control for VPN users
+      'refresh-timeout': 'manual' as const, // User controls refresh
+      execution: 'render' as const, // Load on page render, not submit
+      callback: (token: string) => {
+        setIsVerified(true);
+        onVerify(token);
+      },
+      'error-callback': () => {
+        setError('Verification failed. Please try again.');
+        setIsVerified(false);
+        onError?.();
+      },
+      'expired-callback': () => {
+        setIsVerified(false);
+        onExpire?.();
+      },
+      'timeout-callback': () => {
+        setError('Verification timed out. Please try again.');
+        setIsVerified(false);
+      }
+    }),
+    [siteKey, onVerify, onError, onExpire]
+  );
+
   const refreshWidget = useCallback(() => {
     // Remove the old widget
     if (widgetIdRef.current && window.turnstile) {
@@ -31,34 +60,10 @@ export function TurnstileWidget({ siteKey, onVerify, onError, onExpire, classNam
 
     // Re-render the widget
     if (containerRef.current && window.turnstile) {
-      widgetIdRef.current = window.turnstile.render(containerRef.current, {
-        sitekey: siteKey,
-        theme: 'auto',
-        size: 'normal',
-        retry: 'never', // Manual retry control for VPN users
-        'refresh-timeout': 'manual', // User controls refresh
-        execution: 'render', // Load on page render, not submit
-        callback: (token: string) => {
-          setIsVerified(true);
-          onVerify(token);
-        },
-        'error-callback': () => {
-          setError('Verification failed. Please try again.');
-          setIsVerified(false);
-          onError?.();
-        },
-        'expired-callback': () => {
-          setIsVerified(false);
-          onExpire?.();
-        },
-        'timeout-callback': () => {
-          setError('Verification timed out. Please try again.');
-          setIsVerified(false);
-        }
-      });
+      widgetIdRef.current = window.turnstile.render(containerRef.current, createTurnstileConfig());
       setIsLoading(false);
     }
-  }, [siteKey, onVerify, onError, onExpire]);
+  }, [createTurnstileConfig]);
 
   useEffect(() => {
     let mounted = true;
@@ -70,31 +75,7 @@ export function TurnstileWidget({ siteKey, onVerify, onError, onExpire, classNam
         if (!mounted) return;
 
         if (containerRef.current && window.turnstile) {
-          widgetIdRef.current = window.turnstile.render(containerRef.current, {
-            sitekey: siteKey,
-            theme: 'auto',
-            size: 'normal',
-            retry: 'never', // Manual retry control for VPN users
-            'refresh-timeout': 'manual', // User controls refresh
-            execution: 'render', // Load on page render, not submit
-            callback: (token: string) => {
-              setIsVerified(true);
-              onVerify(token);
-            },
-            'error-callback': () => {
-              setError('Verification failed. Please try again.');
-              setIsVerified(false);
-              onError?.();
-            },
-            'expired-callback': () => {
-              setIsVerified(false);
-              onExpire?.();
-            },
-            'timeout-callback': () => {
-              setError('Verification timed out. Please try again.');
-              setIsVerified(false);
-            }
-          });
+          widgetIdRef.current = window.turnstile.render(containerRef.current, createTurnstileConfig());
           setIsLoading(false);
         }
       } catch {
@@ -112,7 +93,7 @@ export function TurnstileWidget({ siteKey, onVerify, onError, onExpire, classNam
         window.turnstile.remove(widgetIdRef.current);
       }
     };
-  }, [siteKey, onVerify, onError, onExpire]);
+  }, [createTurnstileConfig]);
 
   return (
     <div className={className}>
