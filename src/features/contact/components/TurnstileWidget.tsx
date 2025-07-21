@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { loadTurnstileScript } from '../utils/turnstile-loader';
+import { Result } from '@/shared/Result';
 import type { TurnstileInstance } from '@/types/turnstile';
 
 interface TurnstileWidgetProps {
@@ -65,27 +66,39 @@ export function TurnstileWidget({ siteKey, onVerify, onError, onExpire, classNam
     }
   }, [createTurnstileConfig]);
 
+  const initializeTurnstile = useCallback(async (): Promise<Result<void, string>> => {
+    try {
+      await loadTurnstileScript();
+
+      if (!containerRef.current || !window.turnstile) {
+        return Result.failure('Turnstile widget container not available');
+      }
+
+      widgetIdRef.current = window.turnstile.render(containerRef.current, createTurnstileConfig());
+      return Result.success();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return Result.failure(`Failed to load security verification: ${errorMessage}`);
+    }
+  }, [createTurnstileConfig]);
+
   useEffect(() => {
     let mounted = true;
 
-    const initializeTurnstile = async () => {
-      try {
-        await loadTurnstileScript();
+    const handleInitialization = async () => {
+      const result = await initializeTurnstile();
 
-        if (!mounted) return;
+      if (!mounted) return;
 
-        if (containerRef.current && window.turnstile) {
-          widgetIdRef.current = window.turnstile.render(containerRef.current, createTurnstileConfig());
-          setIsLoading(false);
-        }
-      } catch {
-        if (!mounted) return;
-        setError('Failed to load security verification. Please refresh the page.');
+      if (result.success) {
+        setIsLoading(false);
+      } else {
+        setError(result.error);
         setIsLoading(false);
       }
     };
 
-    initializeTurnstile();
+    handleInitialization();
 
     return () => {
       mounted = false;
@@ -93,7 +106,7 @@ export function TurnstileWidget({ siteKey, onVerify, onError, onExpire, classNam
         window.turnstile.remove(widgetIdRef.current);
       }
     };
-  }, [createTurnstileConfig]);
+  }, [initializeTurnstile]);
 
   return (
     <div className={className}>

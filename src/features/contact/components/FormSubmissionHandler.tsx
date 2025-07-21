@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ContactFormData } from '@/features/contact/ContactFormValidator';
+import { Result } from '@/shared/Result';
 import { logger } from '@/shared/Logger';
 
 export interface FormSubmissionState {
@@ -23,65 +24,60 @@ export function useFormSubmission(): FormSubmissionState & FormSubmissionActions
     data: ContactFormData,
     turnstileToken: string,
     csrfToken: string
-  ): Promise<Response> => {
-    return fetch('/api/contact', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': csrfToken
-      },
-      body: JSON.stringify({
-        ...data,
-        turnstileToken
-      })
-    });
-  };
+  ): Promise<Result<void, string>> => {
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({
+          ...data,
+          turnstileToken
+        })
+      });
 
-  const handleApiError = async (response: Response): Promise<void> => {
-    const errorData = await response.json();
-    setSubmitStatus('error');
-    setErrorMessage(errorData.message || 'Failed to send message');
-  };
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to send message' }));
+        return Result.failure(errorData.message || 'Failed to send message');
+      }
 
-  const handleUnexpectedError = (error: unknown): void => {
-    logger.error('Contact form submission error:', error);
-    setSubmitStatus('error');
-
-    if (error instanceof Error) {
-      setErrorMessage(error.message);
-      return;
+      return Result.success();
+    } catch (error) {
+      logger.error('Contact form submission error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.';
+      return Result.failure(errorMessage);
     }
-
-    setErrorMessage('An unexpected error occurred. Please try again.');
   };
 
   const submitForm = async (data: ContactFormData, turnstileToken: string, csrfToken: string): Promise<void> => {
     if (!turnstileToken) {
-      throw new Error('Please complete the security verification');
+      setSubmitStatus('error');
+      setErrorMessage('Please complete the security verification');
+      return;
     }
 
     if (!csrfToken) {
-      throw new Error('A security token is required to send a message');
+      setSubmitStatus('error');
+      setErrorMessage('A security token is required to send a message');
+      return;
     }
 
     setIsSubmitting(true);
     setSubmitStatus('idle');
     setErrorMessage('');
 
-    try {
-      const response = await submitContactForm(data, turnstileToken, csrfToken);
+    const result = await submitContactForm(data, turnstileToken, csrfToken);
 
-      if (!response.ok) {
-        await handleApiError(response);
-        return;
-      }
-
+    if (result.success) {
       setSubmitStatus('success');
-    } catch (error) {
-      handleUnexpectedError(error);
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setSubmitStatus('error');
+      setErrorMessage(result.error);
     }
+
+    setIsSubmitting(false);
   };
 
   const resetSubmissionState = () => {
