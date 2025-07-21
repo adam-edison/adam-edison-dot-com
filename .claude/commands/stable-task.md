@@ -109,7 +109,7 @@ Once your todo list is approved:
      npm run test:all
      ```
    - Create one meaningful commit for the logical grouping
-4. Move to next todo
+4. Move to next todo without stopping to ask the user for approval or giving a summary
 
 ### Test Requirements for New Code
 
