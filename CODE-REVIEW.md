@@ -6,7 +6,7 @@
 
 The implementation has several security vulnerabilities that need to be addressed:
 
-#### 1. Missing CSRF Protection
+#### ✅ 1. Missing CSRF Protection
 The contact form API endpoint (`/api/contact`) does not implement CSRF protection. This leaves the endpoint vulnerable to cross-site request forgery attacks where malicious sites could submit forms on behalf of users.
 
 **Required Fix**: Implement CSRF token validation for the contact form submission.
@@ -38,7 +38,8 @@ The rate limiting is only based on IP address, which can be easily bypassed usin
 #### 6. Client-Side Secret Key Exposure Risk
 The code checks for `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in the client-side component. While this is the public key and safe to expose, the naming pattern could lead to accidental exposure of the secret key if developers aren't careful.
 
-**Recommendation**: Add build-time validation to ensure `TURNSTILE_SECRET_KEY` is never prefixed with `NEXT_PUBLIC_`.
+**Recommendation**: Remove this check entirely. And instead add turnstile-related keys to the existing 
+`/email-service-check` endpoint to see if the form is ready to be displayed or not.
 
 #### ✅ 7. Missing API Response Time Protection
 The API doesn't implement consistent response timing, which could allow timing attacks to enumerate valid vs invalid submissions.
