@@ -1,22 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactFormInner } from './ContactFormInner';
-
-// Mock the AntiBotService
-const mockGenerateMathChallenge = vi.fn();
-const mockValidateAntiBotData = vi.fn();
-const mockCreateFormInitialData = vi.fn();
-
-vi.mock('../AntiBotService', () => ({
-  AntiBotService: {
-    create: () => ({
-      generateMathChallenge: mockGenerateMathChallenge,
-      validateAntiBotData: mockValidateAntiBotData,
-      createFormInitialData: mockCreateFormInitialData
-    })
-  }
-}));
 
 // Mock fetch
 global.fetch = vi.fn();
@@ -27,79 +12,23 @@ describe('ContactFormInner', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Default mock implementations
-    mockCreateFormInitialData.mockReturnValue({
-      subject: '',
-      phone: '',
-      formLoadTime: Date.now(),
-      mathAnswer: '',
-      mathNum1: 3,
-      mathNum2: 4
-    });
-
-    mockGenerateMathChallenge.mockReturnValue({
-      num1: 5,
-      num2: 6,
-      question: 'What is 5 + 6?',
-      correctAnswer: 11
-    });
-
-    mockValidateAntiBotData.mockReturnValue({
-      success: true,
-      data: undefined
-    });
-
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ message: 'Success' })
     });
   });
 
-  it('should render backup fields as hidden inputs', () => {
+  it('should render all form fields', () => {
     render(<ContactFormInner />);
 
-    const subject = screen.getByTestId('subject');
-    const phone = screen.getByTestId('phone');
-
-    expect(subject).toBeInTheDocument();
-    expect(subject).toHaveStyle('display: none');
-    expect(subject).toHaveAttribute('tabindex', '-1');
-    expect(subject).toHaveAttribute('autocomplete', 'off');
-
-    expect(phone).toBeInTheDocument();
-    expect(phone).toHaveStyle('display: none');
-    expect(phone).toHaveAttribute('tabindex', '-1');
-    expect(phone).toHaveAttribute('autocomplete', 'off');
+    expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/message/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /send message/i })).toBeInTheDocument();
   });
 
-  it('should render math challenge question', () => {
-    render(<ContactFormInner />);
-
-    expect(screen.getByText('Security Question:')).toBeInTheDocument();
-    expect(screen.getByText('What is 3 + 4?')).toBeInTheDocument();
-    expect(screen.getByLabelText(/What is 3 \+ 4\?/)).toBeInTheDocument();
-  });
-
-  it('should allow user to answer math question', async () => {
-    render(<ContactFormInner />);
-
-    const mathInput = screen.getByLabelText(/What is 3 \+ 4\?/);
-    await user.type(mathInput, '7');
-
-    expect(mathInput).toHaveValue(7);
-  });
-
-  it('should generate new math challenge when wrong answer is submitted', async () => {
-    mockValidateAntiBotData.mockReturnValue({
-      success: false,
-      error: { message: 'Incorrect math answer' }
-    });
-
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ message: 'Incorrect math answer' })
-    });
-
+  it('should submit form successfully with valid data', async () => {
     render(<ContactFormInner />);
 
     // Fill out form
@@ -107,96 +36,6 @@ describe('ContactFormInner', () => {
     await user.type(screen.getByLabelText(/last name/i), 'User');
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/message/i), 'Test message with enough characters to pass validation');
-    await user.type(screen.getByLabelText(/What is 3 \+ 4\?/), '999'); // Wrong answer
-
-    // Submit form
-    await user.click(screen.getByRole('button', { name: /send message/i }));
-
-    await waitFor(() => {
-      expect(mockGenerateMathChallenge).toHaveBeenCalled();
-    });
-
-    // Should show new math question
-    expect(screen.getByText('What is 5 + 6?')).toBeInTheDocument();
-
-    // Form fields should retain values
-    expect(screen.getByDisplayValue('Test')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('User')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('test@example.com')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Test message with enough characters to pass validation')).toBeInTheDocument();
-
-    // Math answer should be cleared
-    const mathInput = screen.getByLabelText(/What is 5 \+ 6\?/);
-    expect(mathInput).toHaveValue(null);
-  });
-
-  it('should not submit form when backup fields are filled', async () => {
-    mockValidateAntiBotData.mockReturnValue({
-      success: false,
-      error: { message: 'Backup field detected' }
-    });
-
-    render(<ContactFormInner />);
-
-    // Simulate bot filling backup field
-    const subject = screen.getByTestId('subject');
-    fireEvent.change(subject, { target: { value: 'bot@spam.com' } });
-
-    // Fill out visible form
-    await user.type(screen.getByLabelText(/first name/i), 'Test');
-    await user.type(screen.getByLabelText(/last name/i), 'User');
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/message/i), 'Test message with enough characters to pass validation');
-    await user.type(screen.getByLabelText(/What is 3 \+ 4\?/), '7');
-
-    // Submit form
-    await user.click(screen.getByRole('button', { name: /send message/i }));
-
-    // Should not make API call
-    await waitFor(() => {
-      expect(global.fetch).not.toHaveBeenCalled();
-    });
-
-    // Should show error message
-    expect(screen.getByText(/security verification failed/i)).toBeInTheDocument();
-  });
-
-  it('should not submit form when submitted too quickly', async () => {
-    mockValidateAntiBotData.mockReturnValue({
-      success: false,
-      error: { message: 'Form submitted too quickly' }
-    });
-
-    render(<ContactFormInner />);
-
-    // Fill out form quickly
-    await user.type(screen.getByLabelText(/first name/i), 'Test');
-    await user.type(screen.getByLabelText(/last name/i), 'User');
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/message/i), 'Test message with enough characters to pass validation');
-    await user.type(screen.getByLabelText(/What is 3 \+ 4\?/), '7');
-
-    // Submit form
-    await user.click(screen.getByRole('button', { name: /send message/i }));
-
-    // Should not make API call
-    await waitFor(() => {
-      expect(global.fetch).not.toHaveBeenCalled();
-    });
-
-    // Should show error message
-    expect(screen.getByText(/please wait a moment before submitting/i)).toBeInTheDocument();
-  });
-
-  it('should submit form successfully with valid anti-bot data', async () => {
-    render(<ContactFormInner />);
-
-    // Fill out form
-    await user.type(screen.getByLabelText(/first name/i), 'Test');
-    await user.type(screen.getByLabelText(/last name/i), 'User');
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/message/i), 'Test message with enough characters to pass validation');
-    await user.type(screen.getByLabelText(/What is 3 \+ 4\?/), '7');
 
     // Submit form
     await user.click(screen.getByRole('button', { name: /send message/i }));
@@ -207,7 +46,12 @@ describe('ContactFormInner', () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: expect.stringContaining('"firstName":"Test"')
+        body: JSON.stringify({
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+          message: 'Test message with enough characters to pass validation'
+        })
       });
     });
 
@@ -215,7 +59,12 @@ describe('ContactFormInner', () => {
     expect(screen.getByText('Message Sent!')).toBeInTheDocument();
   });
 
-  it('should include anti-bot data in form submission', async () => {
+  it('should handle API errors gracefully', async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ message: 'Server error' })
+    });
+
     render(<ContactFormInner />);
 
     // Fill out form
@@ -223,31 +72,69 @@ describe('ContactFormInner', () => {
     await user.type(screen.getByLabelText(/last name/i), 'User');
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/message/i), 'Test message with enough characters to pass validation');
-    await user.type(screen.getByLabelText(/What is 3 \+ 4\?/), '7');
 
     // Submit form
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
+      expect(screen.getByText('Server error')).toBeInTheDocument();
     });
+  });
 
-    const fetchCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    const requestBody = JSON.parse(fetchCall[1].body);
+  it('should handle network errors gracefully', async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'));
 
-    expect(requestBody).toMatchObject({
-      firstName: 'Test',
-      lastName: 'User',
-      email: 'test@example.com',
-      message: 'Test message with enough characters to pass validation',
-      antiBotData: {
-        subject: '',
-        phone: '',
-        formLoadTime: expect.any(Number),
-        mathAnswer: '7',
-        mathNum1: 3,
-        mathNum2: 4
-      }
+    render(<ContactFormInner />);
+
+    // Fill out form
+    await user.type(screen.getByLabelText(/first name/i), 'Test');
+    await user.type(screen.getByLabelText(/last name/i), 'User');
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/message/i), 'Test message with enough characters to pass validation');
+
+    // Submit form
+    await user.click(screen.getByRole('button', { name: /send message/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Network error')).toBeInTheDocument();
+    });
+  });
+
+  it('should disable submit button while submitting', async () => {
+    // Delay the response to observe the loading state
+    (global.fetch as ReturnType<typeof vi.fn>).mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve({
+                ok: true,
+                json: () => Promise.resolve({ message: 'Success' })
+              }),
+            100
+          )
+        )
+    );
+
+    render(<ContactFormInner />);
+
+    // Fill out form
+    await user.type(screen.getByLabelText(/first name/i), 'Test');
+    await user.type(screen.getByLabelText(/last name/i), 'User');
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/message/i), 'Test message with enough characters to pass validation');
+
+    const submitButton = screen.getByRole('button', { name: /send message/i });
+
+    // Submit form
+    await user.click(submitButton);
+
+    // Button should be disabled while submitting
+    expect(submitButton).toBeDisabled();
+    expect(submitButton).toHaveTextContent('Sending...');
+
+    await waitFor(() => {
+      expect(screen.getByText('Message Sent!')).toBeInTheDocument();
     });
   });
 
@@ -259,7 +146,6 @@ describe('ContactFormInner', () => {
     await user.type(screen.getByLabelText(/last name/i), 'User');
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/message/i), 'Test message with enough characters to pass validation');
-    await user.type(screen.getByLabelText(/What is 3 \+ 4\?/), '7');
 
     // Submit form
     await user.click(screen.getByRole('button', { name: /send message/i }));
@@ -276,6 +162,32 @@ describe('ContactFormInner', () => {
     expect(screen.getByLabelText(/last name/i)).toHaveValue('');
     expect(screen.getByLabelText(/email/i)).toHaveValue('');
     expect(screen.getByLabelText(/message/i)).toHaveValue('');
-    expect(screen.getByLabelText(/What is 3 \+ 4\?/)).toHaveValue(null); // New math question
+  });
+
+  it('should show character count for message field', async () => {
+    render(<ContactFormInner />);
+
+    const messageField = screen.getByLabelText(/message/i);
+
+    // Initially should show 0/1000
+    expect(screen.getByText('0/1000')).toBeInTheDocument();
+
+    // Type some text
+    await user.type(messageField, 'Hello world');
+
+    // Should update character count
+    expect(screen.getByText('11/1000')).toBeInTheDocument();
+  });
+
+  it('should validate form fields before submission', async () => {
+    render(<ContactFormInner />);
+
+    // Try to submit without filling fields
+    await user.click(screen.getByRole('button', { name: /send message/i }));
+
+    // Should show validation errors (handled by react-hook-form)
+    await waitFor(() => {
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
   });
 });

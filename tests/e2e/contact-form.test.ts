@@ -34,30 +34,12 @@ test.describe('Contact Form', () => {
   });
 
   test('should successfully submit contact form', async ({ request }) => {
-    // Generate anti-bot data
-    const formLoadTime = Date.now() - 4000; // 4 seconds ago to pass timing validation
-    const mathNum1 = 3;
-    const mathNum2 = 4;
-    const mathAnswer = (mathNum1 + mathNum2).toString();
-
     const contactData = {
       firstName: 'Test',
       lastName: 'User',
       email: 'test@example.com',
       message:
-        'This is a test message for the contact form functionality. It needs to be at least 50 characters long to pass validation.',
-      recaptchaToken: 'dummy-token',
-      mathAnswer: mathAnswer,
-      subject: '', // Empty honeypot field
-      phone: '', // Empty honeypot field
-      antiBotData: {
-        subject: '',
-        phone: '',
-        formLoadTime: formLoadTime,
-        mathAnswer: mathAnswer,
-        mathNum1: mathNum1,
-        mathNum2: mathNum2
-      }
+        'This is a test message for the contact form functionality. It needs to be at least 50 characters long to pass validation.'
     };
 
     const uniqueIP = generateUniqueIP();

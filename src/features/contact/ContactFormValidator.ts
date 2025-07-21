@@ -74,14 +74,7 @@ const contactFormSchema = z.object({
       const domainParts = domain.split('.');
       return domainParts.length >= 2 && domainParts[domainParts.length - 1].length >= 2;
     }, 'Please enter a valid email address'),
-  message: nonWhitespaceString(50, 1000),
-  // Anti-bot fields
-  subject: z.string().optional(),
-  phone: z.string().optional(),
-  mathAnswer: z.string().min(1, 'Please answer the security question'),
-  formLoadTime: z.number().optional(),
-  mathNum1: z.number().optional(),
-  mathNum2: z.number().optional()
+  message: nonWhitespaceString(50, 1000)
 });
 
 export type ContactFormData = z.infer<typeof contactFormSchema>;
@@ -99,32 +92,5 @@ export class ContactFormValidator {
     const validationError = new ValidationError(errorMessage, options);
 
     return Result.failure(validationError);
-  }
-
-  static extractAntiBotData(data: unknown): Result<unknown, ValidationError> {
-    if (typeof data !== 'object' || data === null) {
-      const error = new ValidationError('Invalid request data', {
-        internalMessage: 'Expected object but received: ' + typeof data
-      });
-      return Result.failure(error);
-    }
-
-    const obj = data as Record<string, unknown>;
-    if (!obj.antiBotData) {
-      const error = new ValidationError('Security verification data missing', {
-        internalMessage: 'Missing antiBotData field in request'
-      });
-      return Result.failure(error);
-    }
-
-    return Result.success(obj.antiBotData);
-  }
-
-  static extractFormData(data: unknown): unknown {
-    if (typeof data !== 'object' || data === null) return data;
-    const obj = data as Record<string, unknown>;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { antiBotData, ...formData } = obj;
-    return formData;
   }
 }

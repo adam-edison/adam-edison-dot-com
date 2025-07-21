@@ -4,24 +4,6 @@ import userEvent from '@testing-library/user-event';
 import { ContactForm } from './ContactForm';
 import { logger } from '@/shared/Logger';
 
-// Mock the anti-bot service
-vi.mock('@/features/contact/AntiBotService', () => ({
-  AntiBotService: {
-    create: () => ({
-      generateMathChallenge: () => ({ num1: 3, num2: 4, question: 'What is 3 + 4?', correctAnswer: 7 }),
-      createFormInitialData: () => ({
-        subject: '',
-        phone: '',
-        formLoadTime: Date.now(),
-        mathAnswer: '',
-        mathNum1: 3,
-        mathNum2: 4
-      }),
-      validateAntiBotData: () => ({ success: true, data: undefined })
-    })
-  }
-}));
-
 global.fetch = vi.fn() as unknown as typeof fetch;
 
 describe('ContactForm', () => {
@@ -53,14 +35,6 @@ describe('ContactForm', () => {
       screen.getByLabelText(/message/i),
       'This is a test message with enough characters to meet the minimum requirement.'
     );
-
-    // Fill math answer
-    const mathQuestion = screen.getByTestId('math-question').textContent;
-    const match = mathQuestion?.match(/(\d+) \+ (\d+)/);
-    if (match) {
-      const answer = parseInt(match[1]) + parseInt(match[2]);
-      await user.type(screen.getByTestId('math-answer'), answer.toString());
-    }
   };
 
   test('should render the contact form', async () => {

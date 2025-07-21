@@ -10,30 +10,12 @@ test.describe('Rate Limiting', () => {
     // This test uses the default rate limiting configuration (5 requests per 10 minutes)
     // Set in playwright.config.ts webServer env
 
-    // Generate anti-bot data
-    const formLoadTime = Date.now() - 4000; // 4 seconds ago to pass timing validation
-    const mathNum1 = 5;
-    const mathNum2 = 3;
-    const mathAnswer = '8';
-
     const contactData = {
       firstName: 'Test',
       lastName: 'User',
       email: 'test@example.com',
       message:
-        'This is a test message for the contact form functionality. It needs to be at least 50 characters long to pass validation.',
-      recaptchaToken: 'dummy-token',
-      mathAnswer: mathAnswer,
-      subject: '', // Empty honeypot field
-      phone: '', // Empty honeypot field
-      antiBotData: {
-        subject: '',
-        phone: '',
-        formLoadTime: formLoadTime,
-        mathAnswer: mathAnswer,
-        mathNum1: mathNum1,
-        mathNum2: mathNum2
-      }
+        'This is a test message for the contact form functionality. It needs to be at least 50 characters long to pass validation.'
     };
 
     const uniqueIP = generateUniqueIP();

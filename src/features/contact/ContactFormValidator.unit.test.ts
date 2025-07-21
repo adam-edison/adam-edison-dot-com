@@ -367,79 +367,13 @@ describe('ContactFormValidator', () => {
     });
   });
 
-  describe('anti-bot data extraction', () => {
-    test('should extract anti-bot data when present', () => {
-      const data = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-        antiBotData: {
-          subject: '',
-          phone: '',
-          formLoadTime: Date.now(),
-          mathAnswer: '7',
-          mathNum1: 3,
-          mathNum2: 4
-        }
-      };
-
-      const result = ContactFormValidator.extractAntiBotData(data);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toEqual(data.antiBotData);
-      }
-    });
-
-    test('should fail for missing anti-bot data', () => {
-      const data = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      };
-
-      const result = ContactFormValidator.extractAntiBotData(data);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.message).toBe('Security verification data missing');
-      }
-    });
-
-    test('should extract form data without anti-bot data', () => {
-      const data = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-        antiBotData: {
-          subject: '',
-          phone: '',
-          formLoadTime: Date.now(),
-          mathAnswer: '7',
-          mathNum1: 3,
-          mathNum2: 4
-        }
-      };
-
-      const formData = ContactFormValidator.extractFormData(data);
-      expect(formData).toEqual({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      });
-    });
-  });
-
   describe('static methods', () => {
     test('should validate form data successfully', () => {
       const validData = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-        mathAnswer: '7'
+        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       };
 
       const result = ContactFormValidator.validate(validData);
@@ -468,8 +402,7 @@ describe('ContactFormValidator', () => {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-        mathAnswer: '7'
+        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       };
 
       expect(formData).toBeDefined();

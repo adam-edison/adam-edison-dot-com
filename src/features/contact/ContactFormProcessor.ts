@@ -1,6 +1,5 @@
 import { EmailService } from './EmailService';
 import { InputSanitizer } from './InputSanitizer';
-import { AntiBotService, type AntiBotData } from './AntiBotService';
 import { ContactFormValidator, ContactFormData } from './ContactFormValidator';
 import { Result } from '@/shared/Result';
 import { ValidationError, InternalServerError } from '@/shared/errors';
@@ -8,10 +7,7 @@ import { ValidationError, InternalServerError } from '@/shared/errors';
 export type ProcessFormResult = Result<void, ValidationError | InternalServerError>;
 
 export class ContactFormProcessor {
-  constructor(
-    private emailService: EmailService,
-    private antiBotService: AntiBotService
-  ) {}
+  constructor(private emailService: EmailService) {}
 
   static async fromEnv(): Promise<Result<ContactFormProcessor, InternalServerError>> {
     const emailServiceResult = EmailService.fromEnv();
@@ -23,21 +19,12 @@ export class ContactFormProcessor {
       return Result.failure(serverError);
     }
 
-    const antiBotService = AntiBotService.create();
-
-    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data, antiBotService);
+    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data);
     return Result.success(contactFormProcessor);
   }
 
   async processForm(formData: unknown): Promise<ProcessFormResult> {
-    const antiBotDataResult = ContactFormValidator.extractAntiBotData(formData);
-    if (!antiBotDataResult.success) return Result.failure(antiBotDataResult.error);
-
-    const antiBotVerified = this.antiBotService.validateAntiBotData(antiBotDataResult.data as AntiBotData);
-    if (!antiBotVerified.success) return Result.failure(antiBotVerified.error);
-
-    const formDataOnly = ContactFormValidator.extractFormData(formData);
-    const validatedFormData = ContactFormValidator.validate(formDataOnly);
+    const validatedFormData = ContactFormValidator.validate(formData);
     if (!validatedFormData.success) return Result.failure(validatedFormData.error);
 
     const sanitizedFormData = this.sanitizeFormData(validatedFormData.data);
@@ -55,13 +42,7 @@ export class ContactFormProcessor {
       firstName: InputSanitizer.sanitize(formData.firstName),
       lastName: InputSanitizer.sanitize(formData.lastName),
       email: InputSanitizer.sanitize(formData.email),
-      message: InputSanitizer.sanitize(formData.message),
-      subject: formData.subject,
-      phone: formData.phone,
-      mathAnswer: formData.mathAnswer,
-      formLoadTime: formData.formLoadTime,
-      mathNum1: formData.mathNum1,
-      mathNum2: formData.mathNum2
+      message: InputSanitizer.sanitize(formData.message)
     };
   }
 
