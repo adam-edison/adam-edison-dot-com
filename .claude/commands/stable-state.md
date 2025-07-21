@@ -5,7 +5,7 @@ description: Run comprehensive quality checks and fix any issues using root caus
 
 ## Your Task
 
-Run quality checks and fix any issues found:
+Run quality checks and fix all issues found:
 
 ```bash
 npm run format
@@ -14,17 +14,17 @@ npm run build
 npm run test:all
 ```
 
-Fix any issues based upon the root cause analysis.
-
 ## CRITICAL CONSTRAINTS
 
 - **NO deleting tests** - Tests exist for a reason and must remain
 - **NO skipping tests** - All tests must pass, no commenting out or skipping
 - **NO circumventing test intent** - Fix the underlying issue, don't change test expectations unless truly incorrect
+- **You MUST FIX ALL ISSUES** - To reach stable state, ALL TESTS must pass
 
 ## ROOT CAUSE ANALYSIS APPROACH
 
-Think about the changes made on this branch systematically:
+In order to help you fix each issue more quickly,
+think about the changes made on this branch systematically:
 
 ### 1. Start with Recent Changes
 
