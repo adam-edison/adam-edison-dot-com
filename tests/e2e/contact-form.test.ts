@@ -7,6 +7,11 @@ test.describe('Contact Form', () => {
     await cleanupE2EKeys();
   });
 
+  // Note: These e2e tests don't include Turnstile verification because:
+  // 1. Turnstile requires a real browser environment with the widget loaded
+  // 2. The API can work without Turnstile when TURNSTILE_SECRET_KEY is not configured
+  // 3. Turnstile functionality is thoroughly tested in unit and integration tests
+
   test('should show error when email service is not configured', async ({ page }) => {
     // Mock the email service check to return error state (503 status)
     await page.route('/api/email-service-check', (route) => {
