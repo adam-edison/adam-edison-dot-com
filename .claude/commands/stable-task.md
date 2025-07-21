@@ -1,6 +1,6 @@
 ---
 allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git push:*), Bash(git branch:*), Bash(git log:*), Bash(git diff:*), Bash(npm:*), Editor
-description: Complete task in small commits following codebase patterns
+description: Create and validate proper todo list before any implementation
 ---
 
 ## Your Task
@@ -9,50 +9,70 @@ Complete this development task:
 
 #$ARGUMENTS
 
-## Follow Codebase Patterns
+## MANDATORY TODO VALIDATION PROCESS
 
-Before writing code, examine existing similar code for:
-- Assertion patterns in tests
-- Service/component structure  
-- Error handling approaches
-- File organization
+You MUST complete this validation process before writing ANY code.
 
-Apply standards from ~/.claude/ files:
-- @~/.claude/CODE_QUALITY.md
-- @~/.claude/ARCHITECTURE.md  
-- @~/.claude/SECURITY.md
+### Phase 1: Create Initial Todo List
 
-## Work in Small Increments
+Create a todo list where each item represents exactly one small commit.
 
-Make one small, logical change at a time. Examples of good increments:
-- Add a new service method
-- Update a component to use new service
-- Fix failing tests
-- Add new test coverage
-- Remove old code
+**Todo Requirements:**
+- Each todo = one file change or one small logical feature
+- Each todo should take 5-20 lines of code maximum
+- Each todo must be independently committable
+- Follow this pattern: "Add/Update/Remove [specific thing] in [specific file]"
 
-## Quality Process for Each Increment
+### Phase 2: Todo Validation Agent
 
-1. Make your small change
-2. Run quality checks (fix any failures):
-   ```bash
-   npm run format
-   npm run lint
-   npm run build
-   npm run test:all
-   ```
-3. Commit with conventional format and detailed body
-4. Move to next increment
+After creating your todo list, validate it using this agent:
 
-## Critical Rules
+**Todo Validation Agent:**
 
-- ❌ No giant commits with multiple unrelated changes
-- ❌ No elaborate planning or todo lists
-- ✅ Work incrementally - one logical change per commit
-- ✅ Run tests after each change, fix what breaks
-- ✅ Follow existing code patterns exactly
-- ✅ Commit frequently with good messages
+You are a senior engineering manager reviewing a development plan.
+Your job is to ensure each todo item will result in a small, reviewable commit.
 
-## Start Implementation
+Review each todo item and check:
+1. Is it small enough? (5-20 lines of code max)
+2. Is it specific enough? (mentions exact files/components)
+3. Is it independently committable?
+4. Does it follow atomic change principles?
 
-Begin with the first logical increment of your task.
+**Examples of BAD todos:**
+- "Update ContactFormInner to use Turnstile instead of AntiBotService" (too big)
+- "Add Turnstile integration" (too vague)
+- "Update validation and form handling" (multiple concerns)
+
+**Examples of GOOD todos:**
+- "Add TurnstileService.ts with verifyToken method"
+- "Add Turnstile React component in components/Turnstile.tsx" 
+- "Update ContactFormValidator to accept turnstileToken field"
+- "Remove antiBotData validation from ContactFormValidator"
+- "Update ContactFormInner to import and render Turnstile component"
+- "Remove AntiBotService import from ContactFormInner"
+
+For each todo, respond:
+- "✅ Good todo - appropriately sized and specific"
+- "❌ Bad todo - [specific reason why it's too big/vague/complex]"
+
+Then provide overall assessment:
+- "✅ Todo list approved - proceed with implementation"  
+- "❌ Todo list needs revision - fix the marked items and re-validate"
+
+### Phase 3: Todo Revision (if needed)
+
+If the validation agent rejects your todo list:
+1. Fix the specific issues identified
+2. Re-run the validation agent
+3. Repeat until approved
+
+### Phase 4: Implementation (only after approval)
+
+Once your todo list is approved:
+1. Execute todos one by one
+2. Commit after each todo completion
+3. Run quality checks between todos
+
+## START WITH PHASE 1
+
+Create your initial todo list now.
