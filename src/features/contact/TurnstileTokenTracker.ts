@@ -1,4 +1,5 @@
 import { Redis } from '@upstash/redis';
+import { createHash } from 'crypto';
 import { logger } from '@/shared/Logger';
 
 export interface TokenTrackingResult {
@@ -85,15 +86,8 @@ export class TurnstileTokenTracker {
    * Don't store the actual token in Redis
    */
   private hashToken(token: string): string {
-    // Simple hash using Node.js crypto would be better, but keeping dependencies minimal
-    // This is just for key generation, not cryptographic security
-    let hash = 0;
-    for (let i = 0; i < token.length; i++) {
-      const char = token.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash).toString(36);
+    // Use SHA-256 for secure, consistent hashing
+    return createHash('sha256').update(token).digest('hex').substring(0, 16);
   }
 
   /**
