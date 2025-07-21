@@ -45,6 +45,8 @@ function checkEnvironmentVariables(): void {
       console.error(`   - ${varName}`);
     });
     console.error('\nPlease ensure all variables from .env.example are configured.');
+    console.error('\nIn your local environment, check .env.local file.');
+    console.error('\nIn your production environment, check deployment environment variables and secrets.');
     process.exit(1);
   }
 
