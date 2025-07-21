@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ContactFormValidator, ContactFormData } from '@/features/contact/ContactFormValidator';
@@ -7,6 +7,7 @@ import { StatusCard } from '@/shared/components/ui/StatusCard';
 import { InputField } from './InputField';
 import { TextareaField } from './TextareaField';
 import { SubmitButton } from './SubmitButton';
+import { TurnstileWidget } from './TurnstileWidget';
 import { logger } from '@/shared/Logger';
 
 interface ContactFormInnerProps {
@@ -17,6 +18,8 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileResetRef = useRef<(() => void) | null>(null);
 
   const {
     register,
@@ -32,12 +35,19 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   const watchedMessage = useWatch({ control, name: 'message' });
 
   const submitContactForm = async (data: ContactFormData): Promise<Response> => {
+    if (!turnstileToken) {
+      throw new Error('Please complete the security verification');
+    }
+
     return fetch('/api/contact', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify({
+        ...data,
+        turnstileToken
+      })
     });
   };
 
@@ -60,6 +70,12 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   };
 
   const onSubmit = async (data: ContactFormData) => {
+    if (!turnstileToken) {
+      setSubmitStatus('error');
+      setErrorMessage('Please complete the security verification');
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitStatus('idle');
     setErrorMessage('');
@@ -74,6 +90,11 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
       setSubmitStatus('success');
       reset();
+      setTurnstileToken(null);
+      // Reset Turnstile widget
+      if (turnstileResetRef.current) {
+        turnstileResetRef.current();
+      }
     } catch (error) {
       handleUnexpectedError(error);
     } finally {
@@ -84,6 +105,20 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   const handleSendAnother = () => {
     setSubmitStatus('idle');
     setErrorMessage('');
+    setTurnstileToken(null);
+  };
+
+  const handleTurnstileVerify = (token: string) => {
+    setTurnstileToken(token);
+    // Clear any previous verification errors
+    if (submitStatus === 'error' && errorMessage === 'Please complete the security verification') {
+      setSubmitStatus('idle');
+      setErrorMessage('');
+    }
+  };
+
+  const handleTurnstileExpire = () => {
+    setTurnstileToken(null);
   };
 
   if (submitStatus === 'success') {
@@ -144,7 +179,21 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         data-testid="contact-message"
       />
 
-      <SubmitButton isSubmitting={isSubmitting} data-testid="submit-button" />
+      {/* Cloudflare Turnstile Widget */}
+      {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+        <TurnstileWidget
+          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+          onVerify={handleTurnstileVerify}
+          onExpire={handleTurnstileExpire}
+          className="my-6"
+        />
+      )}
+
+      <SubmitButton
+        isSubmitting={isSubmitting}
+        disabled={!turnstileToken && !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+        data-testid="submit-button"
+      />
     </form>
   );
 }

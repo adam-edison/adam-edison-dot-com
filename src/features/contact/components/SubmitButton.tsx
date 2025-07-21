@@ -27,7 +27,7 @@ export function SubmitButton({ isSubmitting, disabled = false, 'data-testid': da
           Sending...
         </div>
       ) : disabled ? (
-        'Loading security verification...'
+        'Complete security verification to submit'
       ) : (
         'Send Message'
       )}
