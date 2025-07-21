@@ -15,14 +15,14 @@ export class ContactRateLimiter {
 
   static fromEnv(): ContactRateLimiter {
     const globalRateLimiter = RateLimiter.fromEnv({
-      limit: parseInt(process.env.CONTACT_GLOBAL_RATE_LIMIT_REQUESTS!),
-      window: process.env.CONTACT_GLOBAL_RATE_LIMIT_WINDOW!,
+      limit: parseInt(process.env.CONTACT_GLOBAL_RATE_LIMIT_REQUESTS || '10'),
+      window: process.env.CONTACT_GLOBAL_RATE_LIMIT_WINDOW || '1 h',
       limitType: 'global'
     });
 
     const ipRateLimiter = RateLimiter.fromEnv({
-      limit: parseInt(process.env.CONTACT_IP_RATE_LIMIT_REQUESTS!),
-      window: process.env.CONTACT_IP_RATE_LIMIT_WINDOW!,
+      limit: parseInt(process.env.CONTACT_IP_RATE_LIMIT_REQUESTS || '5'),
+      window: process.env.CONTACT_IP_RATE_LIMIT_WINDOW || '10 m',
       limitType: 'ip'
     });
 
