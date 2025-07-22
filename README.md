@@ -91,7 +91,7 @@ UPSTASH_REDIS_REST_URL=https://your-redis-instance.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your-redis-token
 ```
 
-Optional rate limit configuration:
+Rate limit configuration:
 
 ```env
 # Per-IP contact form submissions

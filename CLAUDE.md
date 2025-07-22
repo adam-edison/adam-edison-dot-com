@@ -68,6 +68,7 @@ The contact form uses **Resend** for email delivery instead of traditional SMTP:
 
 The contact form uses Cloudflare Turnstile for spam protection:
 
+- **Enabled**: Set `TURNSTILE_ENABLED` to `'true'` to enable Turnstile (defaults to disabled)
 - **Site Key**: Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in environment variables
 - **Secret Key**: Set `TURNSTILE_SECRET_KEY` in environment variables
 - **Mode**: Checkbox mode with VPN-friendly configuration
