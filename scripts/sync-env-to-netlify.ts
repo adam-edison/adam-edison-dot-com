@@ -22,6 +22,21 @@ interface EnvVariable {
   masked: string;
 }
 
+interface SyncResult {
+  successCount: number;
+  errorCount: number;
+  skippedCount: number;
+  removedCount: number;
+  removeErrorCount: number;
+}
+
+interface EnvComparison {
+  newVars: number;
+  updatedVars: number;
+  unchangedVars: number;
+  removedVars: string[];
+}
+
 // ANSI color codes
 const colors = {
   reset: '\x1b[0m',
@@ -33,6 +48,44 @@ const colors = {
   blue: '\x1b[34m',
   cyan: '\x1b[36m'
 };
+
+// Helper functions for colorized output
+function colorize(text: string, color: string): string {
+  return `${color}${text}${colors.reset}`;
+}
+
+function success(text: string): string {
+  return colorize(text, colors.green);
+}
+
+function error(text: string): string {
+  return colorize(text, colors.red);
+}
+
+function warning(text: string): string {
+  return colorize(text, colors.yellow);
+}
+
+function info(text: string): string {
+  return colorize(text, colors.cyan);
+}
+
+function dim(text: string): string {
+  return colorize(text, colors.dim);
+}
+
+function bright(text: string): string {
+  return colorize(text, colors.bright);
+}
+
+function title(text: string): string {
+  return colorize(text, colors.bright + colors.blue);
+}
+
+function getColorizedString(action: string, key: string, value: string, actionColor: string): string {
+  const paddedAction = action.padEnd(10);
+  return `  ${colorize(paddedAction, actionColor)} ${info(key)} = ${dim(value)}`;
+}
 
 function maskValue(value: string): string {
   if (!value) return '(empty)';
@@ -90,55 +143,39 @@ function checkNetlifyLink(): boolean {
   }
 }
 
-async function promptUser(question: string): Promise<boolean> {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
-  return new Promise((resolve) => {
-    rl.question(question, (answer) => {
-      rl.close();
-      resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
-    });
-  });
-}
-
-async function main() {
-  console.log(`\n${colors.bright}${colors.blue}Netlify Environment Variable Sync${colors.reset}\n`);
-
-  // Check prerequisites
-  console.log(`${colors.yellow}Checking prerequisites...${colors.reset}`);
+function validatePrerequisites(): void {
+  console.log(warning('Checking prerequisites...'));
 
   if (!checkNetlifyCLI()) {
-    console.error(`${colors.red}✗ Netlify CLI not found${colors.reset}`);
+    console.error(error('✗ Netlify CLI not found'));
     console.log(`\nPlease install Netlify CLI first:`);
-    console.log(`${colors.cyan}https://docs.netlify.com/cli/get-started/${colors.reset}\n`);
+    console.log(info('https://docs.netlify.com/cli/get-started/') + '\n');
     process.exit(1);
   }
-  console.log(`${colors.green}✓ Netlify CLI installed${colors.reset}`);
+  console.log(success('✓ Netlify CLI installed'));
 
   if (!checkNetlifyAuth()) {
-    console.error(`${colors.red}✗ Not logged into Netlify${colors.reset}`);
+    console.error(error('✗ Not logged into Netlify'));
     console.log(`\nPlease login first:`);
-    console.log(`${colors.cyan}netlify login${colors.reset}\n`);
+    console.log(info('netlify login') + '\n');
     process.exit(1);
   }
-  console.log(`${colors.green}✓ Logged into Netlify${colors.reset}`);
+  console.log(success('✓ Logged into Netlify'));
 
   if (!checkNetlifyLink()) {
-    console.error(`${colors.red}✗ Site not linked${colors.reset}`);
+    console.error(error('✗ Site not linked'));
     console.log(`\nPlease link your site first:`);
-    console.log(`${colors.cyan}netlify link${colors.reset}\n`);
+    console.log(info('netlify link') + '\n');
     process.exit(1);
   }
-  console.log(`${colors.green}✓ Site linked${colors.reset}`);
+  console.log(success('✓ Site linked'));
+}
 
-  // Load .env.prod
+function loadEnvironmentVariables(): EnvVariable[] {
   const envPath = path.join(process.cwd(), '.env.prod');
 
   if (!fs.existsSync(envPath)) {
-    console.error(`\n${colors.red}✗ .env.prod file not found${colors.reset}`);
+    console.error('\n' + error('✗ .env.prod file not found'));
     console.log(`Please create a .env.prod file in the project root.`);
     process.exit(1);
   }
@@ -146,7 +183,7 @@ async function main() {
   const envConfig = dotenv.config({ path: envPath, quiet: true });
 
   if (envConfig.error) {
-    console.error(`\n${colors.red}✗ Error parsing .env.prod:${colors.reset}`, envConfig.error);
+    console.error('\n' + error('✗ Error parsing .env.prod:'), envConfig.error);
     process.exit(1);
   }
 
@@ -161,12 +198,15 @@ async function main() {
   }
 
   if (envVars.length === 0) {
-    console.log(`\n${colors.yellow}No environment variables found in .env.prod${colors.reset}`);
+    console.log('\n' + warning('No environment variables found in .env.prod'));
     process.exit(0);
   }
 
-  // Get current Netlify env vars for comparison
-  console.log(`\n${colors.yellow}Fetching current Netlify environment variables...${colors.reset}`);
+  return envVars;
+}
+
+function fetchNetlifyEnvironmentVariables(): Record<string, string> {
+  console.log('\n' + warning('Fetching current Netlify environment variables...'));
 
   const currentEnvVars: Record<string, string> = {};
   try {
@@ -179,44 +219,32 @@ async function main() {
       Object.entries(envList).forEach(([key, value]) => {
         currentEnvVars[key] = typeof value === 'string' ? value : '';
       });
-      console.log(
-        `${colors.green}Successfully fetched ${Object.keys(currentEnvVars).length} environment variables${colors.reset}`
-      );
+      console.log(success(`Successfully fetched ${Object.keys(currentEnvVars).length} environment variables`));
     } else {
-      console.log(`${colors.yellow}Unexpected JSON format from netlify env:list${colors.reset}`);
+      console.log(warning('Unexpected JSON format from netlify env:list'));
     }
   } catch (error) {
-    console.log(`${colors.yellow}Could not fetch current environment variables${colors.reset}`);
+    console.log(warning('Could not fetch current environment variables'));
     if (error instanceof Error) {
-      console.log(`${colors.dim}Error: ${error.message}${colors.reset}`);
+      console.log(dim(`Error: ${error.message}`));
     }
-    console.log(`${colors.dim}Proceeding without comparison to current values...${colors.reset}`);
+    console.log(dim('Proceeding without comparison to current values...'));
   }
 
-  // Display dry run results
-  console.log(`\n${colors.bright}${colors.blue}DRY RUN - Environment Variable Changes:${colors.reset}\n`);
+  return currentEnvVars;
+}
 
-  const maxKeyLength = Math.max(...envVars.map((v) => v.key.length));
-
+function compareEnvironmentVariables(envVars: EnvVariable[], currentEnvVars: Record<string, string>): EnvComparison {
   let newVars = 0;
   let updatedVars = 0;
   let unchangedVars = 0;
 
-  envVars.forEach(({ key, masked }) => {
-    const paddedKey = key.padEnd(maxKeyLength);
-
+  envVars.forEach(({ key, value }) => {
     if (!(key in currentEnvVars)) {
-      console.log(
-        `  ${colors.green}+ NEW${colors.reset}      ${colors.cyan}${paddedKey}${colors.reset} = ${colors.dim}${masked}${colors.reset}`
-      );
       newVars++;
-    } else if (currentEnvVars[key] !== envVars.find((v) => v.key === key)?.value) {
-      console.log(
-        `  ${colors.yellow}~ UPDATE${colors.reset}   ${colors.cyan}${paddedKey}${colors.reset} = ${colors.dim}${masked}${colors.reset}`
-      );
+    } else if (currentEnvVars[key] !== value) {
       updatedVars++;
     } else {
-      console.log(`  ${colors.dim}  NO CHANGE ${paddedKey} = ${masked}${colors.reset}`);
       unchangedVars++;
     }
   });
@@ -229,43 +257,114 @@ async function main() {
     }
   });
 
-  if (removedVars.length > 0) {
-    console.log(`\n${colors.red}Variables that exist in Netlify but NOT in .env.prod:${colors.reset}`);
-    removedVars.forEach((key) => {
-      console.log(`  ${colors.red}- REMOVE${colors.reset}   ${colors.cyan}${key}${colors.reset}`);
+  return { newVars, updatedVars, unchangedVars, removedVars };
+}
+
+function displayDryRunResults(
+  envVars: EnvVariable[],
+  currentEnvVars: Record<string, string>,
+  comparison: EnvComparison
+): void {
+  console.log('\n' + title('DRY RUN - Environment Variable Changes:') + '\n');
+
+  const maxKeyLength = Math.max(...envVars.map((v) => v.key.length));
+
+  envVars.forEach(({ key, value, masked }) => {
+    const paddedKey = key.padEnd(maxKeyLength);
+
+    if (!(key in currentEnvVars)) {
+      console.log(getColorizedString('+ NEW', paddedKey, masked, colors.green));
+    } else if (currentEnvVars[key] !== value) {
+      console.log(getColorizedString('~ UPDATE', paddedKey, masked, colors.yellow));
+    } else {
+      console.log(getColorizedString('NO CHANGE', paddedKey, masked, colors.dim));
+    }
+  });
+
+  if (comparison.removedVars.length > 0) {
+    console.log('\n' + error('Variables that exist in Netlify but NOT in .env.prod:'));
+    comparison.removedVars.forEach((key) => {
+      console.log(getColorizedString('- REMOVE', key, '', colors.red));
     });
   }
 
-  console.log(`\n${colors.bright}Summary:${colors.reset}`);
-  console.log(`  ${colors.green}${newVars} new variables${colors.reset}`);
-  console.log(`  ${colors.yellow}${updatedVars} variables to update${colors.reset}`);
-  console.log(`  ${colors.dim}${unchangedVars} unchanged variables${colors.reset}`);
-  if (removedVars.length > 0) {
-    console.log(`  ${colors.red}${removedVars.length} variables to remove${colors.reset}`);
+  console.log('\n' + bright('Summary:'));
+  console.log(`  ${success(comparison.newVars + ' new variables')}`);
+  console.log(`  ${warning(comparison.updatedVars + ' variables to update')}`);
+  console.log(`  ${dim(comparison.unchangedVars + ' unchanged variables')}`);
+  if (comparison.removedVars.length > 0) {
+    console.log(`  ${error(comparison.removedVars.length + ' variables to remove')}`);
   }
 
-  console.log(`\n${colors.yellow}⚠️  This is a DRY RUN preview.${colors.reset}`);
-  console.log(
-    `The values shown above will be synced from your local ${colors.cyan}.env.prod${colors.reset} file to Netlify.`
-  );
+  console.log('\n' + warning('⚠️  This is a DRY RUN preview.'));
+  console.log(`The values shown above will be synced from your local ${info('.env.prod')} file to Netlify.`);
 
-  if (removedVars.length > 0) {
-    console.log(`${colors.red}Variables marked for removal will be deleted from Netlify.${colors.reset}`);
+  if (comparison.removedVars.length > 0) {
+    console.log(error('Variables marked for removal will be deleted from Netlify.'));
   }
 
   console.log('');
+}
 
-  const confirmed = await promptUser(
-    `${colors.bright}Do you want to proceed with these changes? (y/N): ${colors.reset}`
-  );
+async function promptUser(question: string): Promise<boolean> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
+    });
+  });
+}
+
+async function confirmOperation(): Promise<void> {
+  const confirmed = await promptUser(bright('Do you want to proceed with these changes? (y/N): '));
 
   if (!confirmed) {
-    console.log(`\n${colors.yellow}Operation cancelled.${colors.reset}`);
+    console.log('\n' + warning('Operation cancelled.'));
     process.exit(0);
   }
+}
 
-  // Sync variables
-  console.log(`\n${colors.bright}Syncing environment variables...${colors.reset}\n`);
+function syncEnvironmentVariable(key: string, value: string): void {
+  try {
+    // Use netlify env:set command
+    execSync(`netlify env:set ${key} "${value.replace(/"/g, '\\"')}"`, {
+      stdio: 'ignore',
+      encoding: 'utf8'
+    });
+    console.log(success('✓'));
+  } catch (err) {
+    console.log(error('✗'));
+    if (err instanceof Error) {
+      console.error(`    ${error('Error: ' + err.message)}`);
+    }
+    throw err;
+  }
+}
+
+function removeEnvironmentVariable(key: string): void {
+  try {
+    // Use netlify env:unset command
+    execSync(`netlify env:unset ${key}`, {
+      stdio: 'ignore',
+      encoding: 'utf8'
+    });
+    console.log(success('✓'));
+  } catch (err) {
+    console.log(error('✗'));
+    if (err instanceof Error) {
+      console.error(`    ${error('Error: ' + err.message)}`);
+    }
+    throw err;
+  }
+}
+
+function syncEnvironmentVariables(envVars: EnvVariable[], currentEnvVars: Record<string, string>): SyncResult {
+  console.log('\n' + bright('Syncing environment variables...') + '\n');
 
   let successCount = 0;
   let errorCount = 0;
@@ -280,84 +379,92 @@ async function main() {
 
     try {
       const action = !(key in currentEnvVars) ? 'Creating' : 'Updating';
-      process.stdout.write(`  ${action} ${colors.cyan}${key}${colors.reset}... `);
+      process.stdout.write(`  ${action} ${info(key)}... `);
 
-      // Use netlify env:set command
-      execSync(`netlify env:set ${key} "${value.replace(/"/g, '\\"')}"`, {
-        stdio: 'ignore',
-        encoding: 'utf8'
-      });
-
-      console.log(`${colors.green}✓${colors.reset}`);
+      syncEnvironmentVariable(key, value);
       successCount++;
-    } catch (error) {
-      console.log(`${colors.red}✗${colors.reset}`);
+    } catch {
       errorCount++;
-
-      if (error instanceof Error) {
-        console.error(`    ${colors.red}Error: ${error.message}${colors.reset}`);
-      }
     }
   }
 
-  // Remove variables that don't exist in .env.prod
+  return { successCount, errorCount, skippedCount, removedCount: 0, removeErrorCount: 0 };
+}
+
+function removeObsoleteVariables(removedVars: string[]): { removedCount: number; removeErrorCount: number } {
   let removedCount = 0;
   let removeErrorCount = 0;
 
-  if (removedVars.length > 0) {
-    console.log(`\n${colors.bright}Removing obsolete variables...${colors.reset}\n`);
+  if (removedVars.length === 0) {
+    return { removedCount, removeErrorCount };
+  }
 
-    for (const key of removedVars) {
-      try {
-        process.stdout.write(`  Removing ${colors.cyan}${key}${colors.reset}... `);
+  console.log('\n' + bright('Removing obsolete variables...') + '\n');
 
-        // Use netlify env:unset command
-        execSync(`netlify env:unset ${key}`, {
-          stdio: 'ignore',
-          encoding: 'utf8'
-        });
-
-        console.log(`${colors.green}✓${colors.reset}`);
-        removedCount++;
-      } catch (error) {
-        console.log(`${colors.red}✗${colors.reset}`);
-        removeErrorCount++;
-
-        if (error instanceof Error) {
-          console.error(`    ${colors.red}Error: ${error.message}${colors.reset}`);
-        }
-      }
+  for (const key of removedVars) {
+    try {
+      process.stdout.write(`  Removing ${info(key)}... `);
+      removeEnvironmentVariable(key);
+      removedCount++;
+    } catch {
+      removeErrorCount++;
     }
   }
 
-  // Summary
-  console.log(`\n${colors.bright}Summary:${colors.reset}`);
-  console.log(`  ${colors.green}✓ ${successCount} variables synced successfully${colors.reset}`);
+  return { removedCount, removeErrorCount };
+}
 
-  if (skippedCount > 0) {
-    console.log(`  ${colors.dim}○ ${skippedCount} variables skipped (already up-to-date)${colors.reset}`);
+function displaySummary(result: SyncResult): void {
+  console.log('\n' + bright('Summary:'));
+  console.log(`  ${success('✓ ' + result.successCount + ' variables synced successfully')}`);
+
+  if (result.skippedCount > 0) {
+    console.log(`  ${dim('○ ' + result.skippedCount + ' variables skipped (already up-to-date)')}`);
   }
 
-  if (removedCount > 0) {
-    console.log(`  ${colors.green}✓ ${removedCount} variables removed successfully${colors.reset}`);
+  if (result.removedCount > 0) {
+    console.log(`  ${success('✓ ' + result.removedCount + ' variables removed successfully')}`);
   }
 
-  if (errorCount > 0) {
-    console.log(`  ${colors.red}✗ ${errorCount} variables failed to sync${colors.reset}`);
+  if (result.errorCount > 0) {
+    console.log(`  ${error('✗ ' + result.errorCount + ' variables failed to sync')}`);
   }
 
-  if (removeErrorCount > 0) {
-    console.log(`  ${colors.red}✗ ${removeErrorCount} variables failed to remove${colors.reset}`);
+  if (result.removeErrorCount > 0) {
+    console.log(`  ${error('✗ ' + result.removeErrorCount + ' variables failed to remove')}`);
   }
 
-  console.log(`\n${colors.dim}Note: Changes may take a few minutes to propagate.${colors.reset}`);
-  console.log(`${colors.dim}You may need to redeploy for changes to take effect.${colors.reset}\n`);
+  console.log('\n' + dim('Note: Changes may take a few minutes to propagate.'));
+  console.log(dim('You may need to redeploy for changes to take effect.') + '\n');
+}
 
-  process.exit(errorCount > 0 || removeErrorCount > 0 ? 1 : 0);
+async function main() {
+  console.log('\n' + title('Netlify Environment Variable Sync') + '\n');
+
+  validatePrerequisites();
+  const envVars = loadEnvironmentVariables();
+  const currentEnvVars = fetchNetlifyEnvironmentVariables();
+  const comparison = compareEnvironmentVariables(envVars, currentEnvVars);
+
+  displayDryRunResults(envVars, currentEnvVars, comparison);
+  await confirmOperation();
+
+  const syncResult = syncEnvironmentVariables(envVars, currentEnvVars);
+  const { removedCount, removeErrorCount } = removeObsoleteVariables(comparison.removedVars);
+
+  const finalResult: SyncResult = {
+    ...syncResult,
+    removedCount,
+    removeErrorCount
+  };
+
+  displaySummary(finalResult);
+
+  process.exit(finalResult.errorCount > 0 || finalResult.removeErrorCount > 0 ? 1 : 0);
 }
 
 // Run the script
-main().catch((error) => {
-  console.error(`\n${colors.red}Unexpected error:${colors.reset}`, error);
+main().catch((err) => {
+  console.error('\n' + error('Unexpected error:'), err);
   process.exit(1);
 });
