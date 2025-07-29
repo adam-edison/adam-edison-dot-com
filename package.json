@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "npx tsx scripts/check-env.ts && next build",
+    "build": "npm run build:check && next build",
+    "build:check": "npx tsx scripts/check-env.ts && tsc --noEmit",
     "start": "next start",
     "lint": "next lint --fix",
     "format": "prettier --write .",
