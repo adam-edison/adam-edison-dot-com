@@ -56,5 +56,12 @@ export function getStringProperty(obj: unknown, prop: string): string | undefine
 export function isFormDataWithTurnstile(data: unknown): data is Record<string, unknown> & {
   turnstileToken?: string;
 } {
-  return isObjectRecord(data);
+  if (!isObjectRecord(data)) return false;
+
+  // If turnstileToken exists, it must be a string
+  if ('turnstileToken' in data) {
+    return typeof data.turnstileToken === 'string';
+  }
+
+  return true; // turnstileToken is optional
 }

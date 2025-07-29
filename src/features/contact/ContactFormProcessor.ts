@@ -4,7 +4,7 @@ import { TurnstileService } from './TurnstileService';
 import { ContactFormValidator, ContactFormData } from './ContactFormValidator';
 import { Result } from '@/shared/Result';
 import { ValidationError, InternalServerError } from '@/shared/errors';
-import { isFormDataWithTurnstile, getStringProperty } from '@/shared/TypeGuards';
+import { isFormDataWithTurnstile } from '@/shared/TypeGuards';
 
 export type ProcessFormResult = Result<void, ValidationError | InternalServerError>;
 
@@ -42,7 +42,7 @@ export class ContactFormProcessor {
     // Extract Turnstile token if present
     let turnstileToken: string | undefined;
     if (isFormDataWithTurnstile(formData)) {
-      turnstileToken = getStringProperty(formData, 'turnstileToken');
+      turnstileToken = formData.turnstileToken;
       // Remove token from form data before validation
       delete formData.turnstileToken;
     }
