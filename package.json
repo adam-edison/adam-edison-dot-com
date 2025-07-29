@@ -17,7 +17,7 @@
     "test:e2e": "playwright test",
     "test:manual": "vitest run --config vitest.manual.config.mts",
     "test:interactive": "playwright test --config tests/e2e/interactive/playwright.config.ts",
-    "overwrite:environment": "tsx scripts/sync-env-to-netlify.ts"
+    "overwrite:environment": "tsx scripts/netlify-environment-sync.ts"
   },
   "dependencies": {
     "@google-cloud/recaptcha-enterprise": "^6.2.0",
