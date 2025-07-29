@@ -24,6 +24,9 @@ npm start
 # Run linting
 npm run lint
 
+# Check TypeScript types
+npm run build:check
+
 # Format code with Prettier
 npm run format
 
@@ -252,9 +255,10 @@ After making a set of changes, always verify stable state by running these comma
 
 1. `npm run format` - Auto-format code
 2. `npm run lint` - Check for linting issues
-3. `npm run build` - Ensure project builds successfully
-4. `npm run test:unit` - Run unit tests
-5. `npm run test:integration` - Run integration tests
-6. `npm run test:e2e` - Run end-to-end tests
+3. `npm check:types` - Check for TypeScript type errors
+4. `npm run build` - Ensure project builds successfully (includes type checking)
+5. `npm run test:unit` - Run unit tests
+6. `npm run test:integration` - Run integration tests
+7. `npm run test:e2e` - Run end-to-end tests
 
 All commands must pass before considering changes complete and ready for commit.
