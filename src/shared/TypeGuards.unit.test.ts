@@ -2,10 +2,13 @@ import { describe, it, expect } from 'vitest';
 import {
   isObjectRecord,
   isDurationString,
+  createDurationString,
+  toDurationString,
   hasProperty,
   hasStringProperty,
   getStringProperty,
-  isFormDataWithTurnstile
+  isFormDataWithTurnstile,
+  DurationString
 } from './TypeGuards';
 
 describe('TypeGuards', () => {
@@ -54,6 +57,113 @@ describe('TypeGuards', () => {
       expect(isDurationString(123)).toBe(false);
       expect(isDurationString({})).toBe(false);
       expect(isDurationString([])).toBe(false);
+    });
+
+    it('should provide proper TypeScript type narrowing to DurationString', () => {
+      const value: unknown = '10 m';
+
+      if (isDurationString(value)) {
+        // TypeScript should know this is a DurationString
+        const duration: DurationString = value;
+        expect(duration).toBe('10 m');
+        expect(typeof duration).toBe('string');
+      }
+    });
+  });
+
+  describe('createDurationString', () => {
+    it('should return DurationString for valid duration strings', () => {
+      const validDurations = ['10 s', '5 m', '1 h', '30 d', '0 s', '999 m'];
+
+      validDurations.forEach((duration) => {
+        const result = createDurationString(duration);
+        expect(result).toBe(duration);
+        expect(typeof result).toBe('string');
+
+        // Verify it's properly typed as DurationString
+        if (result) {
+          const typed: DurationString = result;
+          expect(typed).toBe(duration);
+        }
+      });
+    });
+
+    it('should return null for invalid duration strings', () => {
+      const invalidDurations = ['10s', '10  s', 'ten s', '10 x', '10 sec', ' 10 s', '10 s ', ''];
+
+      invalidDurations.forEach((duration) => {
+        const result = createDurationString(duration);
+        expect(result).toBeNull();
+      });
+    });
+
+    it('should provide type safety', () => {
+      const validResult = createDurationString('10 m');
+      const invalidResult = createDurationString('invalid');
+
+      expect(validResult).toBe('10 m');
+      expect(invalidResult).toBeNull();
+
+      // Type narrowing test
+      if (validResult !== null) {
+        const duration: DurationString = validResult;
+        expect(duration).toBe('10 m');
+      }
+    });
+  });
+
+  describe('toDurationString', () => {
+    it('should return DurationString for valid unknown values', () => {
+      const validValues: unknown[] = ['10 s', '5 m', '1 h', '30 d'];
+
+      validValues.forEach((value) => {
+        const result = toDurationString(value);
+        expect(result).toBe(value);
+        expect(typeof result).toBe('string');
+
+        if (result) {
+          const typed: DurationString = result;
+          expect(typed).toBe(value);
+        }
+      });
+    });
+
+    it('should return null for invalid unknown values', () => {
+      const invalidValues: unknown[] = [
+        '10s', // no space
+        'invalid',
+        123,
+        null,
+        undefined,
+        {},
+        [],
+        true,
+        new Date()
+      ];
+
+      invalidValues.forEach((value) => {
+        const result = toDurationString(value);
+        expect(result).toBeNull();
+      });
+    });
+
+    it('should handle edge cases and type safety', () => {
+      // Test with various types
+      expect(toDurationString('10 m')).toBe('10 m');
+      expect(toDurationString('invalid')).toBeNull();
+      expect(toDurationString(null)).toBeNull();
+      expect(toDurationString(undefined)).toBeNull();
+      expect(toDurationString(42)).toBeNull();
+      expect(toDurationString({})).toBeNull();
+
+      // Type narrowing
+      const unknownValue: unknown = '5 h';
+      const result = toDurationString(unknownValue);
+
+      if (result !== null) {
+        const duration: DurationString = result;
+        expect(duration).toBe('5 h');
+      }
     });
   });
 
@@ -222,7 +332,7 @@ describe('TypeGuards', () => {
         { data: { name: 'test', turnstileToken: {} }, shouldPass: false }
       ];
 
-      formDataCases.forEach(({ data, shouldPass }, index) => {
+      formDataCases.forEach(({ data, shouldPass }) => {
         const result = isFormDataWithTurnstile(data);
         expect(result).toBe(shouldPass);
 
@@ -254,6 +364,15 @@ describe('TypeGuards', () => {
           // These cases would cause runtime errors if not caught by type guard
           expect(result).toBe(false);
         }
+
+        // Test helper functions as well
+        if (typeof window === 'string') {
+          const createResult = createDurationString(window);
+          expect(createResult !== null).toBe(shouldPass);
+        }
+
+        const toResult = toDurationString(window);
+        expect(toResult !== null).toBe(shouldPass);
       });
     });
   });
@@ -346,7 +465,7 @@ describe('TypeGuards', () => {
       it('should handle property names that could cause issues', () => {
         // Most problematic names work fine
         const workingNames = ['prototype', 'toString', 'valueOf'];
-        const obj1: Record<string, any> = {};
+        const obj1: Record<string, unknown> = {};
 
         workingNames.forEach((name) => {
           obj1[name] = 'safe value';
@@ -355,14 +474,14 @@ describe('TypeGuards', () => {
         });
 
         // __proto__ is special - assigning to it changes the prototype, not the property
-        const obj2: Record<string, any> = {};
+        const obj2: Record<string, unknown> = {};
         obj2['__proto__'] = 'safe value'; // This actually changes the prototype!
         expect(hasProperty(obj2, '__proto__')).toBe(true);
         expect(hasStringProperty(obj2, '__proto__')).toBe(false); // Not a string anymore!
         expect(typeof obj2['__proto__']).toBe('object'); // It's an object now
 
         // Constructor is special - overriding it breaks isObjectRecord's constructor check
-        const obj3: Record<string, any> = {};
+        const obj3: Record<string, unknown> = {};
         obj3['constructor'] = 'safe value';
         // This exposes a limitation in isObjectRecord - it's too strict
         expect(hasProperty(obj3, 'constructor')).toBe(false); // Current behavior
@@ -398,7 +517,6 @@ describe('TypeGuards', () => {
           expect(typeof complexFormData.turnstileToken).toBe('string');
         }
       });
-
     });
   });
 });

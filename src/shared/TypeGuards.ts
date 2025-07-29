@@ -4,6 +4,13 @@
  */
 
 /**
+ * Branded type for duration strings to prevent mixing with regular strings
+ * Format: "number unit" where unit is one of: s, m, h, d
+ * Examples: "10 s", "5 m", "1 h", "30 d"
+ */
+export type DurationString = string & { readonly __brand: unique symbol };
+
+/**
  * Type guard to check if a value is an object record
  * Replaces: value as Record<string, unknown>
  */
@@ -14,8 +21,9 @@ export function isObjectRecord(value: unknown): value is Record<string, unknown>
 /**
  * Type guard to check if a value is a valid duration string
  * Validates format like "10 m", "1 h", "30 s"
+ * Returns a branded DurationString type for type safety
  */
-export function isDurationString(value: unknown): value is string {
+export function isDurationString(value: unknown): value is DurationString {
   if (typeof value !== 'string') {
     return false;
   }
@@ -23,6 +31,22 @@ export function isDurationString(value: unknown): value is string {
   // Check if it matches pattern: number + single space + unit (s|m|h|d)
   const durationPattern = /^\d+ [smhd]$/;
   return durationPattern.test(value);
+}
+
+/**
+ * Helper function to create a DurationString from a string
+ * Returns null if the string is not a valid duration format
+ */
+export function createDurationString(value: string): DurationString | null {
+  return isDurationString(value) ? value : null;
+}
+
+/**
+ * Helper function to safely convert unknown values to DurationString
+ * Returns null if the value is not a valid duration string
+ */
+export function toDurationString(value: unknown): DurationString | null {
+  return isDurationString(value) ? value : null;
 }
 
 /**
