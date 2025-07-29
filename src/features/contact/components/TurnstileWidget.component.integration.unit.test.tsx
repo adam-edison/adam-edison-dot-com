@@ -30,7 +30,8 @@ const mockTurnstile = {
   remove: vi.fn(),
   reset: vi.fn(),
   getResponse: vi.fn(),
-  execute: vi.fn()
+  execute: vi.fn(),
+  ready: vi.fn()
 };
 
 describe('TurnstileWidget Integration Tests', () => {
@@ -38,13 +39,15 @@ describe('TurnstileWidget Integration Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (window as typeof window & { turnstile?: typeof mockTurnstile }).turnstile = mockTurnstile;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).turnstile = mockTurnstile;
     mockTurnstile.render.mockReturnValue('widget-123');
     (loadTurnstileScript as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
-    delete (window as typeof window & { turnstile?: typeof mockTurnstile }).turnstile;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (window as any).turnstile;
   });
 
   describe('Widget State Management Integration', () => {

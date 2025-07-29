@@ -8,7 +8,6 @@ const createFormData = (overrides: Partial<ContactFormData> = {}): ContactFormDa
   lastName: 'Doe',
   email: 'test@example.com',
   message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-  mathAnswer: '7',
   ...overrides
 });
 

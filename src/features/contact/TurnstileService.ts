@@ -218,9 +218,9 @@ export class TurnstileService {
   }
 
   /**
-   * Check if Turnstile is enabled by checking if the secret key is configured
+   * Check if Turnstile is enabled by checking the TURNSTILE_ENABLED environment variable
    */
   static isEnabled(): boolean {
-    return !!process.env.TURNSTILE_SECRET_KEY;
+    return process.env.TURNSTILE_ENABLED === 'true';
   }
 }

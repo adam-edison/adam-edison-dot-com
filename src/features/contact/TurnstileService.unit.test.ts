@@ -1,13 +1,17 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { TurnstileService } from './TurnstileService';
+import type { TurnstileTokenTracker } from './TurnstileTokenTracker';
 
 // Mock fetch globally
 global.fetch = vi.fn();
 
-// Mock TurnstileTokenTracker
+// Mock TurnstileTokenTracker - use type assertion
 const mockTokenTracker = {
-  checkAndMarkTokenUsed: vi.fn()
-};
+  checkAndMarkTokenUsed: vi.fn(),
+  getTokenKey: vi.fn((token: string) => `turnstile:used:${token}`),
+  hashToken: vi.fn((token: string) => token),
+  cleanupExpiredTokens: vi.fn()
+} as unknown as TurnstileTokenTracker;
 
 vi.mock('./TurnstileTokenTracker', () => ({
   TurnstileTokenTracker: {
@@ -25,7 +29,7 @@ describe('TurnstileService', () => {
     vi.stubEnv('TURNSTILE_SECRET_KEY', mockSecretKey);
 
     // Default token tracker behavior - token not used
-    mockTokenTracker.checkAndMarkTokenUsed.mockResolvedValue({
+    (mockTokenTracker.checkAndMarkTokenUsed as ReturnType<typeof vi.fn>).mockResolvedValue({
       isUsed: false,
       markedAsUsed: true
     });
@@ -202,7 +206,7 @@ describe('TurnstileService', () => {
 
     it('should prevent token replay attacks', async () => {
       // Mock token already used
-      mockTokenTracker.checkAndMarkTokenUsed.mockResolvedValue({
+      (mockTokenTracker.checkAndMarkTokenUsed as ReturnType<typeof vi.fn>).mockResolvedValue({
         isUsed: true,
         markedAsUsed: false
       });
@@ -232,13 +236,38 @@ describe('TurnstileService', () => {
   });
 
   describe('isEnabled', () => {
-    it('should return true when secret key is configured', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it('should return true when TURNSTILE_ENABLED is set to true', () => {
+      vi.stubEnv('TURNSTILE_ENABLED', 'true');
       expect(TurnstileService.isEnabled()).toBe(true);
     });
 
-    it('should return false when secret key is not configured', () => {
-      vi.stubEnv('TURNSTILE_SECRET_KEY', '');
+    it('should return false when TURNSTILE_ENABLED is set to false', () => {
+      vi.stubEnv('TURNSTILE_ENABLED', 'false');
+      expect(TurnstileService.isEnabled()).toBe(false);
+    });
 
+    it('should return false when TURNSTILE_ENABLED is not set', () => {
+      vi.stubEnv('TURNSTILE_ENABLED', undefined);
+      expect(TurnstileService.isEnabled()).toBe(false);
+    });
+
+    it('should return false when TURNSTILE_ENABLED is set to empty string', () => {
+      vi.stubEnv('TURNSTILE_ENABLED', '');
+      expect(TurnstileService.isEnabled()).toBe(false);
+    });
+
+    it('should return false when TURNSTILE_ENABLED is set to any other value', () => {
+      vi.stubEnv('TURNSTILE_ENABLED', '1');
+      expect(TurnstileService.isEnabled()).toBe(false);
+
+      vi.stubEnv('TURNSTILE_ENABLED', 'yes');
+      expect(TurnstileService.isEnabled()).toBe(false);
+
+      vi.stubEnv('TURNSTILE_ENABLED', 'TRUE');
       expect(TurnstileService.isEnabled()).toBe(false);
     });
   });

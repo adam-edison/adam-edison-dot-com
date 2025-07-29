@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ContactRateLimiter } from './ContactRateLimiter';
 import { Result } from '@/shared/Result';
 
@@ -212,10 +212,10 @@ describe('ContactRateLimiter', () => {
       ];
 
       testCases.forEach(({ input, expected }) => {
-        // Use the private method through a workaround
-        const normalizeEmail = (rateLimiter as { normalizeEmail: (email: string) => string }).normalizeEmail.bind(
-          rateLimiter
-        );
+        // Access the private method using bracket notation
+        const normalizeEmail = (rateLimiter as unknown as { normalizeEmail: (email: string) => string })[
+          'normalizeEmail'
+        ].bind(rateLimiter);
         expect(normalizeEmail(input)).toBe(expected);
       });
     });

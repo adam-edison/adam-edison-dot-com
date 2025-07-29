@@ -17,6 +17,7 @@ const mockEnv = {
   EMAIL_SENDER_NAME: 'Test Sender',
   EMAIL_RECIPIENT_NAME: 'Test Recipient',
   TURNSTILE_SECRET_KEY: 'test-turnstile-secret',
+  TURNSTILE_ENABLED: 'true',
   UPSTASH_REDIS_REST_URL: 'https://test.upstash.io',
   UPSTASH_REDIS_REST_TOKEN: 'test-token',
   CONTACT_IP_RATE_LIMIT_REQUESTS: '5',
@@ -48,11 +49,11 @@ describe('Contact Form Turnstile Integration', () => {
       // Mock Redis pipeline call (rate limiting) - comes first
       (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
-        json: async () => ([
+        json: async () => [
           { result: 'OK' }, // SET command for global limit
-          { result: 'OK' }, // SET command for IP limit  
-          { result: 'OK' }  // SET command for email limit
-        ])
+          { result: 'OK' }, // SET command for IP limit
+          { result: 'OK' } // SET command for email limit
+        ]
       });
 
       // Mock Turnstile verification success
@@ -133,11 +134,11 @@ describe('Contact Form Turnstile Integration', () => {
       // Mock Redis pipeline call (rate limiting) - comes first
       (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
-        json: async () => ([
+        json: async () => [
           { result: 'OK' }, // SET command for global limit
-          { result: 'OK' }, // SET command for IP limit  
-          { result: 'OK' }  // SET command for email limit
-        ])
+          { result: 'OK' }, // SET command for IP limit
+          { result: 'OK' } // SET command for email limit
+        ]
       });
 
       // Mock Turnstile verification failure
@@ -184,11 +185,11 @@ describe('Contact Form Turnstile Integration', () => {
       // Mock Redis pipeline call (rate limiting) - comes first
       (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
-        json: async () => ([
+        json: async () => [
           { result: 'OK' }, // SET command for global limit
-          { result: 'OK' }, // SET command for IP limit  
-          { result: 'OK' }  // SET command for email limit
-        ])
+          { result: 'OK' }, // SET command for IP limit
+          { result: 'OK' } // SET command for email limit
+        ]
       });
 
       // Mock Turnstile API timeout
@@ -222,6 +223,7 @@ describe('Contact Form Turnstile Integration', () => {
     it('should work without Turnstile when not configured', async () => {
       // Remove Turnstile configuration
       vi.stubEnv('TURNSTILE_SECRET_KEY', '');
+      vi.stubEnv('TURNSTILE_ENABLED', 'false');
 
       // Mock email sending
       (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
@@ -264,10 +266,16 @@ describe('Contact Form Turnstile Integration', () => {
       };
 
       // Mock rate limiter to return limit exceeded
-      const rateLimiter = await ContactRateLimiter.fromEnv();
-      if (rateLimiter.success) {
-        (rateLimiter.data as { redisClient: unknown }).redisClient = mockRedisClient;
-      }
+      const rateLimiter = ContactRateLimiter.fromEnv();
+      // Access the internal rate limiters to mock Redis client
+      (
+        rateLimiter as unknown as { globalRateLimiter: { redisClient: typeof mockRedisClient } }
+      ).globalRateLimiter.redisClient = mockRedisClient;
+      (rateLimiter as unknown as { ipRateLimiter: { redisClient: typeof mockRedisClient } }).ipRateLimiter.redisClient =
+        mockRedisClient;
+      (
+        rateLimiter as unknown as { emailRateLimiter: { redisClient: typeof mockRedisClient } }
+      ).emailRateLimiter.redisClient = mockRedisClient;
 
       // This test would require more complex mocking of the actual API endpoint
       // For now, we're testing that rate limiting and Turnstile are independent
@@ -279,11 +287,11 @@ describe('Contact Form Turnstile Integration', () => {
       // Mock Redis pipeline call (rate limiting) - comes first
       (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
-        json: async () => ([
+        json: async () => [
           { result: 'OK' }, // SET command for global limit
-          { result: 'OK' }, // SET command for IP limit  
-          { result: 'OK' }  // SET command for email limit
-        ])
+          { result: 'OK' }, // SET command for IP limit
+          { result: 'OK' } // SET command for email limit
+        ]
       });
 
       // Mock Turnstile API returning 503
@@ -320,11 +328,11 @@ describe('Contact Form Turnstile Integration', () => {
       // Mock Redis pipeline call (rate limiting) - comes first
       (global.fetch as MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
-        json: async () => ([
+        json: async () => [
           { result: 'OK' }, // SET command for global limit
-          { result: 'OK' }, // SET command for IP limit  
-          { result: 'OK' }  // SET command for email limit
-        ])
+          { result: 'OK' }, // SET command for IP limit
+          { result: 'OK' } // SET command for email limit
+        ]
       });
 
       // Mock Turnstile verification success
@@ -361,7 +369,7 @@ describe('Contact Form Turnstile Integration', () => {
 
       // Check that email was sent with sanitized data
       const emailCall = (global.fetch as MockedFunction<typeof fetch>).mock.calls[2];
-      const emailBody = JSON.parse(emailCall[1].body);
+      const emailBody = JSON.parse((emailCall[1] as RequestInit).body as string);
 
       // Verify HTML was escaped
       expect(emailBody.html).toContain('&lt;script&gt;');

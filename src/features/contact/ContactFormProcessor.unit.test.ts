@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { ContactFormProcessor } from './ContactFormProcessor';
 import { EmailService } from './EmailService';
 import { TurnstileService } from './TurnstileService';
@@ -10,8 +10,8 @@ vi.mock('./EmailService');
 vi.mock('./TurnstileService');
 
 describe('ContactFormProcessor', () => {
-  let mockEmailService: { sendEmail: vi.Mock };
-  let mockTurnstileService: { verifyToken: vi.Mock };
+  let mockEmailService: EmailService;
+  let mockTurnstileService: TurnstileService;
 
   const validFormData = {
     firstName: 'John',
@@ -23,21 +23,32 @@ describe('ContactFormProcessor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Setup email service mock
+    // Setup email service mock - mock the full EmailService interface
     mockEmailService = {
-      sendContactEmail: vi.fn().mockResolvedValue(Result.success()),
-      getConfiguration: vi.fn().mockReturnValue({ sendEmailEnabled: true })
-    };
+      sendContactEmail: vi.fn().mockResolvedValue(Result.success({ id: 'test-email-id' })),
+      getConfiguration: vi.fn().mockReturnValue({ sendEmailEnabled: true }),
+      sendEmail: vi.fn().mockResolvedValue(Result.success({ id: 'test-email-id' })),
+      resend: {} as EmailService['resend'],
+      config: { sendEmailEnabled: true } as EmailService['config'],
+      htmlTemplate: 'test-html',
+      textTemplate: 'test-text',
+      isSupportedEmail: vi.fn().mockReturnValue(true),
+      getSupportedDomains: vi.fn().mockReturnValue([]),
+      formatData: vi.fn(),
+      createSubject: vi.fn().mockReturnValue('Test Subject'),
+      createEmailHTML: vi.fn().mockReturnValue('test-html'),
+      createEmailText: vi.fn().mockReturnValue('test-text')
+    } as unknown as EmailService;
 
     // Setup turnstile service mock
     mockTurnstileService = {
       verifyToken: vi.fn().mockResolvedValue(Result.success())
-    };
+    } as unknown as TurnstileService;
 
     // Mock static methods
-    (EmailService.fromEnv as unknown as vi.Mock) = vi.fn().mockReturnValue(Result.success(mockEmailService));
-    (TurnstileService.fromEnv as unknown as vi.Mock) = vi.fn().mockReturnValue(Result.success(mockTurnstileService));
-    (TurnstileService.isEnabled as unknown as vi.Mock) = vi.fn().mockReturnValue(true);
+    (EmailService.fromEnv as unknown as Mock) = vi.fn().mockReturnValue(Result.success(mockEmailService));
+    (TurnstileService.fromEnv as unknown as Mock) = vi.fn().mockReturnValue(Result.success(mockTurnstileService));
+    (TurnstileService.isEnabled as unknown as Mock) = vi.fn().mockReturnValue(true);
   });
 
   describe('fromEnv', () => {
@@ -50,7 +61,7 @@ describe('ContactFormProcessor', () => {
     });
 
     it('should create processor without Turnstile when disabled', async () => {
-      (TurnstileService.isEnabled as unknown as vi.Mock).mockReturnValue(false);
+      (TurnstileService.isEnabled as unknown as Mock).mockReturnValue(false);
 
       const result = await ContactFormProcessor.fromEnv();
 
@@ -63,7 +74,7 @@ describe('ContactFormProcessor', () => {
       const error = new InternalServerError('Email service error', {
         internalMessage: 'Email service initialization failed'
       });
-      (EmailService.fromEnv as unknown as vi.Mock).mockReturnValue(Result.failure(error));
+      (EmailService.fromEnv as unknown as Mock).mockReturnValue(Result.failure(error));
 
       const result = await ContactFormProcessor.fromEnv();
 
@@ -77,7 +88,7 @@ describe('ContactFormProcessor', () => {
       const error = new InternalServerError('Turnstile config error', {
         internalMessage: 'Turnstile service initialization failed'
       });
-      (TurnstileService.fromEnv as unknown as vi.Mock).mockReturnValue(Result.failure(error));
+      (TurnstileService.fromEnv as unknown as Mock).mockReturnValue(Result.failure(error));
 
       const result = await ContactFormProcessor.fromEnv();
 
@@ -117,7 +128,7 @@ describe('ContactFormProcessor', () => {
       await processor.processForm(formDataWithToken);
 
       // Token should not be passed to email service
-      const emailData = mockEmailService.sendContactEmail.mock.calls[0][0];
+      const emailData = (mockEmailService.sendContactEmail as Mock).mock.calls[0][0];
       expect(emailData).not.toHaveProperty('turnstileToken');
     });
 
@@ -136,7 +147,7 @@ describe('ContactFormProcessor', () => {
       const verificationError = new ValidationError('Verification failed', {
         internalMessage: 'Turnstile token verification failed'
       });
-      mockTurnstileService.verifyToken.mockResolvedValue(Result.failure(verificationError));
+      (mockTurnstileService.verifyToken as Mock).mockResolvedValue(Result.failure(verificationError));
 
       const formDataWithToken = {
         ...validFormData,
@@ -181,7 +192,7 @@ describe('ContactFormProcessor', () => {
     });
 
     it('should skip email sending when disabled', async () => {
-      mockEmailService.getConfiguration.mockReturnValue({ sendEmailEnabled: false });
+      (mockEmailService.getConfiguration as Mock).mockReturnValue({ sendEmailEnabled: false });
       processor = new ContactFormProcessor(mockEmailService);
 
       const result = await processor.processForm(validFormData);
@@ -194,7 +205,7 @@ describe('ContactFormProcessor', () => {
       const emailError = new InternalServerError('Email failed', {
         internalMessage: 'Failed to send email'
       });
-      mockEmailService.sendContactEmail.mockResolvedValue(Result.failure(emailError));
+      (mockEmailService.sendContactEmail as Mock).mockResolvedValue(Result.failure(emailError));
       processor = new ContactFormProcessor(mockEmailService);
 
       const result = await processor.processForm(validFormData);

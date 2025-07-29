@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { TurnstileWidget } from './TurnstileWidget';
 import { loadTurnstileScript } from '../utils/turnstile-loader';
@@ -14,7 +14,8 @@ const mockTurnstile = {
   remove: vi.fn(),
   reset: vi.fn(),
   getResponse: vi.fn(),
-  execute: vi.fn()
+  execute: vi.fn(),
+  ready: vi.fn()
 };
 
 describe('TurnstileWidget', () => {
@@ -25,12 +26,14 @@ describe('TurnstileWidget', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (window as typeof window & { turnstile?: typeof mockTurnstile }).turnstile = mockTurnstile;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).turnstile = mockTurnstile;
     mockTurnstile.render.mockReturnValue('widget-123');
   });
 
   afterEach(() => {
-    delete (window as typeof window & { turnstile?: typeof mockTurnstile }).turnstile;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (window as any).turnstile;
   });
 
   it('should render loading state initially', () => {
@@ -41,7 +44,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should load Turnstile script and render widget', async () => {
-    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
+    (loadTurnstileScript as Mock).mockResolvedValue(undefined);
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
 
@@ -62,7 +65,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should call onVerify when verification succeeds', async () => {
-    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
+    (loadTurnstileScript as Mock).mockResolvedValue(undefined);
     const mockToken = 'test-token-123';
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
@@ -84,7 +87,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should show error message when verification fails', async () => {
-    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
+    (loadTurnstileScript as Mock).mockResolvedValue(undefined);
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} onError={mockOnError} />);
 
@@ -106,7 +109,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should handle expired token', async () => {
-    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
+    (loadTurnstileScript as Mock).mockResolvedValue(undefined);
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} onExpire={mockOnExpire} />);
 
@@ -126,7 +129,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should handle timeout', async () => {
-    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
+    (loadTurnstileScript as Mock).mockResolvedValue(undefined);
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
 
@@ -146,9 +149,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should handle script loading failure', async () => {
-    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockRejectedValue(
-      new Error('Failed to load')
-    );
+    (loadTurnstileScript as Mock).mockRejectedValue(new Error('Failed to load'));
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
 
@@ -158,7 +159,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should refresh widget when try again is clicked', async () => {
-    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
+    (loadTurnstileScript as Mock).mockResolvedValue(undefined);
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} onError={mockOnError} />);
 
@@ -188,7 +189,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should cleanup on unmount', async () => {
-    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
+    (loadTurnstileScript as Mock).mockResolvedValue(undefined);
 
     const { unmount } = render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
 
@@ -209,7 +210,7 @@ describe('TurnstileWidget', () => {
   });
 
   it('should show help text when not verified', async () => {
-    (loadTurnstileScript as typeof window & { turnstile?: typeof mockTurnstile }).mockResolvedValue(undefined);
+    (loadTurnstileScript as Mock).mockResolvedValue(undefined);
 
     render(<TurnstileWidget siteKey={mockSiteKey} onVerify={mockOnVerify} />);
 
