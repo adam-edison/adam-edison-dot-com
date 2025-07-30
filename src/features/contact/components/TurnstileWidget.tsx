@@ -14,6 +14,7 @@ interface TurnstileWidgetProps {
 export function TurnstileWidget({ siteKey, onVerify, onError, onExpire, className }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const initializationInProgressRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
@@ -47,66 +48,150 @@ export function TurnstileWidget({ siteKey, onVerify, onError, onExpire, classNam
     [siteKey, onVerify, onError, onExpire]
   );
 
-  const refreshWidget = useCallback(() => {
-    // Remove the old widget
-    if (widgetIdRef.current && window.turnstile) {
-      window.turnstile.remove(widgetIdRef.current);
-      widgetIdRef.current = null;
-    }
+  const cleanupWidget = useCallback(() => {
+    if (!widgetIdRef.current) return;
+    if (!window.turnstile) return;
 
-    // Clear states
+    try {
+      window.turnstile.remove(widgetIdRef.current);
+    } catch {
+      // Ignore cleanup errors - widget might already be removed
+    }
+    widgetIdRef.current = null;
+  }, []);
+
+  const clearContainer = useCallback(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = '';
+  }, []);
+
+  const resetWidgetStates = useCallback(() => {
     setError(null);
     setIsVerified(false);
     setIsLoading(true);
+  }, []);
 
-    // Re-render the widget
-    if (containerRef.current && window.turnstile) {
+  const attemptWidgetRender = useCallback(() => {
+    if (!containerRef.current) {
+      initializationInProgressRef.current = false;
+      return;
+    }
+    if (!window.turnstile) {
+      initializationInProgressRef.current = false;
+      return;
+    }
+
+    try {
       widgetIdRef.current = window.turnstile.render(containerRef.current, createTurnstileConfig());
       setIsLoading(false);
+    } catch {
+      setError('Failed to refresh security verification. Please try again.');
+      setIsLoading(false);
     }
+
+    initializationInProgressRef.current = false;
   }, [createTurnstileConfig]);
 
-  const initializeTurnstile = useCallback(async (): Promise<Result<void, string>> => {
+  const refreshWidget = useCallback(async () => {
+    if (initializationInProgressRef.current) return;
+
+    initializationInProgressRef.current = true;
+
+    cleanupWidget();
+    clearContainer();
+
+    // Small delay to ensure cleanup is complete
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    resetWidgetStates();
+    attemptWidgetRender();
+  }, [cleanupWidget, clearContainer, resetWidgetStates, attemptWidgetRender]);
+
+  const loadScript = useCallback(async (): Promise<Result<void, string>> => {
     try {
       await loadTurnstileScript();
-
-      if (!containerRef.current || !window.turnstile) {
-        return Result.failure('Turnstile widget container not available');
-      }
-
-      widgetIdRef.current = window.turnstile.render(containerRef.current, createTurnstileConfig());
       return Result.success();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return Result.failure(`Failed to load security verification: ${errorMessage}`);
     }
+  }, []);
+
+  const validateContainer = useCallback((): Result<void, string> => {
+    if (!containerRef.current) {
+      return Result.failure('Turnstile widget container not available');
+    }
+    if (!window.turnstile) {
+      return Result.failure('Turnstile widget container not available');
+    }
+    return Result.success();
+  }, []);
+
+  const renderWidget = useCallback((): Result<void, string> => {
+    widgetIdRef.current = window.turnstile!.render(containerRef.current!, createTurnstileConfig());
+    return Result.success();
   }, [createTurnstileConfig]);
+
+  const initializeTurnstile = useCallback(async (): Promise<Result<void, string>> => {
+    const scriptResult = await loadScript();
+    if (!scriptResult.success) return scriptResult;
+
+    const containerResult = validateContainer();
+    if (!containerResult.success) return containerResult;
+
+    return renderWidget();
+  }, [loadScript, validateContainer, renderWidget]);
+
+  const checkMountedState = useCallback((mounted: boolean): boolean => {
+    if (!mounted) {
+      initializationInProgressRef.current = false;
+      return false;
+    }
+    return true;
+  }, []);
+
+  const processInitializationResult = useCallback((result: Result<void, string>) => {
+    setIsLoading(false);
+    if (!result.success) {
+      setError(result.error);
+    }
+    initializationInProgressRef.current = false;
+  }, []);
 
   useEffect(() => {
     let mounted = true;
 
     const handleInitialization = async () => {
+      if (initializationInProgressRef.current) return;
+
+      initializationInProgressRef.current = true;
+
+      // Clean up any existing widget first
+      cleanupWidget();
+      clearContainer();
+
+      // Small delay to ensure cleanup is complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      if (!checkMountedState(mounted)) return;
+
       const result = await initializeTurnstile();
 
-      if (!mounted) return;
+      if (!checkMountedState(mounted)) return;
 
-      if (result.success) {
-        setIsLoading(false);
-      } else {
-        setError(result.error);
-        setIsLoading(false);
-      }
+      processInitializationResult(result);
     };
 
     handleInitialization();
 
     return () => {
       mounted = false;
-      if (widgetIdRef.current && window.turnstile) {
-        window.turnstile.remove(widgetIdRef.current);
-      }
+      initializationInProgressRef.current = false;
+      cleanupWidget();
+      clearContainer();
     };
-  }, [initializeTurnstile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteKey]); // Only depend on siteKey to prevent unnecessary re-initializations
 
   return (
     <div className={className}>
@@ -151,32 +236,39 @@ export function TurnstileWidget({ siteKey, onVerify, onError, onExpire, classNam
   );
 }
 
+const createWidgetReset = (widgetRef: React.MutableRefObject<string | null>) => () => {
+  if (!widgetRef.current) return;
+  if (!window.turnstile) return;
+  window.turnstile.reset(widgetRef.current);
+};
+
+const createWidgetRemove = (widgetRef: React.MutableRefObject<string | null>) => () => {
+  if (!widgetRef.current) return;
+  if (!window.turnstile) return;
+  window.turnstile.remove(widgetRef.current);
+};
+
+const createWidgetGetResponse = (widgetRef: React.MutableRefObject<string | null>) => () => {
+  if (!widgetRef.current) return null;
+  if (!window.turnstile) return null;
+  return window.turnstile.getResponse(widgetRef.current);
+};
+
+const createWidgetExecute = (widgetRef: React.MutableRefObject<string | null>) => () => {
+  if (!widgetRef.current) return;
+  if (!window.turnstile) return;
+  window.turnstile.execute(widgetRef.current);
+};
+
 export const TurnstileWidgetInstance = React.forwardRef<TurnstileInstance, TurnstileWidgetProps>((props, ref) => {
   const widgetRef = useRef<string | null>(null);
 
   React.useImperativeHandle(ref, () => ({
     widgetId: widgetRef.current || '',
-    reset: () => {
-      if (widgetRef.current && window.turnstile) {
-        window.turnstile.reset(widgetRef.current);
-      }
-    },
-    remove: () => {
-      if (widgetRef.current && window.turnstile) {
-        window.turnstile.remove(widgetRef.current);
-      }
-    },
-    getResponse: () => {
-      if (widgetRef.current && window.turnstile) {
-        return window.turnstile.getResponse(widgetRef.current);
-      }
-      return null;
-    },
-    execute: () => {
-      if (widgetRef.current && window.turnstile) {
-        window.turnstile.execute(widgetRef.current);
-      }
-    }
+    reset: createWidgetReset(widgetRef),
+    remove: createWidgetRemove(widgetRef),
+    getResponse: createWidgetGetResponse(widgetRef),
+    execute: createWidgetExecute(widgetRef)
   }));
 
   return <TurnstileWidget {...props} />;

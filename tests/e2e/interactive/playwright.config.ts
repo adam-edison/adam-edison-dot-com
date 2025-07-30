@@ -35,7 +35,7 @@ export default defineConfig({
     stderr: 'pipe',
     env: {
       NODE_ENV: 'e2e-interactive-test',
-      TURNSTILE_ENABLED: 'false'
+      TURNSTILE_ENABLED: 'true'
     }
   }
 });
