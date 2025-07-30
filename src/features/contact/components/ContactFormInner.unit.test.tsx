@@ -7,7 +7,7 @@ import { Result } from '@/shared/Result';
 
 function createMockService(configOrError?: ServiceStatus | Error, additionalState?: Partial<ContactFormState>) {
   const mockService = new ContactFormService();
-  
+
   vi.spyOn(mockService, 'submitForm').mockResolvedValue(Result.success());
   vi.spyOn(mockService, 'cleanup').mockImplementation(() => {});
   vi.spyOn(mockService, 'onStateChange').mockImplementation(() => {});
@@ -55,7 +55,7 @@ describe('ContactFormInner', () => {
 
     // Should show loading skeleton (form fields not yet rendered)
     expect(screen.queryByLabelText(/first name/i)).not.toBeInTheDocument();
-    
+
     // Should show loading skeleton animation
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
   });
@@ -139,12 +139,12 @@ describe('ContactFormInner', () => {
     // Create mock service that returns rate limit error
     const mockService = createMockService();
     let stateChangeCallback: ((state: ContactFormState) => void) | null = null;
-    
+
     // Capture the state change callback
     vi.spyOn(mockService, 'onStateChange').mockImplementation((callback) => {
       stateChangeCallback = callback;
     });
-    
+
     // Mock submitForm to simulate error state change
     vi.spyOn(mockService, 'submitForm').mockImplementation(async () => {
       if (stateChangeCallback) {
