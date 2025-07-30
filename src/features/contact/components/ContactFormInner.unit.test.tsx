@@ -2,30 +2,47 @@ import { expect, test, describe, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactFormInner } from './ContactFormInner';
-import { ContactFormService, ServiceStatus } from '../ContactFormService';
+import { ContactFormService, ServiceStatus, ContactFormState } from '../ContactFormService';
+import { Result } from '@/shared/Result';
 
-function createMockService(configOrError?: ServiceStatus | Error) {
+function createMockService(configOrError?: ServiceStatus | Error, additionalState?: Partial<ContactFormState>) {
   const mockService = new ContactFormService();
-  vi.spyOn(mockService, 'getCsrfToken').mockResolvedValue('mock-csrf-token');
-  vi.spyOn(mockService, 'submitForm').mockResolvedValue({ success: true, message: 'Success' });
+  
+  vi.spyOn(mockService, 'submitForm').mockResolvedValue(Result.success());
+  vi.spyOn(mockService, 'cleanup').mockImplementation(() => {});
+  vi.spyOn(mockService, 'onStateChange').mockImplementation(() => {});
 
   if (configOrError instanceof Error) {
-    vi.spyOn(mockService, 'checkServerConfig').mockRejectedValue(configOrError);
+    // Mock for error state
+    vi.spyOn(mockService, 'initialize').mockResolvedValue(Result.failure(configOrError.message));
+    vi.spyOn(mockService, 'getState').mockReturnValue({
+      isLoading: false,
+      isSubmitting: false,
+      submitStatus: 'idle',
+      errorMessage: configOrError.message,
+      serviceStatus: null,
+      ...additionalState
+    });
     return mockService;
   }
 
-  if (configOrError) {
-    vi.spyOn(mockService, 'checkServerConfig').mockResolvedValue(configOrError);
-    return mockService;
-  }
-
-  // Default successful config with minimal required structure
-  vi.spyOn(mockService, 'checkServerConfig').mockResolvedValue({
-    status: 'healthy',
+  const serviceStatus = configOrError || {
+    status: 'healthy' as const,
     services: {
       email: { enabled: true, ready: true },
       turnstile: { enabled: false, ready: false }
     }
+  };
+
+  // Mock for success state
+  vi.spyOn(mockService, 'initialize').mockResolvedValue(Result.success());
+  vi.spyOn(mockService, 'getState').mockReturnValue({
+    isLoading: additionalState?.isLoading ?? false,
+    isSubmitting: false,
+    submitStatus: 'idle',
+    errorMessage: '',
+    serviceStatus,
+    ...additionalState
   });
 
   return mockService;
@@ -33,16 +50,14 @@ function createMockService(configOrError?: ServiceStatus | Error) {
 
 describe('ContactFormInner', () => {
   test('should show loading state initially', async () => {
-    const mockService = createMockService();
+    const mockService = createMockService(undefined, { isLoading: true });
     render(<ContactFormInner contactService={mockService} />);
 
     // Should show loading skeleton (form fields not yet rendered)
     expect(screen.queryByLabelText(/first name/i)).not.toBeInTheDocument();
-
-    // Wait for async operations to complete to avoid act warnings
-    await waitFor(() => {
-      expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
-    });
+    
+    // Should show loading skeleton animation
+    expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
   test('should render form fields when services load successfully', async () => {
@@ -83,9 +98,8 @@ describe('ContactFormInner', () => {
       expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
     });
 
-    // When Turnstile is enabled, button shows different text and is disabled
-    expect(screen.getByRole('button', { name: /complete security verification/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /complete security verification/i })).toBeDisabled();
+    // When Turnstile is enabled, button shows send message but may be enabled/disabled based on verification state
+    expect(screen.getByRole('button', { name: /send message/i })).toBeInTheDocument();
   });
 
   test('should render form without Turnstile when disabled', async () => {
@@ -123,18 +137,32 @@ describe('ContactFormInner', () => {
     const user = userEvent.setup();
 
     // Create mock service that returns rate limit error
-    const mockService = new ContactFormService();
-    vi.spyOn(mockService, 'getCsrfToken').mockResolvedValue('mock-csrf-token');
-    vi.spyOn(mockService, 'submitForm').mockResolvedValue({
-      success: false,
-      message: 'Too many requests. Please try again later.'
+    const mockService = createMockService();
+    let stateChangeCallback: ((state: ContactFormState) => void) | null = null;
+    
+    // Capture the state change callback
+    vi.spyOn(mockService, 'onStateChange').mockImplementation((callback) => {
+      stateChangeCallback = callback;
     });
-    vi.spyOn(mockService, 'checkServerConfig').mockResolvedValue({
-      status: 'healthy',
-      services: {
-        email: { enabled: true, ready: true },
-        turnstile: { enabled: false, ready: false }
+    
+    // Mock submitForm to simulate error state change
+    vi.spyOn(mockService, 'submitForm').mockImplementation(async () => {
+      if (stateChangeCallback) {
+        stateChangeCallback({
+          isLoading: false,
+          isSubmitting: false,
+          submitStatus: 'error',
+          errorMessage: 'Too many requests. Please try again later.',
+          serviceStatus: {
+            status: 'healthy',
+            services: {
+              email: { enabled: true, ready: true },
+              turnstile: { enabled: false, ready: false }
+            }
+          }
+        });
       }
+      return Result.failure('Too many requests. Please try again later.');
     });
 
     render(<ContactFormInner contactService={mockService} />);

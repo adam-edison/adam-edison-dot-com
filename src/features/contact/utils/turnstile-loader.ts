@@ -59,8 +59,9 @@ const setupScriptErrorHandler = (script: HTMLScriptElement, reject: (error: Erro
 const createTurnstileScript = (resolve: () => void, reject: (error: Error) => void) => {
   const script = document.createElement('script');
   script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-  script.async = true;
-  script.defer = true;
+  // Remove async/defer as required by Turnstile when using turnstile.ready()
+  // script.async = true;
+  // script.defer = true;
 
   script.onload = () => handleScriptLoad(resolve);
   setupScriptErrorHandler(script, reject);

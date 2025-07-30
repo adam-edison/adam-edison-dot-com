@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ContactFormValidator, ContactFormData } from '@/features/contact/ContactFormValidator';
@@ -7,11 +7,7 @@ import { StatusCard } from '@/shared/components/ui/StatusCard';
 import { InputField } from './InputField';
 import { TextareaField } from './TextareaField';
 import { SubmitButton } from './SubmitButton';
-import { TurnstileWidget } from './TurnstileWidget';
-import { useServiceStatus } from './ServiceStatusManager';
-import { useFormSubmission } from './FormSubmissionHandler';
-import { useTurnstileManager } from './TurnstileManager';
-import { ContactFormService } from '../ContactFormService';
+import { ContactFormService, ContactFormState } from '../ContactFormService';
 
 interface ContactFormInnerProps {
   className?: string;
@@ -19,21 +15,8 @@ interface ContactFormInnerProps {
 }
 
 export function ContactFormInner({ className, contactService }: ContactFormInnerProps) {
-  // Service status and CSRF token management
-  const {
-    serviceStatus,
-    csrfToken,
-    isLoading: servicesLoading,
-    error: servicesError
-  } = useServiceStatus(contactService);
-
-  // Form submission state and actions
-  const { isSubmitting, submitStatus, errorMessage, submitForm, resetSubmissionState, setSubmissionError } =
-    useFormSubmission(contactService);
-
-  // Turnstile token management
-  const { turnstileToken, handleTurnstileVerify, handleTurnstileExpire, resetTurnstileToken, clearVerificationError } =
-    useTurnstileManager();
+  const [serviceState, setServiceState] = useState<ContactFormState>(contactService.getState());
+  const turnstileContainerRef = useRef<HTMLDivElement>(null);
 
   // React Hook Form setup
   const {
@@ -49,54 +32,45 @@ export function ContactFormInner({ className, contactService }: ContactFormInner
 
   const watchedMessage = useWatch({ control, name: 'message' });
 
-  // Enhanced Turnstile verification handler that clears related errors
-  const handleEnhancedTurnstileVerify = (token: string) => {
-    handleTurnstileVerify(token);
-    clearVerificationError(errorMessage, resetSubmissionState);
-  };
+  // Initialize service and subscribe to state changes
+  useEffect(() => {
+    contactService.onStateChange(setServiceState);
+    contactService.initialize();
+
+    return () => {
+      contactService.cleanup();
+    };
+  }, [contactService]);
+
+  // Initialize Turnstile when service is ready
+  useEffect(() => {
+    if (
+      serviceState.serviceStatus?.services.turnstile.enabled &&
+      turnstileContainerRef.current &&
+      !serviceState.isLoading
+    ) {
+      contactService.initializeTurnstile(turnstileContainerRef.current);
+    }
+  }, [serviceState.serviceStatus, serviceState.isLoading, contactService]);
 
   const onSubmit = async (data: ContactFormData) => {
-    const turnstileRequired = serviceStatus?.services.turnstile.enabled;
-
-    if (turnstileRequired && !turnstileToken) {
-      setSubmissionError('Please complete the security verification');
-      return;
-    }
-
-    if (!csrfToken) {
-      setSubmissionError('A security token is required to send a message');
-      return;
-    }
-
-    let result;
-    try {
-      result = await submitForm(data, turnstileRequired ? turnstileToken : null, csrfToken);
-    } catch {
-      // Error handling is done in submitForm
-      return;
-    }
-
-    if (!result.success) {
-      return;
-    }
-
-    reset();
-    if (turnstileRequired) {
-      resetTurnstileToken();
+    const result = await contactService.submitForm(data);
+    if (result.success) {
+      reset();
     }
   };
 
   // Handle service loading errors
-  if (servicesError) {
+  if (serviceState.errorMessage && !serviceState.isLoading && !serviceState.serviceStatus) {
     return (
       <div className={className}>
-        <StatusCard variant="error" message={servicesError} showIcon />
+        <StatusCard variant="error" message={serviceState.errorMessage} showIcon />
       </div>
     );
   }
 
   // Show loading state while services are being fetched
-  if (servicesLoading) {
+  if (serviceState.isLoading) {
     return (
       <div className={className}>
         <div className="animate-pulse space-y-6">
@@ -108,13 +82,15 @@ export function ContactFormInner({ className, contactService }: ContactFormInner
     );
   }
 
-  if (submitStatus === 'success') {
+  if (serviceState.submitStatus === 'success') {
     return <ContactSuccessMessage className={className} />;
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={`${className} space-y-6`}>
-      {submitStatus === 'error' && errorMessage && <StatusCard variant="error" message={errorMessage} showIcon />}
+      {serviceState.submitStatus === 'error' && serviceState.errorMessage && (
+        <StatusCard variant="error" message={serviceState.errorMessage} showIcon />
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         <InputField
@@ -165,18 +141,22 @@ export function ContactFormInner({ className, contactService }: ContactFormInner
       />
 
       {/* Cloudflare Turnstile Widget */}
-      {serviceStatus?.services.turnstile.enabled && serviceStatus.services.turnstile.siteKey && (
-        <TurnstileWidget
-          siteKey={serviceStatus.services.turnstile.siteKey}
-          onVerify={handleEnhancedTurnstileVerify}
-          onExpire={handleTurnstileExpire}
-          className="my-6"
-        />
-      )}
+      {serviceState.serviceStatus?.services.turnstile.enabled &&
+        serviceState.serviceStatus.services.turnstile.siteKey && (
+          <div className="my-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Security Verification *</label>
+              <div ref={turnstileContainerRef} className="turnstile-container" data-testid="turnstile-widget" />
+              <div className="text-xs text-gray-400 mt-2">
+                <p>This verification helps protect against spam while respecting your privacy.</p>
+              </div>
+            </div>
+          </div>
+        )}
 
       <SubmitButton
-        isSubmitting={isSubmitting}
-        disabled={(!turnstileToken && serviceStatus?.services.turnstile.enabled) || !csrfToken || !serviceStatus}
+        isSubmitting={serviceState.isSubmitting}
+        disabled={serviceState.isLoading || !serviceState.serviceStatus}
         data-testid="submit-button"
       />
     </form>

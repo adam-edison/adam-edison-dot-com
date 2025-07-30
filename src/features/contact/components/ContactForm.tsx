@@ -13,17 +13,17 @@ export function ContactForm({ className, contactService = defaultContactFormServ
   const [configStatus, setConfigStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
   useEffect(() => {
-    const checkServerConfig = async () => {
-      try {
-        await contactService.checkServerConfig();
+    const initializeService = async () => {
+      const result = await contactService.initialize();
+      if (result.success) {
         setConfigStatus('ready');
-      } catch (error) {
-        logger.error('Failed to check server configuration:', error);
+      } else {
+        logger.error('Failed to initialize contact service:', result.error);
         setConfigStatus('error');
       }
     };
 
-    checkServerConfig();
+    initializeService();
   }, [contactService]);
 
   if (configStatus === 'loading') {
