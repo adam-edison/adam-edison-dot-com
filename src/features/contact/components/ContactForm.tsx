@@ -2,32 +2,29 @@ import { useState, useEffect } from 'react';
 import { ContactFormInner } from './ContactFormInner';
 import { ContactFormErrorBoundary } from './ContactFormErrorBoundary';
 import { logger } from '@/shared/Logger';
+import { ContactFormService, defaultContactFormService } from '../ContactFormService';
 
 interface ContactFormProps {
   className?: string;
+  contactService?: ContactFormService;
 }
 
-export function ContactForm({ className }: ContactFormProps) {
+export function ContactForm({ className, contactService = defaultContactFormService }: ContactFormProps) {
   const [configStatus, setConfigStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
   useEffect(() => {
-    checkServerConfig();
-  }, []);
-
-  const checkServerConfig = async () => {
-    try {
-      const response = await fetch('/api/email-service-check');
-
-      if (response.ok) {
+    const checkServerConfig = async () => {
+      try {
+        await contactService.checkServerConfig();
         setConfigStatus('ready');
-      } else {
+      } catch (error) {
+        logger.error('Failed to check server configuration:', error);
         setConfigStatus('error');
       }
-    } catch (error) {
-      logger.error('Failed to check server configuration:', error);
-      setConfigStatus('error');
-    }
-  };
+    };
+
+    checkServerConfig();
+  }, [contactService]);
 
   if (configStatus === 'loading') {
     return (
@@ -47,7 +44,7 @@ export function ContactForm({ className }: ContactFormProps) {
 
   return (
     <ContactFormErrorBoundary>
-      <ContactFormInner className={className} />
+      <ContactFormInner className={className} contactService={contactService} />
     </ContactFormErrorBoundary>
   );
 }

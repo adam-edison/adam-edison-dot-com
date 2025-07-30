@@ -11,18 +11,25 @@ import { TurnstileWidget } from './TurnstileWidget';
 import { useServiceStatus } from './ServiceStatusManager';
 import { useFormSubmission } from './FormSubmissionHandler';
 import { useTurnstileManager } from './TurnstileManager';
+import { ContactFormService } from '../ContactFormService';
 
 interface ContactFormInnerProps {
   className?: string;
+  contactService: ContactFormService;
 }
 
-export function ContactFormInner({ className }: ContactFormInnerProps) {
+export function ContactFormInner({ className, contactService }: ContactFormInnerProps) {
   // Service status and CSRF token management
-  const { serviceStatus, csrfToken, isLoading: servicesLoading, error: servicesError } = useServiceStatus();
+  const {
+    serviceStatus,
+    csrfToken,
+    isLoading: servicesLoading,
+    error: servicesError
+  } = useServiceStatus(contactService);
 
   // Form submission state and actions
   const { isSubmitting, submitStatus, errorMessage, submitForm, resetSubmissionState, setSubmissionError } =
-    useFormSubmission();
+    useFormSubmission(contactService);
 
   // Turnstile token management
   const { turnstileToken, handleTurnstileVerify, handleTurnstileExpire, resetTurnstileToken, clearVerificationError } =
