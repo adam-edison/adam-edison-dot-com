@@ -81,7 +81,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   if (servicesError) {
     return (
       <div className={className}>
-        <StatusCard variant="error" message={servicesError} showIcon data-testid="services-error" />
+        <StatusCard variant="error" message={servicesError} showIcon />
       </div>
     );
   }
@@ -105,9 +105,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={`${className} space-y-6`}>
-      {submitStatus === 'error' && errorMessage && (
-        <StatusCard variant="error" message={errorMessage} showIcon data-testid="error-message" />
-      )}
+      {submitStatus === 'error' && errorMessage && <StatusCard variant="error" message={errorMessage} showIcon />}
 
       <div className="grid md:grid-cols-2 gap-6">
         <InputField

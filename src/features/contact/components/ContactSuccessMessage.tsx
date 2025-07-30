@@ -7,7 +7,7 @@ interface ContactSuccessMessageProps {
 
 export function ContactSuccessMessage({ className, onSendAnother }: ContactSuccessMessageProps) {
   return (
-    <StatusCard variant="success" className={`${className} p-8 text-center`} data-testid="success-message">
+    <StatusCard variant="success" className={`${className} p-8 text-center`}>
       <div className="text-green-400 mb-4">
         <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
