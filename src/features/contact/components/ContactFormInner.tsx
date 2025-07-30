@@ -58,25 +58,31 @@ export function ContactFormInner({ className, contactService }: ContactFormInner
   const onSubmit = async (data: ContactFormData) => {
     const turnstileRequired = serviceStatus?.services.turnstile.enabled;
 
-    if ((turnstileRequired && !turnstileToken) || !csrfToken) {
-      const message =
-        turnstileRequired && !turnstileToken
-          ? 'Please complete the security verification'
-          : 'A security token is required to send a message';
-      setSubmissionError(message);
+    if (turnstileRequired && !turnstileToken) {
+      setSubmissionError('Please complete the security verification');
       return;
     }
 
+    if (!csrfToken) {
+      setSubmissionError('A security token is required to send a message');
+      return;
+    }
+
+    let result;
     try {
-      await submitForm(data, turnstileRequired ? turnstileToken : null, csrfToken);
-      if (submitStatus !== 'error') {
-        reset();
-        if (turnstileRequired) {
-          resetTurnstileToken();
-        }
-      }
+      result = await submitForm(data, turnstileRequired ? turnstileToken : null, csrfToken);
     } catch {
       // Error handling is done in submitForm
+      return;
+    }
+
+    if (!result.success) {
+      return;
+    }
+
+    reset();
+    if (turnstileRequired) {
+      resetTurnstileToken();
     }
   };
 

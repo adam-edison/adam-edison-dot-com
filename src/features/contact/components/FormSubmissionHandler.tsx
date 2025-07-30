@@ -11,7 +11,11 @@ export interface FormSubmissionState {
 }
 
 export interface FormSubmissionActions {
-  submitForm: (data: ContactFormData, turnstileToken: string | null, csrfToken: string) => Promise<void>;
+  submitForm: (
+    data: ContactFormData,
+    turnstileToken: string | null,
+    csrfToken: string
+  ) => Promise<Result<void, string>>;
   resetSubmissionState: () => void;
   setSubmissionError: (message: string) => void;
 }
@@ -41,11 +45,16 @@ export function useFormSubmission(contactService: ContactFormService): FormSubmi
     }
   };
 
-  const submitForm = async (data: ContactFormData, turnstileToken: string | null, csrfToken: string): Promise<void> => {
+  const submitForm = async (
+    data: ContactFormData,
+    turnstileToken: string | null,
+    csrfToken: string
+  ): Promise<Result<void, string>> => {
     if (!csrfToken) {
+      const errorMessage = 'A security token is required to send a message';
       setSubmitStatus('error');
-      setErrorMessage('A security token is required to send a message');
-      return;
+      setErrorMessage(errorMessage);
+      return Result.failure(errorMessage);
     }
 
     setIsSubmitting(true);
@@ -54,14 +63,16 @@ export function useFormSubmission(contactService: ContactFormService): FormSubmi
 
     const result = await submitContactForm(data, turnstileToken, csrfToken);
 
-    if (result.success) {
-      setSubmitStatus('success');
-    } else {
+    setIsSubmitting(false);
+
+    if (!result.success) {
       setSubmitStatus('error');
       setErrorMessage(result.error);
+      return Result.failure(result.error);
     }
 
-    setIsSubmitting(false);
+    setSubmitStatus('success');
+    return Result.success();
   };
 
   const resetSubmissionState = () => {

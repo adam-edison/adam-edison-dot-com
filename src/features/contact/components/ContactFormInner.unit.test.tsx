@@ -121,7 +121,7 @@ describe('ContactFormInner', () => {
 
   test('should preserve form data when rate limit error occurs', async () => {
     const user = userEvent.setup();
-    
+
     // Create mock service that returns rate limit error
     const mockService = new ContactFormService();
     vi.spyOn(mockService, 'getCsrfToken').mockResolvedValue('mock-csrf-token');
