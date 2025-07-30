@@ -86,10 +86,6 @@ export function ContactFormInner({ className, contactService }: ContactFormInner
     }
   };
 
-  const handleSendAnother = () => {
-    resetSubmissionState();
-  };
-
   // Handle service loading errors
   if (servicesError) {
     return (
@@ -113,7 +109,7 @@ export function ContactFormInner({ className, contactService }: ContactFormInner
   }
 
   if (submitStatus === 'success') {
-    return <ContactSuccessMessage className={className} onSendAnother={handleSendAnother} />;
+    return <ContactSuccessMessage className={className} />;
   }
 
   return (
