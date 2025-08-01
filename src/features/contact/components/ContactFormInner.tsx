@@ -8,6 +8,7 @@ import { InputField } from './InputField';
 import { TextareaField } from './TextareaField';
 import { SubmitButton } from './SubmitButton';
 import { ContactFormService, ContactFormState } from '../ContactFormService';
+import { logger } from '@/shared/Logger';
 
 interface ContactFormInnerProps {
   className?: string;
@@ -55,9 +56,13 @@ export function ContactFormInner({ className, contactService }: ContactFormInner
 
   const onSubmit = async (data: ContactFormData) => {
     const result = await contactService.submitForm(data);
-    if (result.success) {
-      reset();
+
+    if (!result.success) {
+      logger.error('Failed to submit contact form:', result.error);
+      return;
     }
+
+    reset();
   };
 
   // Handle service loading errors

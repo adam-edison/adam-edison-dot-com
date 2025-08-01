@@ -87,11 +87,13 @@ export class ContactFormProcessor {
   private async sendContactEmail(emailData: ContactFormData): Promise<Result<void, InternalServerError>> {
     const emailResult = await this.emailService.sendContactEmail(emailData);
 
-    if (emailResult.success) return Result.success();
+    if (!emailResult.success) {
+      const internalMessage = `Email service error: ${emailResult.error.message}`;
+      const clientMessage = 'Failed to send message. Please try again later.';
+      const serverError = new InternalServerError(clientMessage, { internalMessage });
+      return Result.failure(serverError);
+    }
 
-    const internalMessage = `Email service error: ${emailResult.error.message}`;
-    const clientMessage = 'Failed to send message. Please try again later.';
-    const serverError = new InternalServerError(clientMessage, { internalMessage });
-    return Result.failure(serverError);
+    return Result.success();
   }
 }

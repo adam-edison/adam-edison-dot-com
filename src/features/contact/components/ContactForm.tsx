@@ -15,12 +15,14 @@ export function ContactForm({ className, contactService = defaultContactFormServ
   useEffect(() => {
     const initializeService = async () => {
       const result = await contactService.initialize();
-      if (result.success) {
-        setConfigStatus('ready');
-      } else {
+
+      if (!result.success) {
         logger.error('Failed to initialize contact service:', result.error);
         setConfigStatus('error');
+        return;
       }
+
+      setConfigStatus('ready');
     };
 
     initializeService();
