@@ -211,33 +211,40 @@ export class ContactFormService {
     try {
       const result = await this.submitToApi(formData, this.turnstileToken, this.csrfToken);
 
-      if (!result.success) {
-        // Handle CSRF token expiration
-        if (this.isCsrfError(result.error)) {
-          const newCsrfToken = await this.refreshCsrfToken();
-          if (newCsrfToken) {
-            // Retry with new token
-            const retryResult = await this.submitToApi(formData, this.turnstileToken, newCsrfToken);
-            if (retryResult.success) {
-              this.handleSuccessfulSubmission();
-              return Result.success();
-            } else {
-              this.updateState({
-                isSubmitting: false,
-                submitStatus: 'error',
-                errorMessage: retryResult.error
-              });
-              return Result.failure(retryResult.error);
-            }
-          }
-        }
+      if (result.success) {
+        this.handleSuccessfulSubmission();
+        return Result.success();
+      }
 
+      // Handle CSRF token expiration with retry
+      if (!this.isCsrfError(result.error)) {
         this.updateState({
           isSubmitting: false,
           submitStatus: 'error',
           errorMessage: result.error
         });
         return Result.failure(result.error);
+      }
+
+      const newCsrfToken = await this.refreshCsrfToken();
+      if (!newCsrfToken) {
+        this.updateState({
+          isSubmitting: false,
+          submitStatus: 'error',
+          errorMessage: result.error
+        });
+        return Result.failure(result.error);
+      }
+
+      // Retry with new token
+      const retryResult = await this.submitToApi(formData, this.turnstileToken, newCsrfToken);
+      if (!retryResult.success) {
+        this.updateState({
+          isSubmitting: false,
+          submitStatus: 'error',
+          errorMessage: retryResult.error
+        });
+        return Result.failure(retryResult.error);
       }
 
       this.handleSuccessfulSubmission();
