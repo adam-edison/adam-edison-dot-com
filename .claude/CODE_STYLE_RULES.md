@@ -7,6 +7,7 @@ This file contains specific code style rules and formatting guidelines for this 
 **Use blank lines to separate logical blocks of code for better readability:**
 
 **Preferred (with spacing):**
+
 ```typescript
 const initializeService = async () => {
   const result = await contactService.initialize();
@@ -22,6 +23,7 @@ const initializeService = async () => {
 ```
 
 **Avoid (without spacing):**
+
 ```typescript
 const initializeService = async () => {
   const result = await contactService.initialize();
@@ -35,6 +37,7 @@ const initializeService = async () => {
 ```
 
 **Guidelines:**
+
 - Add blank lines after variable declarations before the main logic
 - Add blank lines before return statements in guard clauses
 - Add blank lines after error handling blocks before the happy path
@@ -42,6 +45,7 @@ const initializeService = async () => {
 - Use vertical spacing to create visual "paragraphs" in your code
 
 **Rationale:**
+
 - **Improved readability** - code is easier to scan and understand
 - **Visual separation** - logical blocks are clearly distinguished
 - **Reduced cognitive load** - the eye can quickly identify different sections

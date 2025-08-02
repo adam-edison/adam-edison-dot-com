@@ -7,6 +7,7 @@ This file contains specific code quality rules and patterns for frontend develop
 When using async functions inside `useEffect`, prefer the "early return" pattern for cleaner control flow:
 
 **Preferred:**
+
 ```typescript
 useEffect(() => {
   const asyncFunction = async () => {
@@ -25,6 +26,7 @@ useEffect(() => {
 ```
 
 **Avoid:**
+
 ```typescript
 // Don't use if/else blocks when early return is cleaner
 useEffect(() => {
@@ -42,13 +44,17 @@ useEffect(() => {
 }, [dependencies]);
 
 // Don't extract async functions outside useEffect (causes re-renders)
-const asyncFunction = async () => { /* ... */ };
+const asyncFunction = async () => {
+  /* ... */
+};
 useEffect(() => {
   asyncFunction();
 }, [asyncFunction]); // Bad: function recreated every render
 
 // Don't use useCallback unless the function is used elsewhere
-const asyncFunction = useCallback(async () => { /* ... */ }, [deps]);
+const asyncFunction = useCallback(async () => {
+  /* ... */
+}, [deps]);
 useEffect(() => {
   asyncFunction();
 }, [asyncFunction]); // Unnecessary complexity
@@ -72,6 +78,7 @@ processSuccessfulResult(result.data);
 ```
 
 **Avoid:**
+
 ```typescript
 // Don't nest happy path inside success checks
 if (result.success) {
@@ -84,6 +91,7 @@ if (result.success) {
 ```
 
 **Rationale:**
+
 - **Fail fast principle** - handle problems immediately where they occur
 - **Reduced cognitive load** - once past the guards, you know you're in a valid state
 - **Cleaner happy path** - success logic isn't nested or mixed with error handling
