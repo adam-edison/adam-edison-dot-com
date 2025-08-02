@@ -9,6 +9,6 @@ export default defineConfig({
     include: ['**/*.unit.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: ['**/tests/e2e/**', '**/node_modules/**'],
     globals: true,
-    setupFiles: ['./tests/setup/logger.ts']
+    setupFiles: ['./tests/setup/dom.ts', './tests/setup/logger.ts']
   }
 });

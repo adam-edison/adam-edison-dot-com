@@ -2,10 +2,9 @@ import { StatusCard } from '@/shared/components/ui/StatusCard';
 
 interface ContactSuccessMessageProps {
   className?: string;
-  onSendAnother: () => void;
 }
 
-export function ContactSuccessMessage({ className, onSendAnother }: ContactSuccessMessageProps) {
+export function ContactSuccessMessage({ className }: ContactSuccessMessageProps) {
   return (
     <StatusCard variant="success" className={`${className} p-8 text-center`}>
       <div className="text-green-400 mb-4">
@@ -19,10 +18,7 @@ export function ContactSuccessMessage({ className, onSendAnother }: ContactSucce
         </svg>
       </div>
       <h3 className="text-2xl font-bold text-green-400 mb-2">Message Sent!</h3>
-      <p className="text-green-300 mb-6">Expect a reply within 48 hours.</p>
-      <button onClick={onSendAnother} className="text-green-400 hover:text-green-300 transition-colors underline">
-        Send another message
-      </button>
+      <p className="text-green-300">Expect a reply within 48 hours.</p>
     </StatusCard>
   );
 }

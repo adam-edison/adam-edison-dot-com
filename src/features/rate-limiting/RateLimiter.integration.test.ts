@@ -14,7 +14,7 @@ import { describe, test, expect, beforeAll, afterEach } from 'vitest';
 import { generateUniqueIdentifier } from '@tests/utils/testHelpers';
 import assert from 'node:assert';
 
-describe('RateLimiter Integration Tests', () => {
+describe.skipIf(!process.env.UPSTASH_REDIS_REST_URL?.startsWith('https://'))('RateLimiter Integration Tests', () => {
   let rateLimiter: RateLimiter;
   const basePrefix = process.env.REDIS_PREFIX;
   const testPrefix = `${basePrefix}-integration-rate-limit`;

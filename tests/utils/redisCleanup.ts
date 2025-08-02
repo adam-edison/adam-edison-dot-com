@@ -7,6 +7,13 @@ import { logger } from '@/shared/Logger';
  */
 export async function cleanupRedisKeys(pattern: string): Promise<void> {
   try {
+    // Skip cleanup if Redis URL is not configured properly
+    const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+    if (!redisUrl || !redisUrl.startsWith('https://')) {
+      logger.info('Skipping Redis cleanup - Redis URL not configured for tests');
+      return;
+    }
+
     const redis = Redis.fromEnv();
     const keys = await redis.keys(pattern);
     if (keys.length > 0) {

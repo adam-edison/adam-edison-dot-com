@@ -4,17 +4,20 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "npx tsx scripts/check-env.ts && next build",
+    "build": "npm run build:check && next build",
+    "build:check": "npx tsx scripts/check-env.ts && tsc --noEmit",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run --config vitest.unit.config.mts",
+    "test": "npm run test:all",
     "test:unit": "vitest run --config vitest.unit.config.mts",
     "test:integration": "vitest run --config vitest.integration.config.mts",
     "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "test:e2e": "playwright test",
-    "test:manual": "vitest run --config vitest.manual.config.mts"
+    "test:manual": "vitest run --config vitest.manual.config.mts",
+    "test:interactive": "playwright test --config tests/e2e/interactive/playwright.config.ts",
+    "overwrite:environment": "tsx scripts/netlify-environment-sync.ts"
   },
   "dependencies": {
     "@google-cloud/recaptcha-enterprise": "^6.2.0",

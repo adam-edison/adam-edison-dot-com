@@ -10,6 +10,7 @@ import {
   InternalServerError
 } from './errors';
 import { logger } from './Logger';
+import { ResponseTimeProtector } from './ResponseTimeProtector';
 import type { NextApiResponse } from 'next';
 
 vi.mock('./Logger', () => ({
@@ -18,12 +19,18 @@ vi.mock('./Logger', () => ({
   }
 }));
 
+vi.mock('./ResponseTimeProtector', () => ({
+  ResponseTimeProtector: vi.fn().mockImplementation(() => ({
+    endAndProtect: vi.fn().mockResolvedValue(undefined)
+  }))
+}));
+
 describe('ApiErrorHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
   describe('error response mapping through handle method', () => {
-    it('should map ValidationError to 400 status with details', () => {
+    it('should map ValidationError to 400 status with details', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
@@ -35,14 +42,15 @@ describe('ApiErrorHandler', () => {
         details: [{ field: 'email', message: 'Required' }]
       });
 
-      const result = ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      const result = await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       expect(result.statusCode).toBe(400);
       expect(result.response.message).toBe('Please check your form data');
       expect(result.response.errors).toEqual([{ field: 'email', message: 'Required' }]);
     });
 
-    it('should map RecaptchaError to 400 status without details', () => {
+    it('should map RecaptchaError to 400 status without details', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
@@ -53,14 +61,15 @@ describe('ApiErrorHandler', () => {
         internalMessage: 'reCAPTCHA API returned score 0.1, threshold 0.5'
       });
 
-      const result = ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      const result = await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       expect(result.statusCode).toBe(400);
       expect(result.response.message).toBe('Security verification failed');
       expect(result.response.errors).toBeUndefined();
     });
 
-    it('should map ValidationError with sanitization details to 400 status with details', () => {
+    it('should map ValidationError with sanitization details to 400 status with details', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
@@ -72,14 +81,15 @@ describe('ApiErrorHandler', () => {
         details: [{ field: 'message', message: 'Invalid content' }]
       });
 
-      const result = ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      const result = await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       expect(result.statusCode).toBe(400);
       expect(result.response.message).toBe('Invalid content detected');
       expect(result.response.errors).toEqual([{ field: 'message', message: 'Invalid content' }]);
     });
 
-    it('should map EmailServiceError with isConfigError=true to 500 status', () => {
+    it('should map EmailServiceError with isConfigError=true to 500 status', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
@@ -91,14 +101,15 @@ describe('ApiErrorHandler', () => {
         isConfigError: true
       });
 
-      const result = ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      const result = await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       expect(result.statusCode).toBe(500);
       expect(result.response.message).toBe('Unable to send messages at this time');
       expect(result.response.errors).toBeUndefined();
     });
 
-    it('should map EmailServiceError with isConfigError=false to 502 status', () => {
+    it('should map EmailServiceError with isConfigError=false to 502 status', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
@@ -110,14 +121,15 @@ describe('ApiErrorHandler', () => {
         isConfigError: false
       });
 
-      const result = ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      const result = await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       expect(result.statusCode).toBe(502);
       expect(result.response.message).toBe('Unable to send your message at this time');
       expect(result.response.errors).toBeUndefined();
     });
 
-    it('should map ServiceUnavailableError to 503 status', () => {
+    it('should map ServiceUnavailableError to 503 status', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
@@ -129,7 +141,8 @@ describe('ApiErrorHandler', () => {
         serviceName: 'redis'
       });
 
-      const result = ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      const result = await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       expect(result.statusCode).toBe(503);
       expect(result.response.message).toBe('Service temporarily unavailable');
@@ -138,7 +151,7 @@ describe('ApiErrorHandler', () => {
   });
 
   describe('handle', () => {
-    it('should handle ValidationError: log internal details, send client message with errors', () => {
+    it('should handle ValidationError: log internal details, send client message with errors', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
@@ -149,7 +162,8 @@ describe('ApiErrorHandler', () => {
         details: [{ field: 'email', message: 'Required' }]
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       // Verify HTTP response
       expect(mockRes.status).toHaveBeenCalledWith(400);
@@ -170,7 +184,7 @@ describe('ApiErrorHandler', () => {
       });
     });
 
-    it('should handle RecaptchaError: log internal details, send client message without errors', () => {
+    it('should handle RecaptchaError: log internal details, send client message without errors', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
@@ -180,7 +194,8 @@ describe('ApiErrorHandler', () => {
         internalMessage: 'reCAPTCHA API returned score 0.1, threshold 0.5'
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       // Verify HTTP response
       expect(mockRes.status).toHaveBeenCalledWith(400);
@@ -200,7 +215,7 @@ describe('ApiErrorHandler', () => {
       });
     });
 
-    it('should handle ValidationError with sanitization details: log internal details, send client message with errors', () => {
+    it('should handle ValidationError with sanitization details: log internal details, send client message with errors', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
@@ -211,7 +226,8 @@ describe('ApiErrorHandler', () => {
         details: [{ field: 'message', message: 'Invalid content' }]
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       // Verify HTTP response
       expect(mockRes.status).toHaveBeenCalledWith(400);
@@ -233,7 +249,7 @@ describe('ApiErrorHandler', () => {
       });
     });
 
-    it('should handle EmailServiceError (config): log internal details, send client message', () => {
+    it('should handle EmailServiceError (config): log internal details, send client message', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
@@ -244,7 +260,8 @@ describe('ApiErrorHandler', () => {
         isConfigError: true
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       // Verify HTTP response
       expect(mockRes.status).toHaveBeenCalledWith(500);
@@ -264,7 +281,7 @@ describe('ApiErrorHandler', () => {
       });
     });
 
-    it('should handle EmailServiceError (runtime): log internal details, send client message', () => {
+    it('should handle EmailServiceError (runtime): log internal details, send client message', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
@@ -275,7 +292,8 @@ describe('ApiErrorHandler', () => {
         isConfigError: false
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       // Verify HTTP response
       expect(mockRes.status).toHaveBeenCalledWith(502);
@@ -295,7 +313,7 @@ describe('ApiErrorHandler', () => {
       });
     });
 
-    it('should handle ServiceUnavailableError: log internal details, send client message', () => {
+    it('should handle ServiceUnavailableError: log internal details, send client message', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
@@ -306,7 +324,8 @@ describe('ApiErrorHandler', () => {
         serviceName: 'redis'
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       // Verify HTTP response
       expect(mockRes.status).toHaveBeenCalledWith(503);
@@ -326,7 +345,7 @@ describe('ApiErrorHandler', () => {
       });
     });
 
-    it('should handle RateLimitError: log internal details, send client message with retryAfter', () => {
+    it('should handle RateLimitError: log internal details, send client message with retryAfter', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
@@ -338,7 +357,8 @@ describe('ApiErrorHandler', () => {
         limitType: 'ip'
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       // Verify HTTP response
       expect(mockRes.status).toHaveBeenCalledWith(429);
@@ -360,7 +380,7 @@ describe('ApiErrorHandler', () => {
       });
     });
 
-    it('should handle MethodNotAllowedError: log internal details, send client message with Allow header', () => {
+    it('should handle MethodNotAllowedError: log internal details, send client message with Allow header', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
@@ -373,7 +393,8 @@ describe('ApiErrorHandler', () => {
         attemptedMethod: 'GET'
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       // Verify HTTP response
       expect(mockRes.status).toHaveBeenCalledWith(405);
@@ -397,7 +418,7 @@ describe('ApiErrorHandler', () => {
       });
     });
 
-    it('should handle InternalServerError: log internal details, send client message', () => {
+    it('should handle InternalServerError: log internal details, send client message', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
@@ -407,7 +428,8 @@ describe('ApiErrorHandler', () => {
         internalMessage: 'Failed to create ContactFormProcessor: Database connection failed'
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       // Verify HTTP response
       expect(mockRes.status).toHaveBeenCalledWith(500);

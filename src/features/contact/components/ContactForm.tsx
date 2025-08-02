@@ -1,40 +1,32 @@
 import { useState, useEffect } from 'react';
-import { LazyReCaptchaProvider } from './LazyReCaptchaProvider';
 import { ContactFormInner } from './ContactFormInner';
 import { ContactFormErrorBoundary } from './ContactFormErrorBoundary';
 import { logger } from '@/shared/Logger';
+import { ContactFormService, defaultContactFormService } from '../ContactFormService';
 
 interface ContactFormProps {
   className?: string;
+  contactService?: ContactFormService;
 }
 
-export function ContactForm({ className }: ContactFormProps) {
+export function ContactForm({ className, contactService = defaultContactFormService }: ContactFormProps) {
   const [configStatus, setConfigStatus] = useState<'loading' | 'ready' | 'error'>('loading');
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   useEffect(() => {
-    if (!siteKey) {
-      setConfigStatus('error');
-      return;
-    }
+    const initializeService = async () => {
+      const result = await contactService.initialize();
 
-    checkServerConfig();
-  }, [siteKey]);
-
-  const checkServerConfig = async () => {
-    try {
-      const response = await fetch('/api/email-service-check');
-
-      if (response.ok) {
-        setConfigStatus('ready');
-      } else {
+      if (!result.success) {
+        logger.error('Failed to initialize contact service:', result.error);
         setConfigStatus('error');
+        return;
       }
-    } catch (error) {
-      logger.error('Failed to check server configuration:', error);
-      setConfigStatus('error');
-    }
-  };
+
+      setConfigStatus('ready');
+    };
+
+    initializeService();
+  }, [contactService]);
 
   if (configStatus === 'loading') {
     return (
@@ -53,10 +45,8 @@ export function ContactForm({ className }: ContactFormProps) {
   }
 
   return (
-    <LazyReCaptchaProvider siteKey={siteKey!}>
-      <ContactFormErrorBoundary>
-        <ContactFormInner className={className} />
-      </ContactFormErrorBoundary>
-    </LazyReCaptchaProvider>
+    <ContactFormErrorBoundary>
+      <ContactFormInner className={className} contactService={contactService} />
+    </ContactFormErrorBoundary>
   );
 }

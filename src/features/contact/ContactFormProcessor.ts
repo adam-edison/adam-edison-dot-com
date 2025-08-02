@@ -1,16 +1,17 @@
 import { EmailService } from './EmailService';
 import { InputSanitizer } from './InputSanitizer';
-import { RecaptchaService } from './RecaptchaService';
+import { TurnstileService } from './TurnstileService';
 import { ContactFormValidator, ContactFormData } from './ContactFormValidator';
 import { Result } from '@/shared/Result';
-import { ValidationError, RecaptchaError, InternalServerError } from '@/shared/errors';
+import { ValidationError, InternalServerError } from '@/shared/errors';
+import { isFormDataWithTurnstile } from '@/shared/TypeGuards';
 
-export type ProcessFormResult = Result<void, ValidationError | RecaptchaError | InternalServerError>;
+export type ProcessFormResult = Result<void, ValidationError | InternalServerError>;
 
 export class ContactFormProcessor {
   constructor(
     private emailService: EmailService,
-    private recaptchaService: RecaptchaService
+    private turnstileService?: TurnstileService
   ) {}
 
   static async fromEnv(): Promise<Result<ContactFormProcessor, InternalServerError>> {
@@ -23,25 +24,45 @@ export class ContactFormProcessor {
       return Result.failure(serverError);
     }
 
-    const recaptchaService = RecaptchaService.fromEnv();
+    // Initialize Turnstile service if enabled
+    let turnstileService: TurnstileService | undefined;
+    if (TurnstileService.isEnabled()) {
+      const turnstileResult = TurnstileService.fromEnv();
+      if (!turnstileResult.success) {
+        return Result.failure(turnstileResult.error);
+      }
+      turnstileService = turnstileResult.data;
+    }
 
-    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data, recaptchaService);
+    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data, turnstileService);
     return Result.success(contactFormProcessor);
   }
 
-  async processForm(formData: unknown): Promise<ProcessFormResult> {
-    const recaptchaToken = ContactFormValidator.extractRecaptchaToken(formData);
-    if (!recaptchaToken) {
-      const clientMessage = 'Please complete the reCAPTCHA verification';
-      const validationError = new ValidationError(clientMessage, { internalMessage: 'Missing recaptcha token' });
-      return Result.failure(validationError);
+  async processForm(formData: unknown, remoteIp?: string): Promise<ProcessFormResult> {
+    // Extract Turnstile token if present
+    let turnstileToken: string | undefined;
+    if (isFormDataWithTurnstile(formData)) {
+      turnstileToken = formData.turnstileToken;
+      // Remove token from form data before validation
+      delete formData.turnstileToken;
     }
 
-    const recaptchaVerified = await this.verifyRecaptchaToken(recaptchaToken);
-    if (!recaptchaVerified.success) return Result.failure(recaptchaVerified.error);
+    // Verify Turnstile token if service is enabled
+    if (this.turnstileService) {
+      if (!turnstileToken) {
+        const error = new ValidationError('Security verification required', {
+          internalMessage: 'Turnstile token is missing but Turnstile is enabled'
+        });
+        return Result.failure(error);
+      }
 
-    const formDataOnly = ContactFormValidator.extractFormData(formData);
-    const validatedFormData = ContactFormValidator.validate(formDataOnly);
+      const verificationResult = await this.turnstileService.verifyToken(turnstileToken, remoteIp);
+      if (!verificationResult.success) {
+        return Result.failure(verificationResult.error);
+      }
+    }
+
+    const validatedFormData = ContactFormValidator.validate(formData);
     if (!validatedFormData.success) return Result.failure(validatedFormData.error);
 
     const sanitizedFormData = this.sanitizeFormData(validatedFormData.data);
@@ -52,20 +73,6 @@ export class ContactFormProcessor {
     if (!emailSent.success) return Result.failure(emailSent.error);
 
     return Result.success();
-  }
-
-  private async verifyRecaptchaToken(token: string): Promise<Result<void, RecaptchaError>> {
-    const result = await this.recaptchaService.verifyToken(token);
-    if (result.success) {
-      return Result.success();
-    }
-
-    const clientMessage = 'Security verification failed. Please try again.';
-    const errorDetails = result.error.message || 'Unknown reCAPTCHA error';
-    const internalMessage = `reCAPTCHA verification failed: ${errorDetails}`;
-    const recaptchaError = new RecaptchaError(clientMessage, { internalMessage });
-
-    return Result.failure(recaptchaError);
   }
 
   private sanitizeFormData(formData: ContactFormData): ContactFormData {
@@ -80,11 +87,13 @@ export class ContactFormProcessor {
   private async sendContactEmail(emailData: ContactFormData): Promise<Result<void, InternalServerError>> {
     const emailResult = await this.emailService.sendContactEmail(emailData);
 
-    if (emailResult.success) return Result.success();
+    if (!emailResult.success) {
+      const internalMessage = `Email service error: ${emailResult.error.message}`;
+      const clientMessage = 'Failed to send message. Please try again later.';
+      const serverError = new InternalServerError(clientMessage, { internalMessage });
+      return Result.failure(serverError);
+    }
 
-    const internalMessage = `Email service error: ${emailResult.error.message}`;
-    const clientMessage = 'Failed to send message. Please try again later.';
-    const serverError = new InternalServerError(clientMessage, { internalMessage });
-    return Result.failure(serverError);
+    return Result.success();
   }
 }

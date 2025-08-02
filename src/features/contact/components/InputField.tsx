@@ -11,6 +11,7 @@ interface InputFieldProps {
   register: UseFormRegister<ContactFormData>;
   error?: FieldError;
   maxLength?: number;
+  'data-testid'?: string;
 }
 
 const inputClasses =
@@ -24,7 +25,8 @@ export function InputField({
   required = false,
   register,
   error,
-  maxLength
+  maxLength,
+  'data-testid': dataTestId
 }: InputFieldProps) {
   return (
     <FormFieldBase id={id} label={label} required={required} error={error}>
@@ -35,6 +37,7 @@ export function InputField({
         className={inputClasses}
         placeholder={placeholder}
         maxLength={maxLength}
+        data-testid={dataTestId}
       />
     </FormFieldBase>
   );
