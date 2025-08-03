@@ -155,3 +155,122 @@ private async retryWithFreshCsrfToken(formData: ContactFormData): Promise<Result
 - **Better error handling** - guard clauses make error conditions explicit
 - **Enhanced readability** - the happy path is immediately obvious
 - **Easier testing** - extracted methods can be tested independently
+
+## Static Factory Methods
+
+**Use static factory methods on classes instead of standalone factory functions:**
+
+**Avoid (standalone factory function):**
+
+```typescript
+// Factory function to create service with dependencies
+export function createContactFormService(baseUrl: string = ''): ContactFormService {
+  const emailService = new EmailService(baseUrl);
+  const securityService = new SecurityService(baseUrl);
+  const configService = new ConfigService(baseUrl);
+
+  return new ContactFormService(emailService, securityService, configService);
+}
+
+// Usage
+const service = createContactFormService();
+```
+
+**Preferred (static factory method):**
+
+```typescript
+export class ContactFormService {
+  constructor(
+    private emailService: EmailService,
+    private securityService: SecurityService,
+    private configService: ConfigService
+  ) {}
+
+  static create(baseUrl: string = ''): ContactFormService {
+    const emailService = new EmailService(baseUrl);
+    const securityService = new SecurityService(baseUrl);
+    const configService = new ConfigService(baseUrl);
+
+    return new ContactFormService(emailService, securityService, configService);
+  }
+
+  // ... other methods
+}
+
+// Usage
+const service = ContactFormService.create();
+```
+
+**Guidelines:**
+
+- **Use static factory methods** for complex object creation with dependencies
+- **Name factory methods clearly** - `create()`, `from()`, `build()`, etc.
+- **Keep factory logic close to the class** - better encapsulation and discoverability
+- **Use descriptive names** for different creation patterns (e.g., `fromConfig()`, `withDefaults()`)
+- **Return the class type** to maintain type safety
+
+**Example patterns:**
+
+```typescript
+class RequestContext {
+  static from(req: NextApiRequest): RequestContext {
+    // Create from request
+  }
+}
+
+class DatabaseService {
+  static create(): DatabaseService {
+    // Default creation
+  }
+  
+  static withConfig(config: DatabaseConfig): DatabaseService {
+    // Creation with specific config
+  }
+}
+```
+
+**Rationale:**
+
+- **Better encapsulation** - factory logic belongs with the class it creates
+- **Improved discoverability** - IDE autocomplete shows factory methods with the class
+- **Type safety** - factory methods maintain proper typing
+- **Consistency** - follows common patterns in frameworks and libraries
+- **Namespace organization** - keeps related functionality together
+
+## Error Handling: Fail Fast with Guard Clauses
+
+**Always handle error cases first with early returns:**
+
+```typescript
+// Preferred: Guard clauses first
+if (!result.success) {
+  logger.error('Failed to initialize:', result.error);
+  setConfigStatus('error');
+  return;
+}
+
+// Happy path is clean and unindented
+setConfigStatus('ready');
+processSuccessfulResult(result.data);
+```
+
+**Avoid:**
+
+```typescript
+// Don't nest happy path inside success checks
+if (result.success) {
+  setConfigStatus('ready');
+  processSuccessfulResult(result.data);
+} else {
+  logger.error('Failed to initialize:', result.error);
+  setConfigStatus('error');
+}
+```
+
+**Rationale:**
+
+- **Fail fast principle** - handle problems immediately where they occur
+- **Reduced cognitive load** - once past the guards, you know you're in a valid state
+- **Cleaner happy path** - success logic isn't nested or mixed with error handling
+- **Better debugging** - error conditions are explicit and handled upfront
+- **Prevents deep nesting** - scales well when multiple error conditions exist

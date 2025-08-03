@@ -60,40 +60,4 @@ useEffect(() => {
 }, [asyncFunction]); // Unnecessary complexity
 ```
 
-## Error Handling: Fail Fast with Guard Clauses
 
-**Always handle error cases first with early returns:**
-
-```typescript
-// Preferred: Guard clauses first
-if (!result.success) {
-  logger.error('Failed to initialize:', result.error);
-  setConfigStatus('error');
-  return;
-}
-
-// Happy path is clean and unindented
-setConfigStatus('ready');
-processSuccessfulResult(result.data);
-```
-
-**Avoid:**
-
-```typescript
-// Don't nest happy path inside success checks
-if (result.success) {
-  setConfigStatus('ready');
-  processSuccessfulResult(result.data);
-} else {
-  logger.error('Failed to initialize:', result.error);
-  setConfigStatus('error');
-}
-```
-
-**Rationale:**
-
-- **Fail fast principle** - handle problems immediately where they occur
-- **Reduced cognitive load** - once past the guards, you know you're in a valid state
-- **Cleaner happy path** - success logic isn't nested or mixed with error handling
-- **Better debugging** - error conditions are explicit and handled upfront
-- **Prevents deep nesting** - scales well when multiple error conditions exist
