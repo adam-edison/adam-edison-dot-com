@@ -222,7 +222,7 @@ class DatabaseService {
   static create(): DatabaseService {
     // Default creation
   }
-  
+
   static withConfig(config: DatabaseConfig): DatabaseService {
     // Creation with specific config
   }

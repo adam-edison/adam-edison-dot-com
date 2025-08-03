@@ -59,5 +59,3 @@ useEffect(() => {
   asyncFunction();
 }, [asyncFunction]); // Unnecessary complexity
 ```
-
-
