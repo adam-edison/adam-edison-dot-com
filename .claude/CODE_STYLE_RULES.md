@@ -274,3 +274,65 @@ if (result.success) {
 - **Cleaner happy path** - success logic isn't nested or mixed with error handling
 - **Better debugging** - error conditions are explicit and handled upfront
 - **Prevents deep nesting** - scales well when multiple error conditions exist
+
+## Function and Method Spacing
+
+**Always add a blank line between declared functions and methods for improved readability:**
+
+**Avoid (no spacing between methods):**
+
+```typescript
+private isCsrfError(error: string): boolean {
+  const lowerError = error.toLowerCase();
+  return (
+    error.includes('403') ||
+    lowerError.includes('forbidden') ||
+    lowerError.includes('csrf') ||
+    lowerError.includes('token')
+  );
+}
+static create(baseUrl: string = ''): ContactFormService {
+  const emailService = new EmailService(baseUrl);
+  const securityService = new SecurityService(baseUrl);
+  const configService = new ConfigService(baseUrl);
+
+  return new ContactFormService(emailService, securityService, configService);
+}
+```
+
+**Preferred (with spacing between methods):**
+
+```typescript
+private isCsrfError(error: string): boolean {
+  const lowerError = error.toLowerCase();
+  return (
+    error.includes('403') ||
+    lowerError.includes('forbidden') ||
+    lowerError.includes('csrf') ||
+    lowerError.includes('token')
+  );
+}
+
+static create(baseUrl: string = ''): ContactFormService {
+  const emailService = new EmailService(baseUrl);
+  const securityService = new SecurityService(baseUrl);
+  const configService = new ConfigService(baseUrl);
+
+  return new ContactFormService(emailService, securityService, configService);
+}
+```
+
+**Guidelines:**
+
+- **Add blank lines between all declared functions and methods** - both instance and static methods
+- **Separate function declarations from other code blocks** - properties, constructors, and methods should have clear visual separation
+- **Apply consistently throughout the codebase** - maintain the same spacing pattern in all files
+- **Use single blank line** - one empty line is sufficient for visual separation
+
+**Rationale:**
+
+- **Improved readability** - clear visual boundaries between different methods
+- **Easier code navigation** - the eye can quickly locate method boundaries
+- **Better code organization** - logical grouping of functionality is more apparent
+- **Consistent formatting** - follows common industry standards for code presentation
+- **Enhanced maintainability** - easier to review and modify individual methods
