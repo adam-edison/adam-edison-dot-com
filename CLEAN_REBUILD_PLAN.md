@@ -3,9 +3,9 @@
 ## Goal
 Build a high-quality personal portfolio site with contact form functionality from scratch, using good architecture principles and leveraging AI generation with human review.
 
-## New Repository Setup
+## ✅ New Repository Setup
 
-### 1. Create Template Repository
+### 1. ✅ Create Template Repository
 ```bash
 # Create new repo: adam-edison-portfolio-v2
 mkdir adam-edison-portfolio-v2
@@ -13,7 +13,35 @@ cd adam-edison-portfolio-v2
 git init
 ```
 
-### 2. Foundation Setup (Day 1: 2-3 hours)
+### 2. 🚧 Foundation Setup (Day 1: 2-3 hours)
+
+* ✅ 1-husky-for-commit-messages
+* ✅ 2-next-js-with-pages-router-and-tailwind
+* 🚧 3-eslint-and-prettier
+* 🚧 4-basic-landing-page
+  * and here is where we introduce:
+    * Agents in personal Claude for:
+      * whole process coordination for new code given requirements
+      * Software Architect -- Clean Architecture, review first, several steps along the way, generates skeleton after approval
+      * Software Product Engineer -- asks questions to clarify requirements and acceptance criteria before writing tests
+      * Software Test Engineer -- DI for everything, and mocking class methods where needed, writes tests as TDD
+      * Software Implementation Engineer -- write production code in the skeleton to make tests pass, iterating until tests pass
+      * Refactoring Engineer -- code style and quality checks
+      * Last Line of Defense -- run all quality checks (format, lint, tests, build, server starts, .env.example is complete)
+* 5-contact-page
+    * Agents in personal Claude:
+      * Security Engineer -- make recommendations to improve security if needed and make MD file with high, medium, low risks -- add to existing file or create new one in project .claude folder
+      * security md file not in version control
+* 6-email-integration
+* 7-rate-limiting
+* 8-anti-bot-measures
+* 9-security-improvements
+* 10-accessibility-improvements
+* 11-performance-improvements
+* 12-favicon
+* 13-netlify-deployment
+
+
 Copy essential configuration from current repo:
 
 **Core Files to Copy:**
