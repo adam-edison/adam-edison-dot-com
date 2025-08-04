@@ -516,3 +516,49 @@ export function getTicketNumber(branchName: string): string | null {
 - **Reduced code complexity** - fewer conditional branches to follow
 - **Easier to modify** - adding/removing fallbacks is simpler
 - **Functional style** - declarative rather than imperative flow
+
+## Avoid Nested Function Calls - Use Intermediate Variables
+
+**Use intermediate variables instead of nesting function calls when it makes the code clearer:**
+
+**Avoid (nested function calls):**
+
+```typescript
+function checkForExistingTicketNumber(commitMessage: string): boolean {
+  return TICKET_PATTERN_REGEX.test(commitMessage.trim());
+}
+
+function processData(input: string): string {
+  return JSON.stringify(parseUserData(input.toLowerCase()));
+}
+```
+
+**Preferred (intermediate variables):**
+
+```typescript
+function checkForExistingTicketNumber(commitMessage: string): boolean {
+  const trimmedMessage = commitMessage.trim();
+  return TICKET_PATTERN_REGEX.test(trimmedMessage);
+}
+
+function processData(input: string): string {
+  const lowerCaseInput = input.toLowerCase();
+  const userData = parseUserData(lowerCaseInput);
+  return JSON.stringify(userData);
+}
+```
+
+**Guidelines:**
+
+- **Use intermediate variables** when function calls are nested and intermediate values would be meaningful
+- **Give descriptive names** to intermediate variables that clarify what each step does
+- **Prioritize readability** - if breaking up the chain makes the code clearer, do it
+- **Consider debugging benefits** - intermediate variables make it easier to inspect values
+
+**Rationale:**
+
+- **Improved debugging** - can inspect intermediate values during development
+- **Better readability** - each step is clear and self-documenting
+- **Easier testing** - individual transformations can be verified
+- **Reduced cognitive load** - no need to mentally parse nested operations
+- **Better error messages** - stack traces point to specific transformation steps
