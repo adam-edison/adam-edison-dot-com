@@ -431,34 +431,31 @@ export function handleTicketNumberInCommitMessage(params: CommitMessageParams): 
 **Avoid (multi-line for simple cases):**
 
 ```typescript
-export function getTicketNumber(branchName: string): string | null {
-  const jiraTicketNumber = extractJiraTicketNumber(branchName);
-
-  if (jiraTicketNumber) {
-    return jiraTicketNumber;
+export function validateInput(input: string): boolean {
+  if (!input) {
+    return false;
   }
 
-  const githubTicketNumber = extractGitHubTicketNumber(branchName);
-
-  if (githubTicketNumber) {
-    return githubTicketNumber;
+  if (input.length < 3) {
+    return false;
   }
 
-  return null;
+  if (input.includes('spam')) {
+    return false;
+  }
+
+  return true;
 }
 ```
 
 **Preferred (one-line for simple cases):**
 
 ```typescript
-export function getTicketNumber(branchName: string): string | null {
-  const jiraTicketNumber = extractJiraTicketNumber(branchName);
-  if (jiraTicketNumber) return jiraTicketNumber;
-
-  const githubTicketNumber = extractGitHubTicketNumber(branchName);
-  if (githubTicketNumber) return githubTicketNumber;
-
-  return null;
+export function validateInput(input: string): boolean {
+  if (!input) return false;
+  if (input.length < 3) return false;
+  if (input.includes('spam')) return false;
+  return true;
 }
 ```
 
@@ -476,3 +473,46 @@ export function getTicketNumber(branchName: string): string | null {
 - **Cleaner flow** - early returns are more obvious and scannable
 - **Less visual noise** - fewer braces for simple operations
 - **Better readability** - logical flow is more apparent
+
+## Logical OR Chain for Sequential Fallbacks
+
+**Use logical OR chains when returning the first truthy value from a sequence of fallback options:**
+
+**Avoid (multiple early returns for simple fallbacks):**
+
+```typescript
+export function getTicketNumber(branchName: string): string | null {
+  const jiraTicketNumber = extractJiraTicketNumber(branchName);
+  if (jiraTicketNumber) return jiraTicketNumber;
+
+  const githubTicketNumber = extractGitHubTicketNumber(branchName);
+  if (githubTicketNumber) return githubTicketNumber;
+
+  return null;
+}
+```
+
+**Preferred (logical OR chain):**
+
+```typescript
+export function getTicketNumber(branchName: string): string | null {
+  const jiraTicketNumber = extractJiraTicketNumber(branchName);
+  const githubTicketNumber = extractGitHubTicketNumber(branchName);
+  return jiraTicketNumber || githubTicketNumber || null;
+}
+```
+
+**Guidelines:**
+
+- **Use logical OR chains** when you need the first truthy value from a sequence
+- **Extract all values first** then use OR chain for the return
+- **Use early returns** when additional logic is needed between checks
+- **Use early returns** when error handling or side effects are involved
+- **Ensure null/undefined handling** is explicit in the final fallback
+
+**Rationale:**
+
+- **Concise and clear** - the fallback sequence is immediately obvious
+- **Reduced code complexity** - fewer conditional branches to follow
+- **Easier to modify** - adding/removing fallbacks is simpler
+- **Functional style** - declarative rather than imperative flow
