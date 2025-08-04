@@ -43,7 +43,7 @@ const initializeService = async () => {
 - Add blank lines after error handling blocks before the happy path
 - Separate logical groups of operations with blank lines
 - Use vertical spacing to create visual "paragraphs" in your code
-- **Exception**: Skip extra spacing in short functions or code blocks (3 lines or less) - keep them condensed
+- **Exception**: Any code block within braces `{}` that has 3 lines or less should be condensed without extra vertical spacing (functions, if/else, try/catch, loops, switch cases, etc.)
 
 **Rationale:**
 
@@ -52,24 +52,30 @@ const initializeService = async () => {
 - **Reduced cognitive load** - the eye can quickly identify different sections
 - **Better code review** - reviewers can follow the flow more easily
 
-**Exception for short functions and code blocks (3 lines or less):**
+**Exception for short code blocks (3 lines or less):**
 
 ```typescript
+// Function body
 function prependToCommitMessage(params: PrependParams): void {
   const { ticketNumber, commitMessageFile, commitMessage } = params;
   const newCommitMessage = `${ticketNumber}: ${commitMessage}`;
   fs.writeFileSync(commitMessageFile, newCommitMessage, 'utf-8');
 }
-```
 
-```typescript
+// Try/catch block
 } catch (error) {
   debug({ error: 'Failed to check amend via git status', errorMessage: error.message });
   return false;
 }
+
+// If block
+if (condition) {
+  const result = processData();
+  return result;
+}
 ```
 
-Short functions and code blocks can be condensed without extra vertical spacing when the entire block is 3 lines or less.
+Any code block within braces `{}` that has 3 lines or less should be condensed without extra vertical spacing. This includes function bodies, if/else blocks, try/catch blocks, loop bodies, switch cases, and any other braced code blocks.
 
 ## Never Nester Pattern (Early Returns)
 
