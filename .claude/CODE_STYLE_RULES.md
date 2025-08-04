@@ -44,6 +44,23 @@ const initializeService = async () => {
 - Separate logical groups of operations with blank lines
 - Use vertical spacing to create visual "paragraphs" in your code
 - **Exception**: Any code block within braces `{}` that has 3 lines or less should be condensed without extra vertical spacing (functions, if/else, try/catch, loops, switch cases, etc.)
+- **Cross-cutting concerns** like logging, debugging, or validation don't need separation from the variables they operate on - they're not the next procedural step
+
+**Cross-cutting concerns example:**
+
+```typescript
+function validateBranchName(): void {
+  const branchName = getBranchName();
+  debug({ branchName });
+
+  if (!branchName) {
+    output('Skipping... no branch name found');
+    process.exit(0);
+  }
+}
+```
+
+The `debug({ branchName })` is a cross-cutting concern that operates on the variable but isn't the next step in the procedure, so no blank line is needed.
 
 **Rationale:**
 
