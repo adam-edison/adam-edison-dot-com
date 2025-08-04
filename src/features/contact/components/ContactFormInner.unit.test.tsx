@@ -1,57 +1,84 @@
-import { expect, test, describe, vi } from 'vitest';
+import { expect, test, describe, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactFormInner } from './ContactFormInner';
-import { ContactFormService, ServiceStatus, ContactFormState } from '../ContactFormService';
-import { Result } from '@/shared/Result';
 
-function createMockService(configOrError?: ServiceStatus | Error, additionalState?: Partial<ContactFormState>) {
-  const mockService = new ContactFormService();
+// Mock the useContactForm hook
+const mockUseContactForm = vi.fn();
+vi.mock('../presentation/hooks/useContactForm', () => ({
+  useContactForm: () => mockUseContactForm()
+}));
 
-  vi.spyOn(mockService, 'submitForm').mockResolvedValue(Result.success());
-  vi.spyOn(mockService, 'cleanup').mockImplementation(() => {});
-  vi.spyOn(mockService, 'onStateChange').mockImplementation(() => {});
-
-  if (configOrError instanceof Error) {
-    // Mock for error state
-    vi.spyOn(mockService, 'initialize').mockResolvedValue(Result.failure(configOrError.message));
-    vi.spyOn(mockService, 'getState').mockReturnValue({
-      isLoading: false,
-      isSubmitting: false,
-      submitStatus: 'idle',
-      errorMessage: configOrError.message,
-      serviceStatus: null,
-      ...additionalState
-    });
-    return mockService;
+// Mock logger
+vi.mock('@/shared/Logger', () => ({
+  logger: {
+    error: vi.fn()
   }
+}));
 
-  const serviceStatus = configOrError || {
-    status: 'healthy' as const,
-    services: {
-      email: { enabled: true, ready: true },
-      turnstile: { enabled: false, ready: false }
-    }
+interface MockHookReturn {
+  formState: {
+    isSubmitting: boolean;
+    submitStatus: 'idle' | 'success' | 'error';
+    errorMessage: string;
+    isConfigLoading: boolean;
+    serviceConfig: {
+      status: 'healthy' | 'degraded';
+      services: {
+        email: { enabled: boolean; ready: boolean };
+        turnstile: { enabled: boolean; ready: boolean; siteKey?: string };
+      };
+    } | null;
   };
+  submitForm: ReturnType<typeof vi.fn>;
+  initializeConfig: ReturnType<typeof vi.fn>;
+  initializeTurnstile: ReturnType<typeof vi.fn>;
+  cleanup: ReturnType<typeof vi.fn>;
+}
 
-  // Mock for success state
-  vi.spyOn(mockService, 'initialize').mockResolvedValue(Result.success());
-  vi.spyOn(mockService, 'getState').mockReturnValue({
-    isLoading: additionalState?.isLoading ?? false,
-    isSubmitting: false,
-    submitStatus: 'idle',
-    errorMessage: '',
-    serviceStatus,
-    ...additionalState
-  });
-
-  return mockService;
+function createMockHookReturn(overrides: Partial<MockHookReturn> = {}): MockHookReturn {
+  return {
+    formState: {
+      isSubmitting: false,
+      submitStatus: 'idle' as const,
+      errorMessage: '',
+      isConfigLoading: false,
+      serviceConfig: {
+        status: 'healthy' as const,
+        services: {
+          email: { enabled: true, ready: true },
+          turnstile: { enabled: false, ready: false }
+        }
+      },
+      ...overrides.formState
+    },
+    submitForm: vi.fn().mockResolvedValue({ success: true }),
+    initializeConfig: vi.fn(),
+    initializeTurnstile: vi.fn(),
+    cleanup: vi.fn(),
+    ...overrides
+  };
 }
 
 describe('ContactFormInner', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   test('should show loading state initially', async () => {
-    const mockService = createMockService(undefined, { isLoading: true });
-    render(<ContactFormInner contactService={mockService} />);
+    mockUseContactForm.mockReturnValue(
+      createMockHookReturn({
+        formState: {
+          isSubmitting: false,
+          submitStatus: 'idle' as const,
+          errorMessage: '',
+          isConfigLoading: true,
+          serviceConfig: null
+        }
+      })
+    );
+
+    render(<ContactFormInner />);
 
     // Should show loading skeleton (form fields not yet rendered)
     expect(screen.queryByLabelText(/first name/i)).not.toBeInTheDocument();
@@ -61,8 +88,9 @@ describe('ContactFormInner', () => {
   });
 
   test('should render form fields when services load successfully', async () => {
-    const mockService = createMockService();
-    render(<ContactFormInner contactService={mockService} />);
+    mockUseContactForm.mockReturnValue(createMockHookReturn());
+
+    render(<ContactFormInner />);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
@@ -75,8 +103,19 @@ describe('ContactFormInner', () => {
   });
 
   test('should show error when services fail to load', async () => {
-    const mockService = createMockService(new Error('Service failed'));
-    render(<ContactFormInner contactService={mockService} />);
+    mockUseContactForm.mockReturnValue(
+      createMockHookReturn({
+        formState: {
+          isSubmitting: false,
+          submitStatus: 'idle' as const,
+          isConfigLoading: false,
+          serviceConfig: null,
+          errorMessage: 'Service failed'
+        }
+      })
+    );
+
+    render(<ContactFormInner />);
 
     await waitFor(() => {
       expect(screen.getByText(/service failed/i)).toBeInTheDocument();
@@ -84,34 +123,55 @@ describe('ContactFormInner', () => {
   });
 
   test('should render Turnstile widget when enabled', async () => {
-    const mockService = createMockService({
-      status: 'healthy',
-      services: {
-        email: { enabled: true, ready: true },
-        turnstile: { enabled: true, ready: true, siteKey: 'test-site-key' }
+    const mockHook = createMockHookReturn({
+      formState: {
+        isSubmitting: false,
+        submitStatus: 'idle' as const,
+        errorMessage: '',
+        isConfigLoading: false,
+        serviceConfig: {
+          status: 'healthy',
+          services: {
+            email: { enabled: true, ready: true },
+            turnstile: { enabled: true, ready: true, siteKey: 'test-site-key' }
+          }
+        }
       }
     });
+    mockUseContactForm.mockReturnValue(mockHook);
 
-    render(<ContactFormInner contactService={mockService} />);
+    render(<ContactFormInner />);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
     });
+
+    // Should call initializeTurnstile when turnstile is enabled
+    expect(mockHook.initializeTurnstile).toHaveBeenCalled();
 
     // When Turnstile is enabled, button shows send message but may be enabled/disabled based on verification state
     expect(screen.getByRole('button', { name: /send message/i })).toBeInTheDocument();
   });
 
   test('should render form without Turnstile when disabled', async () => {
-    const mockService = createMockService({
-      status: 'healthy',
-      services: {
-        email: { enabled: true, ready: true },
-        turnstile: { enabled: false, ready: false }
+    const mockHook = createMockHookReturn({
+      formState: {
+        isSubmitting: false,
+        submitStatus: 'idle' as const,
+        errorMessage: '',
+        isConfigLoading: false,
+        serviceConfig: {
+          status: 'healthy',
+          services: {
+            email: { enabled: true, ready: true },
+            turnstile: { enabled: false, ready: false }
+          }
+        }
       }
     });
+    mockUseContactForm.mockReturnValue(mockHook);
 
-    render(<ContactFormInner contactService={mockService} />);
+    render(<ContactFormInner />);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
@@ -122,8 +182,9 @@ describe('ContactFormInner', () => {
   });
 
   test('should show character count for message field', async () => {
-    const mockService = createMockService();
-    render(<ContactFormInner contactService={mockService} />);
+    mockUseContactForm.mockReturnValue(createMockHookReturn());
+
+    render(<ContactFormInner />);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/message/i)).toBeInTheDocument();
@@ -136,36 +197,32 @@ describe('ContactFormInner', () => {
   test('should preserve form data when rate limit error occurs', async () => {
     const user = userEvent.setup();
 
-    // Create mock service that returns rate limit error
-    const mockService = createMockService();
-    let stateChangeCallback: ((state: ContactFormState) => void) | null = null;
-
-    // Capture the state change callback
-    vi.spyOn(mockService, 'onStateChange').mockImplementation((callback) => {
-      stateChangeCallback = callback;
+    // Create mock hook that returns rate limit error on submit
+    const mockSubmitForm = vi.fn().mockResolvedValue({
+      success: false,
+      error: 'Too many requests. Please try again later.'
     });
 
-    // Mock submitForm to simulate error state change
-    vi.spyOn(mockService, 'submitForm').mockImplementation(async () => {
-      if (stateChangeCallback) {
-        stateChangeCallback({
-          isLoading: false,
+    mockUseContactForm.mockReturnValue(
+      createMockHookReturn({
+        submitForm: mockSubmitForm,
+        formState: {
           isSubmitting: false,
-          submitStatus: 'error',
+          submitStatus: 'error' as const,
           errorMessage: 'Too many requests. Please try again later.',
-          serviceStatus: {
-            status: 'healthy',
+          isConfigLoading: false,
+          serviceConfig: {
+            status: 'healthy' as const,
             services: {
               email: { enabled: true, ready: true },
               turnstile: { enabled: false, ready: false }
             }
           }
-        });
-      }
-      return Result.failure('Too many requests. Please try again later.');
-    });
+        }
+      })
+    );
 
-    render(<ContactFormInner contactService={mockService} />);
+    render(<ContactFormInner />);
 
     // Wait for form to load
     await waitFor(() => {
@@ -190,10 +247,13 @@ describe('ContactFormInner', () => {
     const submitButton = screen.getByRole('button', { name: /send message/i });
     await user.click(submitButton);
 
-    // Wait for submission to complete and error to appear
+    // Wait for submission to complete
     await waitFor(() => {
-      expect(screen.getByText(/too many requests/i)).toBeInTheDocument();
+      expect(mockSubmitForm).toHaveBeenCalled();
     });
+
+    // Error message should be displayed
+    expect(screen.getByText(/too many requests/i)).toBeInTheDocument();
 
     // Form data should NOT be cleared when there's a rate limit error
     // Users should not have to re-enter all their information
@@ -203,5 +263,45 @@ describe('ContactFormInner', () => {
     expect(messageInput).toHaveValue(
       'This is a test message that is long enough to meet the minimum character requirement for the contact form.'
     );
+  });
+
+  test('should show success message when submission succeeds', async () => {
+    mockUseContactForm.mockReturnValue(
+      createMockHookReturn({
+        formState: {
+          isSubmitting: false,
+          submitStatus: 'success' as const,
+          errorMessage: '',
+          isConfigLoading: false,
+          serviceConfig: {
+            status: 'healthy' as const,
+            services: {
+              email: { enabled: true, ready: true },
+              turnstile: { enabled: false, ready: false }
+            }
+          }
+        }
+      })
+    );
+
+    render(<ContactFormInner />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/message sent/i)).toBeInTheDocument();
+    });
+  });
+
+  test('should call cleanup on unmount', () => {
+    const mockCleanup = vi.fn();
+    mockUseContactForm.mockReturnValue(
+      createMockHookReturn({
+        cleanup: mockCleanup
+      })
+    );
+
+    const { unmount } = render(<ContactFormInner />);
+    unmount();
+
+    expect(mockCleanup).toHaveBeenCalled();
   });
 });
