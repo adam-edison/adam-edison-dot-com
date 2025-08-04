@@ -579,3 +579,52 @@ function processData(input: string): string {
 - **Easier testing** - individual transformations can be verified
 - **Reduced cognitive load** - no need to mentally parse nested operations
 - **Better error messages** - stack traces point to specific transformation steps
+
+## Use clsx for Complex CSS Classes
+
+**Use clsx for complex className combinations instead of template literals:**
+
+**Avoid (template literal className):**
+
+```tsx
+<div
+  className={`${geistSans.className} ${geistMono.className} font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20`}
+>
+```
+
+**Preferred (clsx with styles object):**
+
+```tsx
+// Component styles using clsx
+const styles = {
+  container: clsx(
+    geistSans.className,
+    geistMono.className,
+    'font-sans',
+    'grid grid-rows-[20px_1fr_20px]',
+    'items-center justify-items-center',
+    'min-h-screen',
+    'p-8 pb-20',
+    'gap-16',
+    'sm:p-20'
+  ),
+};
+
+<div className={styles.container}>
+```
+
+**Guidelines:**
+
+- **Use clsx** for complex className combinations with multiple classes
+- **Group related classes** on the same line for better organization
+- **Extract to styles object** when className becomes long or complex
+- **Keep simple single classes** inline without clsx
+- **Use descriptive style object keys** that describe the element's purpose
+
+**Rationale:**
+
+- **Better readability** - classes are organized and easy to scan
+- **Easier maintenance** - adding/removing classes is cleaner
+- **Conditional logic support** - clsx handles conditional classes elegantly
+- **Reduced template literal complexity** - no need for complex string interpolation
+- **Better IDE support** - easier to format and refactor
