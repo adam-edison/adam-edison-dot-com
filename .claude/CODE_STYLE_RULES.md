@@ -336,3 +336,65 @@ static create(baseUrl: string = ''): ContactFormService {
 - **Better code organization** - logical grouping of functionality is more apparent
 - **Consistent formatting** - follows common industry standards for code presentation
 - **Enhanced maintainability** - easier to review and modify individual methods
+
+## Function Parameter Destructuring
+
+**Avoid destructuring parameters in function signatures. Instead, destructure within the function body:**
+
+**Avoid (destructuring in signature):**
+
+```typescript
+export function handleTicketNumberInCommitMessage({
+  commitMessage,
+  commitMessageFile,
+  ticketNumber
+}: CommitMessageParams): void {
+  const hasExistingTicketNumber = checkForExistingTicketNumber(commitMessage);
+
+  if (hasExistingTicketNumber) {
+    handleExistingTicketNumber({ commitMessage, commitMessageFile, ticketNumber });
+    return;
+  }
+
+  prependToCommitMessage({
+    ticketNumber,
+    commitMessageFile,
+    commitMessage
+  });
+}
+```
+
+**Preferred (destructuring in body):**
+
+```typescript
+export function handleTicketNumberInCommitMessage(params: CommitMessageParams): void {
+  const { commitMessage, commitMessageFile, ticketNumber } = params;
+  
+  const hasExistingTicketNumber = checkForExistingTicketNumber(commitMessage);
+
+  if (hasExistingTicketNumber) {
+    handleExistingTicketNumber({ commitMessage, commitMessageFile, ticketNumber });
+    return;
+  }
+
+  prependToCommitMessage({
+    ticketNumber,
+    commitMessageFile,
+    commitMessage
+  });
+}
+```
+
+**Guidelines:**
+
+- **Keep function signatures clean** - accept a single parameter object when multiple parameters are needed
+- **Destructure in the function body** - on the first line after any early validations
+- **Use descriptive parameter names** - the parameter object should have a clear, meaningful name
+- **Maintain type safety** - still use proper TypeScript interfaces for parameter objects
+
+**Rationale:**
+
+- **Cleaner function signatures** - easier to read and understand at a glance
+- **Better IDE support** - simpler autocomplete and parameter hints
+- **Easier refactoring** - adding or removing parameters doesn't require signature changes
+- **More consistent** - follows the same pattern as constructor parameters and other complex object handling
