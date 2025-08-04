@@ -423,3 +423,56 @@ export function handleTicketNumberInCommitMessage(params: CommitMessageParams): 
 - **Better IDE support** - simpler autocomplete and parameter hints
 - **Easier refactoring** - adding or removing parameters doesn't require signature changes
 - **More consistent** - follows the same pattern as constructor parameters and other complex object handling
+
+## Simple One-Line If Statements
+
+**Use one-line if statements for simple early returns or single operations:**
+
+**Avoid (multi-line for simple cases):**
+
+```typescript
+export function getTicketNumber(branchName: string): string | null {
+  const jiraTicketNumber = extractJiraTicketNumber(branchName);
+
+  if (jiraTicketNumber) {
+    return jiraTicketNumber;
+  }
+
+  const githubTicketNumber = extractGitHubTicketNumber(branchName);
+
+  if (githubTicketNumber) {
+    return githubTicketNumber;
+  }
+
+  return null;
+}
+```
+
+**Preferred (one-line for simple cases):**
+
+```typescript
+export function getTicketNumber(branchName: string): string | null {
+  const jiraTicketNumber = extractJiraTicketNumber(branchName);
+  if (jiraTicketNumber) return jiraTicketNumber;
+
+  const githubTicketNumber = extractGitHubTicketNumber(branchName);
+  if (githubTicketNumber) return githubTicketNumber;
+
+  return null;
+}
+```
+
+**Guidelines:**
+
+- **Use one-line if statements** for simple early returns with single expressions
+- **Use one-line if statements** for simple single operations or assignments
+- **Use multi-line format** when the condition or body is complex
+- **Use multi-line format** when multiple statements are needed in the body
+- **Maintain consistency** within the same function or file
+
+**Rationale:**
+
+- **Reduced vertical space** - more code visible on screen at once
+- **Cleaner flow** - early returns are more obvious and scannable
+- **Less visual noise** - fewer braces for simple operations
+- **Better readability** - logical flow is more apparent
