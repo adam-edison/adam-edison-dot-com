@@ -3,7 +3,7 @@ import { BaseError } from './BaseError';
 export interface RateLimitErrorOptions {
   internalMessage: string;
   retryAfter: number;
-  limitType: 'ip' | 'global';
+  limitType: 'ip' | 'global' | 'email';
 }
 
 export class RateLimitError extends BaseError {

@@ -24,6 +24,9 @@ npm start
 # Run linting
 npm run lint
 
+# Check TypeScript types
+npm run build:check
+
 # Format code with Prettier
 npm run format
 
@@ -64,28 +67,38 @@ The contact form uses **Resend** for email delivery instead of traditional SMTP:
 - **Reply-To**: Automatically set to the form submitter's email
 - **Domain**: Requires domain verification in Resend dashboard for production use
 
-## reCAPTCHA Configuration
+## Turnstile Configuration
 
-The contact form uses Google reCAPTCHA v3 for spam protection:
+The contact form uses Cloudflare Turnstile for spam protection:
 
-- **Site Key**: Set `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` in environment variables
-- **Secret Key**: Set `RECAPTCHA_SECRET_KEY` in environment variables
-- **Score Threshold**: Set `RECAPTCHA_SCORE_THRESHOLD` in environment variables (0.0-1.0)
-- **Timeout**: Set `NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS` in environment variables (milliseconds)
+- **Enabled**: Set `TURNSTILE_ENABLED` to `'true'` to enable Turnstile (defaults to disabled)
+- **Site Key**: Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in environment variables
+- **Secret Key**: Set `TURNSTILE_SECRET_KEY` in environment variables
+- **Mode**: Checkbox mode with VPN-friendly configuration
+- **Features**:
+  - Manual retry control (`retry: 'never'`)
+  - User-controlled refresh (`refresh-timeout: 'manual'`)
+  - Loads on page render (`execution: 'render'`)
+  - Better for VPN users with clear feedback
 
 ## Rate Limiting Configuration
 
-The contact form uses configurable rate limiting with two layers:
+The contact form uses configurable rate limiting with three layers:
 
 **Per-IP Rate Limiting:**
 
-- **Requests**: Set `RATE_LIMIT_REQUESTS` in environment variables (default: 5)
-- **Window**: Set `RATE_LIMIT_WINDOW` in environment variables (default: '10 m')
+- **Requests**: Set `CONTACT_IP_RATE_LIMIT_REQUESTS` in environment variables
+- **Window**: Set `CONTACT_IP_RATE_LIMIT_WINDOW` in environment variables
 
 **Global Rate Limiting:**
 
-- **Requests**: Set `GLOBAL_RATE_LIMIT_REQUESTS` in environment variables (default: 10)
-- **Window**: Set `GLOBAL_RATE_LIMIT_WINDOW` in environment variables (default: '1 h')
+- **Requests**: Set `CONTACT_GLOBAL_RATE_LIMIT_REQUESTS` in environment variables
+- **Window**: Set `CONTACT_GLOBAL_RATE_LIMIT_WINDOW` in environment variables
+
+**Per-Email Rate Limiting:**
+
+- **Requests**: Set `CONTACT_EMAIL_RATE_LIMIT_REQUESTS` in environment variables
+- **Window**: Set `CONTACT_EMAIL_RATE_LIMIT_WINDOW` in environment variables
 
 **Redis**: Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
 
@@ -242,9 +255,10 @@ After making a set of changes, always verify stable state by running these comma
 
 1. `npm run format` - Auto-format code
 2. `npm run lint` - Check for linting issues
-3. `npm run build` - Ensure project builds successfully
-4. `npm run test:unit` - Run unit tests
-5. `npm run test:integration` - Run integration tests
-6. `npm run test:e2e` - Run end-to-end tests
+3. `npm check:types` - Check for TypeScript type errors
+4. `npm run build` - Ensure project builds successfully (includes type checking)
+5. `npm run test:unit` - Run unit tests
+6. `npm run test:integration` - Run integration tests
+7. `npm run test:e2e` - Run end-to-end tests
 
 All commands must pass before considering changes complete and ready for commit.

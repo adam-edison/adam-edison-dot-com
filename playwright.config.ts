@@ -1,10 +1,16 @@
 import { defineConfig, devices } from '@playwright/test';
-import { setup } from './tests/setup/e2e';
+import { config } from 'dotenv';
+import { join } from 'path';
 
-setup();
+// Load environment variables from .env.local
+config({ path: join(process.cwd(), '.env.local'), quiet: true });
+
+// Set NODE_ENV to test for automated E2E tests
+process.env.NODE_ENV = 'test';
 
 export default defineConfig({
   testDir: './tests/e2e',
+  testIgnore: '**/interactive/**',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -28,20 +34,24 @@ export default defineConfig({
     stdout: 'ignore',
     stderr: 'ignore',
     env: {
+      NODE_ENV: 'test',
       RECAPTCHA_SCORE_THRESHOLD: '0',
       SEND_EMAIL_ENABLED: 'false',
-      RESEND_API_KEY: process.env.RESEND_API_KEY ?? 'test-key-e2e',
-      FROM_EMAIL: process.env.FROM_EMAIL ?? 'test@example.com',
-      TO_EMAIL: process.env.TO_EMAIL ?? 'recipient@example.com',
-      EMAIL_SENDER_NAME: process.env.EMAIL_SENDER_NAME ?? 'E2E Test',
-      EMAIL_RECIPIENT_NAME: process.env.EMAIL_RECIPIENT_NAME ?? 'E2E Recipient',
-      RATE_LIMIT_REQUESTS: '5',
-      RATE_LIMIT_WINDOW: '10 m',
-      GLOBAL_RATE_LIMIT_REQUESTS: '100',
-      GLOBAL_RATE_LIMIT_WINDOW: '1 h',
-      REDIS_PREFIX: `${process.env.REDIS_PREFIX}-e2e`,
-      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL ?? '',
-      UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN ?? ''
+      RESEND_API_KEY: process.env.RESEND_API_KEY!,
+      FROM_EMAIL: process.env.FROM_EMAIL!,
+      TO_EMAIL: process.env.TO_EMAIL!,
+      EMAIL_SENDER_NAME: process.env.EMAIL_SENDER_NAME!,
+      EMAIL_RECIPIENT_NAME: process.env.EMAIL_RECIPIENT_NAME!,
+      CONTACT_IP_RATE_LIMIT_REQUESTS: '5',
+      CONTACT_IP_RATE_LIMIT_WINDOW: '10 m',
+      CONTACT_GLOBAL_RATE_LIMIT_REQUESTS: '100',
+      CONTACT_GLOBAL_RATE_LIMIT_WINDOW: '1 h',
+      CONTACT_EMAIL_RATE_LIMIT_REQUESTS: '3',
+      CONTACT_EMAIL_RATE_LIMIT_WINDOW: '1 h',
+      REDIS_PREFIX: `${process.env.REDIS_PREFIX!}-e2e`,
+      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL!,
+      UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      TURNSTILE_ENABLED: 'false'
     }
   }
 });

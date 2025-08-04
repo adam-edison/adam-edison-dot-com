@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useReCaptcha } from './LazyReCaptchaProvider';
 import { ContactFormValidator, ContactFormData } from '@/features/contact/ContactFormValidator';
 import { ContactSuccessMessage } from './ContactSuccessMessage';
 import { StatusCard } from '@/shared/components/ui/StatusCard';
 import { InputField } from './InputField';
 import { TextareaField } from './TextareaField';
 import { SubmitButton } from './SubmitButton';
-import { RecaptchaNotice } from './RecaptchaNotice';
+import { useContactForm } from '../presentation/hooks/useContactForm';
 import { logger } from '@/shared/Logger';
 
 interface ContactFormInnerProps {
@@ -16,11 +15,10 @@ interface ContactFormInnerProps {
 }
 
 export function ContactFormInner({ className }: ContactFormInnerProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const { executeRecaptcha } = useReCaptcha();
+  const { formState, submitForm, initializeConfig, initializeTurnstile, cleanup } = useContactForm();
+  const turnstileContainerRef = useRef<HTMLDivElement>(null);
 
+  // React Hook Form setup
   const {
     register,
     handleSubmit,
@@ -34,96 +32,75 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
   const watchedMessage = useWatch({ control, name: 'message' });
 
-  const executeRecaptchaWithTimeout = async (): Promise<string> => {
-    if (!executeRecaptcha) {
-      logger.warn('reCAPTCHA not ready, proceeding anyway (fail-open)');
-      return '';
-    }
+  // Initialize config on mount
+  useEffect(() => {
+    initializeConfig();
+    return cleanup;
+  }, [initializeConfig, cleanup]);
 
-    try {
-      const timeoutMs = parseInt(process.env.NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS!);
-      const recaptchaToken = await Promise.race([
-        executeRecaptcha('contact_form'),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('reCAPTCHA timeout')), timeoutMs))
-      ]);
-      return recaptchaToken || '';
-    } catch (error) {
-      logger.warn('reCAPTCHA failed, proceeding anyway (fail-open):', error);
-      return '';
-    }
-  };
-
-  const submitContactForm = async (data: ContactFormData, recaptchaToken: string): Promise<Response> => {
-    return fetch('/api/contact', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        ...data,
-        recaptchaToken
-      })
-    });
-  };
-
-  const handleApiError = async (response: Response): Promise<void> => {
-    const errorData = await response.json();
-    setSubmitStatus('error');
-
-    let friendlyMessage = errorData.message || 'Failed to send message';
-    if (friendlyMessage.includes('reCAPTCHA')) {
-      friendlyMessage = 'Security verification failed. Please refresh the page and try again.';
-    }
-
-    setErrorMessage(friendlyMessage);
-  };
-
-  const handleUnexpectedError = (error: unknown): void => {
-    logger.error('Contact form submission error:', error);
-    setSubmitStatus('error');
-
-    if (error instanceof Error) {
-      setErrorMessage(error.message);
-    } else {
-      setErrorMessage('An unexpected error occurred. Please try again.');
-    }
-  };
-
-  const onSubmit = async (data: ContactFormData) => {
-    setIsSubmitting(true);
-    setSubmitStatus('idle');
-    setErrorMessage('');
-
-    try {
-      const recaptchaToken = await executeRecaptchaWithTimeout();
-      const response = await submitContactForm(data, recaptchaToken);
-
-      if (!response.ok) {
-        await handleApiError(response);
+  // Initialize Turnstile when service is ready
+  useEffect(() => {
+    const initializeTurnstileIfReady = () => {
+      if (formState.isConfigLoading) {
         return;
       }
 
-      setSubmitStatus('success');
-      reset();
-    } catch (error) {
-      handleUnexpectedError(error);
-    } finally {
-      setIsSubmitting(false);
+      if (!formState.serviceConfig?.services.turnstile.enabled) {
+        return;
+      }
+
+      if (!turnstileContainerRef.current) {
+        return;
+      }
+
+      initializeTurnstile(turnstileContainerRef.current);
+    };
+
+    initializeTurnstileIfReady();
+  }, [formState.serviceConfig, formState.isConfigLoading, initializeTurnstile]);
+
+  const onSubmit = async (data: ContactFormData) => {
+    const result = await submitForm(data);
+
+    if (!result.success) {
+      logger.error('Failed to submit contact form:', result.error);
+      return;
     }
+
+    reset();
   };
 
-  const handleSendAnother = () => {
-    setSubmitStatus('idle');
-    setErrorMessage('');
-  };
+  // Handle service loading errors
+  if (formState.errorMessage && !formState.isConfigLoading && !formState.serviceConfig) {
+    return (
+      <div className={className}>
+        <StatusCard variant="error" message={formState.errorMessage} showIcon />
+      </div>
+    );
+  }
 
-  if (submitStatus === 'success') {
-    return <ContactSuccessMessage className={className} onSendAnother={handleSendAnother} />;
+  // Show loading state while services are being fetched
+  if (formState.isConfigLoading) {
+    return (
+      <div className={className}>
+        <div className="animate-pulse space-y-6">
+          <div className="h-10 bg-gray-700 rounded"></div>
+          <div className="h-10 bg-gray-700 rounded"></div>
+          <div className="h-32 bg-gray-700 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (formState.submitStatus === 'success') {
+    return <ContactSuccessMessage className={className} />;
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={`${className} space-y-6`}>
-      {submitStatus === 'error' && errorMessage && <StatusCard variant="error" message={errorMessage} showIcon />}
+      {formState.submitStatus === 'error' && formState.errorMessage && (
+        <StatusCard variant="error" message={formState.errorMessage} showIcon />
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         <InputField
@@ -134,6 +111,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
           required
           register={register}
           error={errors.firstName}
+          data-testid="contact-first-name"
         />
         <InputField
           id="lastName"
@@ -143,6 +121,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
           required
           register={register}
           error={errors.lastName}
+          data-testid="contact-last-name"
         />
       </div>
 
@@ -154,6 +133,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         required
         register={register}
         error={errors.email}
+        data-testid="contact-email"
       />
 
       <TextareaField
@@ -167,10 +147,27 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         minLength={50}
         maxLength={1000}
         watchedValue={watchedMessage}
+        data-testid="contact-message"
       />
 
-      <RecaptchaNotice />
-      <SubmitButton isSubmitting={isSubmitting} />
+      {/* Cloudflare Turnstile Widget */}
+      {formState.serviceConfig?.services.turnstile.enabled && formState.serviceConfig.services.turnstile.siteKey && (
+        <div className="my-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Security Verification *</label>
+            <div ref={turnstileContainerRef} className="turnstile-container" data-testid="turnstile-widget" />
+            <div className="text-xs text-gray-400 mt-2">
+              <p>This verification helps protect against spam while respecting your privacy.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <SubmitButton
+        isSubmitting={formState.isSubmitting}
+        disabled={formState.isConfigLoading || !formState.serviceConfig}
+        data-testid="submit-button"
+      />
     </form>
   );
 }

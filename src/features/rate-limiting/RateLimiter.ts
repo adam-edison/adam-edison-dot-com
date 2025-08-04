@@ -2,11 +2,12 @@ import { logger } from '@/shared/Logger';
 import { RateLimiterDataStore, RateLimitResult } from './RateLimiterDataStore';
 import { Result } from '@/shared/Result';
 import { RateLimitError, InternalServerError } from '@/shared/errors';
+import { DurationString, toDurationString } from '@/shared/TypeGuards';
 
 export interface RateLimiterOptions {
   limit: number;
-  window: string;
-  limitType: 'ip' | 'global';
+  window: string | DurationString;
+  limitType: 'ip' | 'global' | 'email';
 }
 
 export interface RateLimitData {
@@ -19,13 +20,21 @@ export interface RateLimitData {
 export class RateLimiter {
   private dataStore: RateLimiterDataStore;
   private limit: number;
-  private window: string;
-  private limitType: 'ip' | 'global';
+  private window: DurationString;
+  private limitType: 'ip' | 'global' | 'email';
 
   constructor(dataStore: RateLimiterDataStore, { limit, window, limitType }: RateLimiterOptions) {
     this.dataStore = dataStore;
     this.limit = limit;
-    this.window = window;
+
+    // Validate and convert window to DurationString
+    const durationString = toDurationString(window);
+    if (!durationString) {
+      throw new Error(
+        `Invalid window duration format: ${window}. Expected format: "number unit" (e.g., "10 m", "1 h")`
+      );
+    }
+    this.window = durationString;
     this.limitType = limitType;
   }
 

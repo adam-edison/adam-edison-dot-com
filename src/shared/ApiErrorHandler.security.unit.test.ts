@@ -3,6 +3,7 @@ import { ApiErrorHandler } from './ApiErrorHandler';
 import { RequestContext } from './RequestContext';
 import { RateLimitError, MethodNotAllowedError, InternalServerError } from './errors';
 import { logger } from './Logger';
+import { ResponseTimeProtector } from './ResponseTimeProtector';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 // Mock logger
@@ -12,13 +13,19 @@ vi.mock('./Logger', () => ({
   }
 }));
 
+vi.mock('./ResponseTimeProtector', () => ({
+  ResponseTimeProtector: vi.fn().mockImplementation(() => ({
+    endAndProtect: vi.fn().mockResolvedValue(undefined)
+  }))
+}));
+
 describe('ApiErrorHandler - Security Analysis', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('Information Leakage in Error Responses', () => {
-    it('FIXED: RateLimitError now only exposes safe responseMetadata to client', () => {
+    it('FIXED: RateLimitError now only exposes safe responseMetadata to client', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
@@ -31,7 +38,8 @@ describe('ApiErrorHandler - Security Analysis', () => {
         limitType: 'ip'
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       // Now only safe responseMetadata is exposed to clients
       expect(mockRes.json).toHaveBeenCalledWith({
@@ -50,7 +58,7 @@ describe('ApiErrorHandler - Security Analysis', () => {
       );
     });
 
-    it('FIXED: MethodNotAllowedError no longer duplicates Allow header in response body', () => {
+    it('FIXED: MethodNotAllowedError no longer duplicates Allow header in response body', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
@@ -63,7 +71,8 @@ describe('ApiErrorHandler - Security Analysis', () => {
         attemptedMethod: 'GET'
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       // Clean response - no redundant information
       expect(mockRes.json).toHaveBeenCalledWith({
@@ -85,7 +94,7 @@ describe('ApiErrorHandler - Security Analysis', () => {
       );
     });
 
-    it('GOOD: InternalServerError does not leak sensitive metadata', () => {
+    it('GOOD: InternalServerError does not leak sensitive metadata', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
@@ -95,7 +104,8 @@ describe('ApiErrorHandler - Security Analysis', () => {
         internalMessage: 'Database connection failed: postgres://user:pass@localhost:5432/db'
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       // Good - no metadata should be exposed for internal server errors
       expect(mockRes.json).toHaveBeenCalledWith({
@@ -103,7 +113,7 @@ describe('ApiErrorHandler - Security Analysis', () => {
       });
     });
 
-    it('POTENTIAL ISSUE: Custom metadata could leak sensitive information', () => {
+    it('POTENTIAL ISSUE: Custom metadata could leak sensitive information', async () => {
       // Simulating a custom error that might put sensitive data in metadata
       class CustomError extends InternalServerError {
         constructor(message: string, sensitiveData: Record<string, unknown>) {
@@ -129,7 +139,8 @@ describe('ApiErrorHandler - Security Analysis', () => {
       };
 
       const error = new CustomError('Something went wrong', sensitiveInfo);
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       expect(mockRes.json).toHaveBeenCalledWith({
         message: 'Something went wrong'
@@ -138,11 +149,11 @@ describe('ApiErrorHandler - Security Analysis', () => {
   });
 
   describe('Recommended Security Controls', () => {
-    it('should have a whitelist of safe metadata fields to expose', () => {
+    it('should have a whitelist of safe metadata fields to expose', async () => {
       expect(true).toBe(true);
     });
 
-    it('should never expose internal messages in responses', () => {
+    it('should never expose internal messages in responses', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
@@ -154,7 +165,8 @@ describe('ApiErrorHandler - Security Analysis', () => {
         limitType: 'ip'
       });
 
-      ApiErrorHandler.handle(mockRes, error);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector });
 
       const responseCall = (mockRes.json as unknown as { mock: { calls: unknown[][] } }).mock.calls[0][0];
 
@@ -165,7 +177,7 @@ describe('ApiErrorHandler - Security Analysis', () => {
   });
 
   describe('Request Context Logging', () => {
-    it('should log request context when provided', () => {
+    it('should log request context when provided', async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
@@ -184,7 +196,8 @@ describe('ApiErrorHandler - Security Analysis', () => {
         internalMessage: 'Test internal error message'
       });
 
-      ApiErrorHandler.handle(mockRes, error, requestContext);
+      const timeProtector = new ResponseTimeProtector();
+      await ApiErrorHandler.handle(mockRes, { error, timeProtector, context: requestContext });
 
       expect(logger.error).toHaveBeenCalledWith(
         'API Error:',
@@ -198,7 +211,7 @@ describe('ApiErrorHandler - Security Analysis', () => {
       );
     });
 
-    it('should handle missing headers gracefully', () => {
+    it('should handle missing headers gracefully', async () => {
       const mockReq = {
         headers: {},
         socket: {}
@@ -213,7 +226,7 @@ describe('ApiErrorHandler - Security Analysis', () => {
       });
     });
 
-    it('should handle array IP addresses from x-forwarded-for', () => {
+    it('should handle array IP addresses from x-forwarded-for', async () => {
       const mockReq = {
         headers: {
           'x-forwarded-for': ['192.168.1.100', '10.0.0.1']
