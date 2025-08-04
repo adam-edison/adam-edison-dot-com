@@ -43,7 +43,7 @@ const initializeService = async () => {
 - Add blank lines after error handling blocks before the happy path
 - Separate logical groups of operations with blank lines
 - Use vertical spacing to create visual "paragraphs" in your code
-- **Exception**: Skip extra spacing in short functions (3 lines or less) - keep them condensed
+- **Exception**: Skip extra spacing in short functions or code blocks (3 lines or less) - keep them condensed
 
 **Rationale:**
 
@@ -52,7 +52,7 @@ const initializeService = async () => {
 - **Reduced cognitive load** - the eye can quickly identify different sections
 - **Better code review** - reviewers can follow the flow more easily
 
-**Exception for short functions (3 lines or less):**
+**Exception for short functions and code blocks (3 lines or less):**
 
 ```typescript
 function prependToCommitMessage(params: PrependParams): void {
@@ -62,7 +62,14 @@ function prependToCommitMessage(params: PrependParams): void {
 }
 ```
 
-Short functions can be condensed without extra vertical spacing after variable declarations when the entire function body is 3 lines or less.
+```typescript
+} catch (error) {
+  debug({ error: 'Failed to check amend via git status', errorMessage: error.message });
+  return false;
+}
+```
+
+Short functions and code blocks can be condensed without extra vertical spacing when the entire block is 3 lines or less.
 
 ## Never Nester Pattern (Early Returns)
 
