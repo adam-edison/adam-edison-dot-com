@@ -17,14 +17,14 @@ git init
 
 * ✅ 1-husky-for-commit-messages
 * ✅ 2-next-js-with-pages-router-and-tailwind
-* 🚧 3-eslint-and-prettier
+* ✅ 3-eslint-and-prettier
 * 🚧 4-basic-landing-page
-  * and here is where we introduce:
+  * ✅ and here is where we introduce
     * Agents in personal Claude for:
       * whole process coordination for new code given requirements
-      * Software Architect -- Clean Architecture, review first, several steps along the way, generates skeleton after approval
-      * Software Product Engineer -- asks questions to clarify requirements and acceptance criteria before writing tests
-      * Software Test Engineer -- DI for everything, and mocking class methods where needed, writes tests as TDD
+      * Software Product Manager -- asks questions to clarify requirements and acceptance criteria - it should not make assumptions and this is dialog 
+      * Software Architect -- Clean Architecture, review first, several steps along the way, works with constructor DI, generates skeleton after approval
+      * Software Test Engineer -- DI for everything, make Mock classes (extend with all stubbed methods) for any boundary classes (external system) and mocking class methods for specific behavior, writes tests as TDD
       * Software Implementation Engineer -- write production code in the skeleton to make tests pass, iterating until tests pass
       * Refactoring Engineer -- code style and quality checks
       * Last Line of Defense -- run all quality checks (format, lint, tests, build, server starts, .env.example is complete)
@@ -32,11 +32,11 @@ git init
     * Agents in personal Claude:
       * Security Engineer -- make recommendations to improve security if needed and make MD file with high, medium, low risks -- add to existing file or create new one in project .claude folder
       * security md file not in version control
-* 6-email-integration
-* 7-rate-limiting
-* 8-anti-bot-measures
-* 9-security-improvements
-* 10-accessibility-improvements
+* 6-seo-implementation
+* 7-email-integration
+* 8-rate-limiting
+* 9-anti-bot-measures
+* 10-security-improvements
 * 11-performance-improvements
 * 12-favicon
 * 13-netlify-deployment
