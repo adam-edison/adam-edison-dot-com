@@ -47,3 +47,4 @@ next-env.d.ts
 
 # Local Test Reports
 playwright-report
+node_modules
