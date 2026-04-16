@@ -2,6 +2,9 @@
   "name": "adam-edison-dot-com",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "npx tsx scripts/check-env.ts && next build",
