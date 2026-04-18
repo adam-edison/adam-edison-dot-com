@@ -2,22 +2,27 @@ name: Weekly Boundary Tests
 
 on:
   schedule:
-    # Runs every Monday at 3 PM Eastern Time (8 PM UTC)
+    # Runs every Monday at 20:00 UTC (3 PM EST / 4 PM EDT)
     - cron: '0 20 * * 1'
-  workflow_dispatch:
+  workflow_dispatch: # Allows manual triggering
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   boundary-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
 
     env:
-      CI: true
-      FROM_EMAIL: ${{ vars.FROM_EMAIL }}
-      TO_EMAIL: ${{ vars.TO_EMAIL }}
-      EMAIL_SENDER_NAME: ${{ vars.EMAIL_SENDER_NAME }}
       EMAIL_RECIPIENT_NAME: ${{ vars.EMAIL_RECIPIENT_NAME }}
-      SEND_EMAIL_ENABLED: ${{ vars.SEND_EMAIL_ENABLED }}
+      EMAIL_SENDER_NAME: ${{ vars.EMAIL_SENDER_NAME }}
+      FROM_EMAIL: ${{ vars.FROM_EMAIL }}
+      HUSKY: 0
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      SEND_EMAIL_ENABLED: ${{ vars.SEND_EMAIL_ENABLED }}
+      TO_EMAIL: ${{ vars.TO_EMAIL }}
 
     steps:
       - name: Checkout code
