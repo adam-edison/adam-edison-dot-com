@@ -1,0 +1,9 @@
+#!/bin/sh
+. "$(dirname "$0")/dwa-check.sh"
+
+# Validate commit message first (fast) - fail early before expensive checks
+dwa validate-commit "$1"
+
+# Only run quality checks if commit message is valid
+dwa quality-check
+dwa environment-check

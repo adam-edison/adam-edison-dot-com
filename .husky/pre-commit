@@ -1,0 +1,3 @@
+#!/bin/sh
+# Quality checks moved to commit-msg hook to validate commit message first
+# This hook is intentionally empty - kept for future use

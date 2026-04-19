@@ -1,0 +1,48 @@
+name: Weekly Boundary Tests
+
+on:
+  schedule:
+    # Runs every Monday at 20:00 UTC (3 PM EST / 4 PM EDT)
+    - cron: '0 20 * * 1'
+  workflow_dispatch: # Allows manual triggering
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  boundary-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    env:
+      EMAIL_RECIPIENT_NAME: ${{ vars.EMAIL_RECIPIENT_NAME }}
+      EMAIL_SENDER_NAME: ${{ vars.EMAIL_SENDER_NAME }}
+      FROM_EMAIL: ${{ vars.FROM_EMAIL }}
+      HUSKY: 0
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      SEND_EMAIL_ENABLED: ${{ vars.SEND_EMAIL_ENABLED }}
+      TO_EMAIL: ${{ vars.TO_EMAIL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read Node.js version from package.json
+        id: node-version
+        run: |
+          NODE_VERSION=$(node -p "require('./package.json').engines.node" | sed 's/>=//g')
+          echo "NODE_VERSION=$NODE_VERSION" >> $GITHUB_OUTPUT
+          echo "Using Node.js version: $NODE_VERSION"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.node-version.outputs.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run manual email boundary test
+        run: npm run test:manual
