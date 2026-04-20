@@ -39,10 +39,10 @@ describe('Resend Email Integration (Manual)', () => {
     const result = await emailService.sendContactEmail(testData);
 
     expect(result).toMatchObject({
+      success: true,
       data: {
         id: expect.stringMatching(/^(?!mock-email-id$).+/)
-      },
-      error: null
+      }
     });
   });
 });
