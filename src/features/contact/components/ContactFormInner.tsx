@@ -1,25 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useReCaptcha } from './LazyReCaptchaProvider';
 import { ContactFormValidator, ContactFormData } from '@/features/contact/ContactFormValidator';
 import { ContactSuccessMessage } from './ContactSuccessMessage';
 import { StatusCard } from '@/shared/components/ui/StatusCard';
 import { InputField } from './InputField';
 import { TextareaField } from './TextareaField';
 import { SubmitButton } from './SubmitButton';
-import { RecaptchaNotice } from './RecaptchaNotice';
+import { Turnstile } from './Turnstile';
 import { logger } from '@/shared/Logger';
 
 interface ContactFormInnerProps {
   className?: string;
+  siteKey: string;
 }
 
-export function ContactFormInner({ className }: ContactFormInnerProps) {
+export function ContactFormInner({ className, siteKey }: ContactFormInnerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const { executeRecaptcha } = useReCaptcha();
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
 
   const {
     register,
@@ -34,26 +34,20 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
   const watchedMessage = useWatch({ control, name: 'message' });
 
-  const executeRecaptchaWithTimeout = async (): Promise<string> => {
-    if (!executeRecaptcha) {
-      logger.warn('reCAPTCHA not ready, proceeding anyway (fail-open)');
-      return '';
-    }
+  const handleTurnstileSuccess = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
 
-    try {
-      const timeoutMs = parseInt(process.env.NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS!);
-      const recaptchaToken = await Promise.race([
-        executeRecaptcha('contact_form'),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('reCAPTCHA timeout')), timeoutMs))
-      ]);
-      return recaptchaToken || '';
-    } catch (error) {
-      logger.warn('reCAPTCHA failed, proceeding anyway (fail-open):', error);
-      return '';
-    }
-  };
+  const handleTurnstileError = useCallback((error: string) => {
+    logger.warn(`Turnstile error: ${error}`);
+    setTurnstileToken('');
+  }, []);
 
-  const submitContactForm = async (data: ContactFormData, recaptchaToken: string): Promise<Response> => {
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken('');
+  }, []);
+
+  const submitContactForm = async (data: ContactFormData, token: string): Promise<Response> => {
     return fetch('/api/contact', {
       method: 'POST',
       headers: {
@@ -61,7 +55,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
       },
       body: JSON.stringify({
         ...data,
-        recaptchaToken
+        turnstileToken: token
       })
     });
   };
@@ -71,8 +65,8 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
     setSubmitStatus('error');
 
     let friendlyMessage = errorData.message || 'Failed to send message';
-    if (friendlyMessage.includes('reCAPTCHA')) {
-      friendlyMessage = 'Security verification failed. Please refresh the page and try again.';
+    if (friendlyMessage.toLowerCase().includes('captcha')) {
+      friendlyMessage = 'Captcha verification failed. Please try again.';
     }
 
     setErrorMessage(friendlyMessage);
@@ -90,13 +84,18 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
   };
 
   const onSubmit = async (data: ContactFormData) => {
+    if (!turnstileToken) {
+      setSubmitStatus('error');
+      setErrorMessage('Please complete the captcha verification.');
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitStatus('idle');
     setErrorMessage('');
 
     try {
-      const recaptchaToken = await executeRecaptchaWithTimeout();
-      const response = await submitContactForm(data, recaptchaToken);
+      const response = await submitContactForm(data, turnstileToken);
 
       if (!response.ok) {
         await handleApiError(response);
@@ -105,6 +104,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
       setSubmitStatus('success');
       reset();
+      setTurnstileToken('');
     } catch (error) {
       handleUnexpectedError(error);
     } finally {
@@ -169,7 +169,13 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         watchedValue={watchedMessage}
       />
 
-      <RecaptchaNotice />
+      <Turnstile
+        siteKey={siteKey}
+        onSuccess={handleTurnstileSuccess}
+        onError={handleTurnstileError}
+        onExpire={handleTurnstileExpire}
+      />
+
       <SubmitButton isSubmitting={isSubmitting} />
     </form>
   );

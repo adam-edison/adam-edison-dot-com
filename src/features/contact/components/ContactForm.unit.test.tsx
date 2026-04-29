@@ -1,29 +1,51 @@
-import { expect, test, describe, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { expect, test, describe, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { ContactForm } from './ContactForm';
 import { logger } from '@/shared/Logger';
 
-const mockExecuteRecaptcha = vi.fn();
-vi.mock('./LazyReCaptchaProvider', () => ({
-  LazyReCaptchaProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useReCaptcha: () => ({
-    executeRecaptcha: mockExecuteRecaptcha,
-    isLoaded: true
-  })
-}));
+interface TurnstileMock {
+  render: ReturnType<typeof vi.fn>;
+  remove: ReturnType<typeof vi.fn>;
+  reset: ReturnType<typeof vi.fn>;
+  __lastOptions?: Parameters<NonNullable<typeof window.turnstile>['render']>[1];
+}
+
+function installTurnstileMock(): TurnstileMock {
+  const mock: TurnstileMock = {
+    render: vi.fn(),
+    remove: vi.fn(),
+    reset: vi.fn()
+  };
+  mock.render.mockImplementation((_el, options) => {
+    mock.__lastOptions = options;
+    return 'widget-id-test';
+  });
+  window.turnstile = mock as unknown as typeof window.turnstile;
+  return mock;
+}
+
+function uninstallTurnstileMock(): void {
+  delete window.turnstile;
+}
+
+function fireTurnstileSuccess(token: string): void {
+  const turnstileMock = window.turnstile as unknown as TurnstileMock;
+  act(() => {
+    turnstileMock.__lastOptions!.callback(token);
+  });
+}
 
 global.fetch = vi.fn() as unknown as typeof fetch;
 
 describe('ContactForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockExecuteRecaptcha.mockResolvedValue('test-recaptcha-token');
+    installTurnstileMock();
 
-    vi.stubEnv('NEXT_PUBLIC_RECAPTCHA_SITE_KEY', 'test-site-key');
-    vi.stubEnv('RECAPTCHA_SECRET_KEY', 'test-secret-key');
-    vi.stubEnv('RECAPTCHA_SCORE_THRESHOLD', '0');
+    vi.stubEnv('NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'test-site-key');
+    vi.stubEnv('TURNSTILE_SECRET_KEY', 'test-secret-key');
     vi.stubEnv('SEND_EMAIL_ENABLED', 'false');
 
     vi.mocked(fetch).mockImplementation(async (url) => {
@@ -39,6 +61,10 @@ describe('ContactForm', () => {
         statusText: 'OK'
       });
     });
+  });
+
+  afterEach(() => {
+    uninstallTurnstileMock();
   });
 
   const fillOutForm = async (user: ReturnType<typeof userEvent.setup>) => {
@@ -64,7 +90,7 @@ describe('ContactForm', () => {
     expect(screen.getByRole('button', { name: /send message/i })).toBeInTheDocument();
   });
 
-  test('should successfully submit the form with valid data', async () => {
+  test('should successfully submit the form when Turnstile token is captured', async () => {
     const user = userEvent.setup();
     render(<ContactForm />);
 
@@ -73,11 +99,8 @@ describe('ContactForm', () => {
     });
 
     await fillOutForm(user);
+    fireTurnstileSuccess('issued-token-abc');
     await user.click(screen.getByRole('button', { name: /send message/i }));
-
-    await waitFor(() => {
-      expect(mockExecuteRecaptcha).toHaveBeenCalledWith('contact_form');
-    });
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith('/api/contact', {
@@ -90,7 +113,7 @@ describe('ContactForm', () => {
           lastName: 'Doe',
           email: 'john@example.com',
           message: 'This is a test message with enough characters to meet the minimum requirement.',
-          recaptchaToken: 'test-recaptcha-token'
+          turnstileToken: 'issued-token-abc'
         })
       });
     });
@@ -100,7 +123,23 @@ describe('ContactForm', () => {
     });
   });
 
-  test('should display error message when reCAPTCHA fails', async () => {
+  test('should show captcha error when no Turnstile token has been captured', async () => {
+    const user = userEvent.setup();
+    render(<ContactForm />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
+    });
+
+    await fillOutForm(user);
+    await user.click(screen.getByRole('button', { name: /send message/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/please complete the captcha/i)).toBeInTheDocument();
+    });
+  });
+
+  test('should display friendly error when API rejects the captcha', async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
@@ -110,7 +149,7 @@ describe('ContactForm', () => {
         });
       }
 
-      return new Response(JSON.stringify({ message: 'reCAPTCHA verification failed' }), {
+      return new Response(JSON.stringify({ message: 'Captcha verification failed. Please try again.' }), {
         status: 400,
         statusText: 'Bad Request'
       });
@@ -123,10 +162,11 @@ describe('ContactForm', () => {
     });
 
     await fillOutForm(user);
+    fireTurnstileSuccess('bad-token');
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/security verification failed/i)).toBeInTheDocument();
+      expect(screen.getByText(/captcha verification failed/i)).toBeInTheDocument();
     });
   });
 
@@ -153,19 +193,13 @@ describe('ContactForm', () => {
     });
 
     await fillOutForm(user);
+    fireTurnstileSuccess('valid-token');
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/failed to send message/i)).toBeInTheDocument();
     });
   });
-
-  // TODO: Add tests for reCAPTCHA warning scenarios
-  // These require more complex mocking due to the module system
-  // For now, we have verified that the logger is working in error scenarios
-
-  // Note: Testing reCAPTCHA "not ready" state requires more complex mocking
-  // This scenario is better tested manually by commenting out NEXT_PUBLIC_RECAPTCHA_SITE_KEY
 
   test('should display error message when fetch fails', async () => {
     const user = userEvent.setup();
@@ -187,6 +221,7 @@ describe('ContactForm', () => {
     });
 
     await fillOutForm(user);
+    fireTurnstileSuccess('valid-token');
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
     await waitFor(() => {
@@ -223,6 +258,7 @@ describe('ContactForm', () => {
     });
 
     await fillOutForm(user);
+    fireTurnstileSuccess('valid-token');
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
     await waitFor(() => {
@@ -231,7 +267,6 @@ describe('ContactForm', () => {
 
     await user.click(screen.getByRole('button', { name: /send another message/i }));
 
-    // Form should be reset (back to form view, not success message)
     expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
   });
 
