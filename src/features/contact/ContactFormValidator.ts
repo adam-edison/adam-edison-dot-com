@@ -94,17 +94,17 @@ export class ContactFormValidator {
     return Result.failure(validationError);
   }
 
-  static extractRecaptchaToken(data: unknown): string | null {
+  static extractTurnstileToken(data: unknown): string | null {
     if (typeof data !== 'object' || data === null) return null;
     const obj = data as Record<string, unknown>;
-    return typeof obj.recaptchaToken === 'string' && obj.recaptchaToken.length > 0 ? obj.recaptchaToken : null;
+    return typeof obj.turnstileToken === 'string' && obj.turnstileToken.length > 0 ? obj.turnstileToken : null;
   }
 
   static extractFormData(data: unknown): unknown {
     if (typeof data !== 'object' || data === null) return data;
     const obj = data as Record<string, unknown>;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { recaptchaToken, ...formData } = obj;
+    const { turnstileToken, ...formData } = obj;
     return formData;
   }
 }
