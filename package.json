@@ -21,7 +21,6 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@google-cloud/recaptcha-enterprise": "^6.2.0",
     "@hookform/resolvers": "^5.1.1",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
@@ -35,7 +34,6 @@
     "next": "15.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-google-recaptcha-v3": "^1.11.0",
     "react-hook-form": "^7.59.0",
     "resend": "^4.6.0",
     "tailwind-merge": "^3.3.1",

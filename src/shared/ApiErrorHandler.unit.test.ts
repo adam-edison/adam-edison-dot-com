@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ApiErrorHandler } from './ApiErrorHandler';
 import {
   ValidationError,
-  RecaptchaError,
+  TurnstileError,
   EmailServiceError,
   ServiceUnavailableError,
   RateLimitError,
@@ -42,21 +42,22 @@ describe('ApiErrorHandler', () => {
       expect(result.response.errors).toEqual([{ field: 'email', message: 'Required' }]);
     });
 
-    it('should map RecaptchaError to 400 status without details', () => {
+    it('should map TurnstileError to 400 status without details', () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
         setHeader: vi.fn()
       } as unknown as NextApiResponse;
 
-      const error = new RecaptchaError('Security verification failed', {
-        internalMessage: 'reCAPTCHA API returned score 0.1, threshold 0.5'
+      const error = new TurnstileError('Captcha verification failed. Please try again.', {
+        internalMessage: 'Turnstile verification rejected: invalid-input-response',
+        errorCodes: ['invalid-input-response']
       });
 
       const result = ApiErrorHandler.handle(mockRes, error);
 
       expect(result.statusCode).toBe(400);
-      expect(result.response.message).toBe('Security verification failed');
+      expect(result.response.message).toBe('Captcha verification failed. Please try again.');
       expect(result.response.errors).toBeUndefined();
     });
 
@@ -170,14 +171,15 @@ describe('ApiErrorHandler', () => {
       });
     });
 
-    it('should handle RecaptchaError: log internal details, send client message without errors', () => {
+    it('should handle TurnstileError: log internal details, send client message without errors', () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn()
       } as unknown as NextApiResponse;
 
-      const error = new RecaptchaError('Security verification failed', {
-        internalMessage: 'reCAPTCHA API returned score 0.1, threshold 0.5'
+      const error = new TurnstileError('Captcha verification failed. Please try again.', {
+        internalMessage: 'Turnstile verification rejected: invalid-input-response',
+        errorCodes: ['invalid-input-response']
       });
 
       ApiErrorHandler.handle(mockRes, error);
@@ -185,15 +187,15 @@ describe('ApiErrorHandler', () => {
       // Verify HTTP response
       expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.json).toHaveBeenCalledWith({
-        message: 'Security verification failed'
+        message: 'Captcha verification failed. Please try again.'
       });
 
       // Verify logging
       expect(logger.error).toHaveBeenCalledWith('API Error:', {
-        code: 'RECAPTCHA_ERROR',
+        code: 'TURNSTILE_ERROR',
         category: 'client',
-        clientMessage: 'Security verification failed',
-        internalMessage: 'reCAPTCHA API returned score 0.1, threshold 0.5',
+        clientMessage: 'Captcha verification failed. Please try again.',
+        internalMessage: 'Turnstile verification rejected: invalid-input-response',
         statusCode: 400,
         details: undefined,
         metadata: undefined
