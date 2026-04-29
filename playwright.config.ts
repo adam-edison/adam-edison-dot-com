@@ -28,7 +28,10 @@ export default defineConfig({
     stdout: 'ignore',
     stderr: 'ignore',
     env: {
-      RECAPTCHA_SCORE_THRESHOLD: '0',
+      // Cloudflare Turnstile testing keys: site key always passes, secret always validates.
+      // https://developers.cloudflare.com/turnstile/troubleshooting/testing/
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: '1x00000000000000000000AA',
+      TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA',
       SEND_EMAIL_ENABLED: 'false',
       RESEND_API_KEY: process.env.RESEND_API_KEY ?? 'test-key-e2e',
       FROM_EMAIL: process.env.FROM_EMAIL ?? 'test@example.com',

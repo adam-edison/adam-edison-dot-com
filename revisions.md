@@ -31,8 +31,7 @@
 - ✅ Bandwidth improvements via caching - see [BandWidth](./bandwidth.md)
 
 - Captcha Improvements
-  - Fix unconditional skipping of recaptcha, might as well not be there
-  - Add fallback captcha for when the main one gets denied [see guide](./IMPROVE_CAPTCHA.md) - maybe just use v2 instead?
+  - ✅ Switch to fail-closed Cloudflare Turnstile (EMB-1715)
 
 - Add Claude Learnings
   - Prefer this style of working with DI and factories

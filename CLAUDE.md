@@ -64,14 +64,16 @@ The contact form uses **Resend** for email delivery instead of traditional SMTP:
 - **Reply-To**: Automatically set to the form submitter's email
 - **Domain**: Requires domain verification in Resend dashboard for production use
 
-## reCAPTCHA Configuration
+## Captcha Configuration
 
-The contact form uses Google reCAPTCHA v3 for spam protection:
+The contact form uses **Cloudflare Turnstile** for spam protection:
 
-- **Site Key**: Set `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` in environment variables
-- **Secret Key**: Set `RECAPTCHA_SECRET_KEY` in environment variables
-- **Score Threshold**: Set `RECAPTCHA_SCORE_THRESHOLD` in environment variables (0.0-1.0)
-- **Timeout**: Set `NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS` in environment variables (milliseconds)
+- **Site Key**: Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in environment variables
+- **Secret Key**: Set `TURNSTILE_SECRET_KEY` in environment variables
+- **Verification**: Server-side verification fails closed on every error path (missing
+  secret returns 503; missing token, network errors, and rejected tokens return 400)
+- **Domain registration**: Register `adamedison.com` (and any preview domains) in the
+  Cloudflare Turnstile dashboard to obtain the site key + secret key
 
 ## Rate Limiting Configuration
 

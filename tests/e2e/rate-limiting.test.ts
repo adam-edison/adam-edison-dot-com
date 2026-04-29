@@ -16,7 +16,7 @@ test.describe('Rate Limiting', () => {
       email: 'test@example.com',
       message:
         'This is a test message for the contact form functionality. It needs to be at least 50 characters long to pass validation.',
-      recaptchaToken: 'dummy-token'
+      turnstileToken: 'dummy-token'
     };
 
     const uniqueIP = generateUniqueIP();
