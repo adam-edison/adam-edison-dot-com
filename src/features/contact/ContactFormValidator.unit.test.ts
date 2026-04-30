@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { strict as assert } from 'node:assert';
-import { ContactFormValidator, type ContactFormData } from './ContactFormValidator';
+import { ContactFormValidator } from './ContactFormValidator';
 
 describe('ContactFormValidator', () => {
   describe('firstName validation', () => {
@@ -527,6 +527,24 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       });
     });
+
+    const baseData = {
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'test@example.com',
+      message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+    };
+
+    test.each([
+      ['number', 123],
+      ['object', { foo: 'bar' }],
+      ['array', ['array']],
+      ['boolean', true],
+      ['null', null]
+    ])('should return null when turnstileToken is %s', (_label, turnstileToken) => {
+      const token = ContactFormValidator.extractTurnstileToken({ ...baseData, turnstileToken });
+      expect(token).toBeNull();
+    });
   });
 
   describe('static methods', () => {
@@ -558,16 +576,4 @@ describe('ContactFormValidator', () => {
     });
   });
 
-  describe('type exports', () => {
-    test('should export correct types', () => {
-      const formData: ContactFormData = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      };
-
-      expect(formData).toBeDefined();
-    });
-  });
 });
