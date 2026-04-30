@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ContactFormValidator, ContactFormData } from '@/features/contact/ContactFormValidator';
@@ -7,7 +7,7 @@ import { StatusCard } from '@/shared/components/ui/StatusCard';
 import { InputField } from './InputField';
 import { TextareaField } from './TextareaField';
 import { SubmitButton } from './SubmitButton';
-import { Turnstile } from './Turnstile';
+import { Turnstile, type TurnstileHandle } from './Turnstile';
 import { logger } from '@/shared/Logger';
 
 interface ContactFormInnerProps {
@@ -20,6 +20,12 @@ export function ContactFormInner({ className, siteKey }: ContactFormInnerProps) 
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const turnstileRef = useRef<TurnstileHandle | null>(null);
+
+  const resetTurnstile = useCallback(() => {
+    setTurnstileToken('');
+    turnstileRef.current?.reset();
+  }, []);
 
   const {
     register,
@@ -70,6 +76,7 @@ export function ContactFormInner({ className, siteKey }: ContactFormInnerProps) 
     }
 
     setErrorMessage(friendlyMessage);
+    resetTurnstile();
   };
 
   const handleUnexpectedError = (error: unknown): void => {
@@ -81,6 +88,7 @@ export function ContactFormInner({ className, siteKey }: ContactFormInnerProps) 
     } else {
       setErrorMessage('An unexpected error occurred. Please try again.');
     }
+    resetTurnstile();
   };
 
   const onSubmit = async (data: ContactFormData) => {
@@ -104,7 +112,7 @@ export function ContactFormInner({ className, siteKey }: ContactFormInnerProps) 
 
       setSubmitStatus('success');
       reset();
-      setTurnstileToken('');
+      resetTurnstile();
     } catch (error) {
       handleUnexpectedError(error);
     } finally {
@@ -170,6 +178,7 @@ export function ContactFormInner({ className, siteKey }: ContactFormInnerProps) 
       />
 
       <Turnstile
+        ref={turnstileRef}
         siteKey={siteKey}
         onSuccess={handleTurnstileSuccess}
         onError={handleTurnstileError}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 
 export interface TurnstileProps {
   siteKey: string;
@@ -6,6 +6,10 @@ export interface TurnstileProps {
   onError?: (error: string) => void;
   onExpire?: () => void;
   onTimeout?: () => void;
+}
+
+export interface TurnstileHandle {
+  reset: () => void;
 }
 
 declare global {
@@ -38,10 +42,25 @@ const SCRIPT_POLL_INTERVAL_MS = 200;
 const SCRIPT_POLL_MAX_RETRIES = 25;
 const TURNSTILE_RETRY_INTERVAL_MS = 8000;
 
-export function Turnstile({ siteKey, onSuccess, onError, onExpire, onTimeout }: TurnstileProps) {
+export const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Turnstile(
+  { siteKey, onSuccess, onError, onExpire, onTimeout },
+  ref
+) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const callbacksRef = useRef({ onSuccess, onError, onExpire, onTimeout });
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      reset() {
+        if (widgetIdRef.current && window.turnstile) {
+          window.turnstile.reset(widgetIdRef.current);
+        }
+      }
+    }),
+    []
+  );
 
   useEffect(() => {
     callbacksRef.current = { onSuccess, onError, onExpire, onTimeout };
@@ -133,4 +152,4 @@ export function Turnstile({ siteKey, onSuccess, onError, onExpire, onTimeout }: 
       <div ref={containerRef} style={{ minHeight: '65px', width: '100%' }} data-testid="turnstile-container" />
     </div>
   );
-}
+});
