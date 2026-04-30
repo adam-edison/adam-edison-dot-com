@@ -87,7 +87,7 @@ describe('ContactForm', () => {
     expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^email address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/message/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /send message/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /loading security verification/i })).toBeInTheDocument();
   });
 
   test('should successfully submit the form when Turnstile token is captured', async () => {
@@ -123,20 +123,18 @@ describe('ContactForm', () => {
     });
   });
 
-  test('should show captcha error when no Turnstile token has been captured', async () => {
-    const user = userEvent.setup();
+  test('should keep submit button disabled until Turnstile token is captured', async () => {
     render(<ContactForm />);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
     });
 
-    await fillOutForm(user);
-    await user.click(screen.getByRole('button', { name: /send message/i }));
+    expect(screen.getByRole('button', { name: /loading security verification/i })).toBeDisabled();
 
-    await waitFor(() => {
-      expect(screen.getByText(/please complete the captcha/i)).toBeInTheDocument();
-    });
+    fireTurnstileSuccess('issued-token-abc');
+
+    expect(screen.getByRole('button', { name: /send message/i })).toBeEnabled();
   });
 
   test('should display friendly error when API rejects the captcha', async () => {
@@ -242,6 +240,7 @@ describe('ContactForm', () => {
       expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
     });
 
+    fireTurnstileSuccess('issued-token-abc');
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
     await waitFor(() => {

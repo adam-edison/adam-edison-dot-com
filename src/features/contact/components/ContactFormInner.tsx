@@ -53,29 +53,20 @@ export function ContactFormInner({ className, siteKey }: ContactFormInnerProps) 
     setTurnstileToken('');
   }, []);
 
-  const submitContactForm = async (data: ContactFormData, token: string): Promise<Response> => {
+  const submitContactForm = async (data: ContactFormData, turnstileToken: string): Promise<Response> => {
     return fetch('/api/contact', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        ...data,
-        turnstileToken: token
-      })
+      body: JSON.stringify({ ...data, turnstileToken })
     });
   };
 
   const handleApiError = async (response: Response): Promise<void> => {
     const errorData = await response.json();
     setSubmitStatus('error');
-
-    let friendlyMessage = errorData.message || 'Failed to send message';
-    if (friendlyMessage.toLowerCase().includes('captcha')) {
-      friendlyMessage = 'Captcha verification failed. Please try again.';
-    }
-
-    setErrorMessage(friendlyMessage);
+    setErrorMessage(errorData.message || 'Failed to send message');
     resetTurnstile();
   };
 
@@ -92,12 +83,6 @@ export function ContactFormInner({ className, siteKey }: ContactFormInnerProps) 
   };
 
   const onSubmit = async (data: ContactFormData) => {
-    if (!turnstileToken) {
-      setSubmitStatus('error');
-      setErrorMessage('Please complete the captcha verification.');
-      return;
-    }
-
     setIsSubmitting(true);
     setSubmitStatus('idle');
     setErrorMessage('');
@@ -185,7 +170,7 @@ export function ContactFormInner({ className, siteKey }: ContactFormInnerProps) 
         onExpire={handleTurnstileExpire}
       />
 
-      <SubmitButton isSubmitting={isSubmitting} />
+      <SubmitButton isSubmitting={isSubmitting} disabled={!turnstileToken} />
     </form>
   );
 }
