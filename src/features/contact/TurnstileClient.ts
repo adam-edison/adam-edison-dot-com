@@ -2,7 +2,8 @@ import { logger } from '@/shared/Logger';
 import { Result } from '@/shared/Result';
 import { ServiceUnavailableError, TurnstileError } from '@/shared/errors';
 
-const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+export const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+const TURNSTILE_VERIFY_TIMEOUT_MS = 5000;
 
 interface TurnstileVerifyResponse {
   success: boolean;
@@ -31,6 +32,8 @@ export class TurnstileClient {
   }
 
   async verifyToken(token: string, remoteIp?: string): Promise<Result<void, TurnstileError>> {
+    // Defense-in-depth: callers should validate, but a forgotten guard must not
+    // turn into a cleartext request to Cloudflare for an empty token.
     if (!token || token.trim() === '') {
       return this.failClosed('Turnstile token is missing or empty', undefined);
     }
@@ -50,6 +53,9 @@ export class TurnstileClient {
   }
 
   private async callTurnstileApi(token: string, remoteIp?: string): Promise<Result<TurnstileVerifyResponse, Error>> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TURNSTILE_VERIFY_TIMEOUT_MS);
+
     try {
       const formData = new URLSearchParams();
       formData.append('secret', this.secretKey);
@@ -59,7 +65,8 @@ export class TurnstileClient {
       const response = await fetch(TURNSTILE_VERIFY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData.toString()
+        body: formData.toString(),
+        signal: controller.signal
       });
 
       if (!response.ok) {
@@ -69,8 +76,13 @@ export class TurnstileClient {
       const data = (await response.json()) as TurnstileVerifyResponse;
       return Result.success(data);
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return Result.failure(new Error(`Turnstile API timed out after ${TURNSTILE_VERIFY_TIMEOUT_MS}ms`));
+      }
       const wrapped = error instanceof Error ? error : new Error(String(error));
       return Result.failure(wrapped);
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

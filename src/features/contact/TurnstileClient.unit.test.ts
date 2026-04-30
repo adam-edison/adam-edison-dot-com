@@ -1,13 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import assert from 'node:assert';
-import { TurnstileClient } from './TurnstileClient';
+import { TurnstileClient, TURNSTILE_VERIFY_URL } from './TurnstileClient';
 
 const validEnv: NodeJS.ProcessEnv = {
   NODE_ENV: 'test',
   TURNSTILE_SECRET_KEY: 'test-secret'
 } as unknown as NodeJS.ProcessEnv;
-
-const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 function buildClient(): TurnstileClient {
   const result = TurnstileClient.fromEnv(validEnv);
@@ -117,6 +115,31 @@ describe('TurnstileClient', () => {
       const client = buildClient();
       const result = await client.verifyToken('valid-token');
       expect(result.success).toBe(true);
+    });
+
+    it('fails closed when API returns 200 with malformed JSON', async () => {
+      mockFetchOnce({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new SyntaxError('Unexpected token < in JSON at position 0');
+        }
+      } as Response);
+      const client = buildClient();
+      const result = await client.verifyToken('valid-token');
+      assert(!result.success);
+      expect(result.error.internalMessage).toContain('Unexpected token');
+    });
+
+    it('fails closed when fetch is aborted (timeout)', async () => {
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetchReject(abortError);
+
+      const client = buildClient();
+      const result = await client.verifyToken('valid-token');
+      assert(!result.success);
+      expect(result.error.internalMessage).toContain('timed out');
     });
 
     it('passes secret, response, and remoteIp to Turnstile API', async () => {
