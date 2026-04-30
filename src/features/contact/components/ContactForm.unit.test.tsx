@@ -37,7 +37,21 @@ function fireTurnstileSuccess(token: string): void {
   });
 }
 
-global.fetch = vi.fn() as unknown as typeof fetch;
+function fireTurnstileError(error: string): void {
+  const turnstileMock = window.turnstile as unknown as TurnstileMock;
+  act(() => {
+    turnstileMock.__lastOptions!['error-callback']!(error);
+  });
+}
+
+function fireTurnstileExpire(): void {
+  const turnstileMock = window.turnstile as unknown as TurnstileMock;
+  act(() => {
+    turnstileMock.__lastOptions!['expired-callback']!();
+  });
+}
+
+let fetchMock: ReturnType<typeof vi.fn>;
 
 describe('ContactForm', () => {
   beforeEach(() => {
@@ -48,7 +62,7 @@ describe('ContactForm', () => {
     vi.stubEnv('TURNSTILE_SECRET_KEY', 'test-secret-key');
     vi.stubEnv('SEND_EMAIL_ENABLED', 'false');
 
-    vi.mocked(fetch).mockImplementation(async (url) => {
+    fetchMock = vi.fn().mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         return new Response(JSON.stringify({ status: 'healthy' }), {
           status: 200,
@@ -61,10 +75,13 @@ describe('ContactForm', () => {
         statusText: 'OK'
       });
     });
+    vi.stubGlobal('fetch', fetchMock);
   });
 
   afterEach(() => {
     uninstallTurnstileMock();
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
   });
 
   const fillOutForm = async (user: ReturnType<typeof userEvent.setup>) => {
@@ -103,7 +120,7 @@ describe('ContactForm', () => {
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/contact', {
+      expect(fetchMock).toHaveBeenCalledWith('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -137,9 +154,39 @@ describe('ContactForm', () => {
     expect(screen.getByRole('button', { name: /send message/i })).toBeEnabled();
   });
 
+  test('should re-disable submit button when Turnstile widget reports an error', async () => {
+    render(<ContactForm />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
+    });
+
+    fireTurnstileSuccess('issued-token-abc');
+    expect(screen.getByRole('button', { name: /send message/i })).toBeEnabled();
+
+    fireTurnstileError('network-error');
+
+    expect(screen.getByRole('button', { name: /loading security verification/i })).toBeDisabled();
+  });
+
+  test('should re-disable submit button when the Turnstile token expires', async () => {
+    render(<ContactForm />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
+    });
+
+    fireTurnstileSuccess('issued-token-abc');
+    expect(screen.getByRole('button', { name: /send message/i })).toBeEnabled();
+
+    fireTurnstileExpire();
+
+    expect(screen.getByRole('button', { name: /loading security verification/i })).toBeDisabled();
+  });
+
   test('should display friendly error when API rejects the captcha', async () => {
     const user = userEvent.setup();
-    vi.mocked(fetch).mockImplementation(async (url) => {
+    fetchMock.mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         return new Response(JSON.stringify({ status: 'healthy' }), {
           status: 200,
@@ -170,7 +217,7 @@ describe('ContactForm', () => {
 
   test('should display error message when API returns error', async () => {
     const user = userEvent.setup();
-    vi.mocked(fetch).mockImplementation(async (url) => {
+    fetchMock.mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         return new Response(JSON.stringify({ status: 'healthy' }), {
           status: 200,
@@ -201,7 +248,7 @@ describe('ContactForm', () => {
 
   test('should display error message when fetch fails', async () => {
     const user = userEvent.setup();
-    vi.mocked(fetch).mockImplementation(async (url) => {
+    fetchMock.mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         return new Response(JSON.stringify({ status: 'healthy' }), {
           status: 200,
@@ -270,7 +317,7 @@ describe('ContactForm', () => {
   });
 
   test('should display error message when server configuration is missing', async () => {
-    vi.mocked(fetch).mockImplementation(async (url) => {
+    fetchMock.mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         return new Response(
           JSON.stringify({
@@ -299,7 +346,7 @@ describe('ContactForm', () => {
   });
 
   test('should log error when config check fails', async () => {
-    vi.mocked(fetch).mockImplementation(async (url) => {
+    fetchMock.mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
         throw new Error('Config check failed');
       }
