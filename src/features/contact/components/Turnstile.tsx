@@ -1,11 +1,10 @@
-import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 
 export interface TurnstileProps {
   siteKey: string;
   onSuccess: (token: string) => void;
   onError?: (error: string) => void;
   onExpire?: () => void;
-  onTimeout?: () => void;
 }
 
 export interface TurnstileHandle {
@@ -43,12 +42,12 @@ const SCRIPT_POLL_MAX_RETRIES = 25;
 const TURNSTILE_RETRY_INTERVAL_MS = 8000;
 
 export const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Turnstile(
-  { siteKey, onSuccess, onError, onExpire, onTimeout },
+  { siteKey, onSuccess, onError, onExpire },
   ref
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
-  const callbacksRef = useRef({ onSuccess, onError, onExpire, onTimeout });
+  const callbacksRef = useRef({ onSuccess, onError, onExpire });
 
   useImperativeHandle(
     ref,
@@ -63,24 +62,8 @@ export const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Tu
   );
 
   useEffect(() => {
-    callbacksRef.current = { onSuccess, onError, onExpire, onTimeout };
-  }, [onSuccess, onError, onExpire, onTimeout]);
-
-  const stableOnSuccess = useCallback((token: string) => {
-    callbacksRef.current.onSuccess(token);
-  }, []);
-
-  const stableOnError = useCallback((error: string) => {
-    callbacksRef.current.onError?.(error);
-  }, []);
-
-  const stableOnExpire = useCallback(() => {
-    callbacksRef.current.onExpire?.();
-  }, []);
-
-  const stableOnTimeout = useCallback(() => {
-    callbacksRef.current.onTimeout?.();
-  }, []);
+    callbacksRef.current = { onSuccess, onError, onExpire };
+  }, [onSuccess, onError, onExpire]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -104,10 +87,9 @@ export const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Tu
       try {
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
-          callback: stableOnSuccess,
-          'error-callback': stableOnError,
-          'expired-callback': stableOnExpire,
-          'timeout-callback': stableOnTimeout,
+          callback: (token) => callbacksRef.current.onSuccess(token),
+          'error-callback': (error) => callbacksRef.current.onError?.(error),
+          'expired-callback': () => callbacksRef.current.onExpire?.(),
           size: 'flexible',
           theme: 'auto',
           'retry-interval': TURNSTILE_RETRY_INTERVAL_MS,
@@ -115,7 +97,7 @@ export const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Tu
           'response-field': true
         });
       } catch {
-        stableOnError('Failed to render Turnstile widget');
+        callbacksRef.current.onError?.('Failed to render Turnstile widget');
       }
     };
 
@@ -137,7 +119,7 @@ export const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Tu
       retryCount++;
       if (retryCount >= SCRIPT_POLL_MAX_RETRIES) {
         clearInterval(checkInterval);
-        stableOnError('Turnstile script failed to load within timeout period');
+        callbacksRef.current.onError?.('Turnstile script failed to load within timeout period');
       }
     }, SCRIPT_POLL_INTERVAL_MS);
 
@@ -145,11 +127,11 @@ export const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Tu
       clearInterval(checkInterval);
       cleanupExistingWidget();
     };
-  }, [siteKey, stableOnSuccess, stableOnError, stableOnExpire, stableOnTimeout]);
+  }, [siteKey]);
 
   return (
-    <div style={{ maxWidth: '500px' }}>
-      <div ref={containerRef} style={{ minHeight: '65px', width: '100%' }} data-testid="turnstile-container" />
+    <div className="max-w-[500px]">
+      <div ref={containerRef} className="min-h-[65px] w-full" />
     </div>
   );
 });
