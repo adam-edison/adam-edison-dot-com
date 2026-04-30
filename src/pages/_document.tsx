@@ -16,7 +16,7 @@ export default function Document() {
       <body className="antialiased">
         <Main />
         <NextScript />
-        <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="beforeInteractive" />
+        <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="afterInteractive" />
       </body>
     </Html>
   );
