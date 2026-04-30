@@ -575,5 +575,4 @@ describe('ContactFormValidator', () => {
       expect(result.success).toBe(false);
     });
   });
-
 });

@@ -20,8 +20,10 @@ export class ContactFormProcessor {
     private turnstileClient: TurnstileClient
   ) {}
 
-  static async fromEnv(): Promise<Result<ContactFormProcessor, InternalServerError | ServiceUnavailableError>> {
-    const emailServiceResult = EmailService.fromEnv();
+  static async fromEnv(
+    env: NodeJS.ProcessEnv = process.env
+  ): Promise<Result<ContactFormProcessor, InternalServerError | ServiceUnavailableError>> {
+    const emailServiceResult = EmailService.fromEnv(env);
 
     if (!emailServiceResult.success) {
       const internalMessage = `Failed to initialize email service: ${emailServiceResult.error.message}`;
@@ -30,7 +32,7 @@ export class ContactFormProcessor {
       return Result.failure(serverError);
     }
 
-    const turnstileResult = TurnstileClient.fromEnv();
+    const turnstileResult = TurnstileClient.fromEnv(env);
     if (!turnstileResult.success) return Result.failure(turnstileResult.error);
 
     const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data, turnstileResult.data);
