@@ -8,9 +8,9 @@ import { generateUniqueIdentifier } from '@tests/utils/testHelpers';
 */
 
 describe('Upstash Rate Limiter (Manual)', () => {
-  const basePrefix = process.env.REDIS_PREFIX;
-  const testPrefix = `${basePrefix}-manual-rate-limit`;
   let rateLimiter: RateLimiter;
+  let basePrefix: string;
+  let testPrefix: string;
 
   beforeEach(() => {
     const requiredEnvVars = ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN', 'REDIS_PREFIX'];
@@ -20,6 +20,8 @@ describe('Upstash Rate Limiter (Manual)', () => {
       `Skipping manual rate limiter test - missing environment variables: ${missingVars.join(', ')}`
     );
 
+    basePrefix = process.env.REDIS_PREFIX!;
+    testPrefix = `${basePrefix}-manual-rate-limit`;
     rateLimiter = RateLimiter.fromEnv({ limit: 5, window: '10 m', limitType: 'ip' });
   });
 
