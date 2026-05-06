@@ -52,6 +52,14 @@ export class TurnstileClient {
     return Result.success();
   }
 
+  /**
+   * POSTs the token to Cloudflare's siteverify endpoint, bounded by a 5s AbortController timeout.
+   *
+   * Cloudflare normally responds quickly, but a hung request would block /api/contact behind it; the timeout
+   * caps that exposure. An AbortError is normalized into a `Result.failure` so the caller still routes through
+   * `failClosed` instead of leaking the abort upward. Network errors and non-OK statuses also return
+   * `Result.failure`, preserving the fail-closed contract on every error path.
+   */
   private async callTurnstileApi(token: string, remoteIp?: string): Promise<Result<TurnstileVerifyResponse, Error>> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TURNSTILE_VERIFY_TIMEOUT_MS);

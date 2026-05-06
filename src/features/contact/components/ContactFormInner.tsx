@@ -22,6 +22,9 @@ export function ContactFormInner({ className, siteKey }: ContactFormInnerProps) 
   const [turnstileToken, setTurnstileToken] = useState<string>('');
   const turnstileRef = useRef<TurnstileHandle | null>(null);
 
+  // Turnstile tokens are single-use — once rejected, expired, or consumed by a successful submit, the existing
+  // token is dead. Resetting clears local state and asks the widget to issue a fresh challenge so the user can
+  // retry without a page refresh.
   const resetTurnstile = useCallback(() => {
     setTurnstileToken('');
     turnstileRef.current?.reset();

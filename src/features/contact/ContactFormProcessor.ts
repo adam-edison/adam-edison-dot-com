@@ -47,6 +47,9 @@ export class ContactFormProcessor {
       return Result.failure(validationError);
     }
 
+    // Forward `remoteIp` so Cloudflare can detect mismatch between the IP that solved the challenge and the IP
+    // submitting the token — a replay/abuse signal. The IP is sourced from the API handler's request extraction,
+    // never from form data, so a submitter can't spoof it.
     const verified = await this.turnstileClient.verifyToken(turnstileToken, options.remoteIp);
     if (!verified.success) return Result.failure(verified.error);
 

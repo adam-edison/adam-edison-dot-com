@@ -47,6 +47,10 @@ export const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Tu
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  // Decouple the render effect from callback identity. The render effect's dep array is [siteKey] only — closing
+  // over onSuccess/onError/onExpire directly would re-fire it on every parent re-render that recreated those
+  // handlers, tearing down the widget and discarding the issued token. The ref lets render read the latest
+  // callbacks without re-mounting.
   const callbacksRef = useRef({ onSuccess, onError, onExpire });
 
   useImperativeHandle(
@@ -108,6 +112,10 @@ export const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Tu
       };
     }
 
+    // Bounded poll for the Cloudflare script (25 × 200ms = 5s). _document.tsx loads it with `afterInteractive`,
+    // which can lag behind component mount on slow networks. If `window.turnstile` never appears within the
+    // budget we surface an error so ContactFormInner keeps the submit button disabled instead of leaving the
+    // user staring at a missing widget.
     let retryCount = 0;
     const checkInterval = setInterval(() => {
       if (window.turnstile) {
