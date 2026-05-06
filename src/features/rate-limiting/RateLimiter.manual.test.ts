@@ -41,6 +41,6 @@ describe('Upstash Rate Limiter (Manual)', () => {
         'X-RateLimit-Remaining': '4'
       }
     });
-    expect(() => new Date(result.data.headers['X-RateLimit-Reset'])).not.toThrow();
+    expect(Number.isNaN(new Date(result.data.headers['X-RateLimit-Reset']).getTime())).toBe(false);
   });
 });
