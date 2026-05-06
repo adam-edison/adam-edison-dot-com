@@ -24,7 +24,7 @@ describe('Upstash Rate Limiter (Manual)', () => {
   });
 
   afterEach(async () => {
-    await rateLimiter.clearKeys(`${testPrefix}:*`);
+    await rateLimiter.clearKeys(`${basePrefix}:*${testPrefix}*`);
   });
 
   test('should hit the real Upstash rate limiter and return a successful decision', async () => {
