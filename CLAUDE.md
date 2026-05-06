@@ -168,6 +168,12 @@ The project includes `SearchEngineOptimization.md` with comprehensive SEO guidel
 - Mobile-first design
 - Accessibility requirements
 
+## Dependency Pinning Convention
+
+- `next` and `eslint-config-next` must be **exact-pinned** (no caret/tilde) and bumped together in lockstep — they share an internal version contract that breaks when the two drift.
+- Other runtime and dev dependencies use caret ranges (`^x.y.z`) by default so patch and minor updates flow through `npm install`.
+- Security-driven bumps (e.g., CVE responses) may pin individual packages to exact versions when the CVE fix is the floor we want to guarantee. When this happens, the commit message documents the CVE rationale; the rest of the manifest keeps its existing pin style.
+
 ## Code Quality & Formatting
 
 - **ESLint**: Integrated with Next.js rules and Prettier
