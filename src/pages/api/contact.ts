@@ -17,6 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const methodValidation = RequestValidator.validateMethod(req, 'POST');
   if (!methodValidation.success) return ApiErrorHandler.handle(res, methodValidation.error, requestContext);
 
+  // Derive client IP from request headers/socket — never from the JSON body — so a submitter cannot spoof it
+  // to bypass per-IP rate limiting or to forge the `remoteip` field forwarded to Cloudflare Turnstile.
   const ip = RequestValidator.extractClientIp(req);
 
   const rateLimitResult = await ContactRateLimiter.fromEnv().checkLimits(ip);
@@ -27,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const processorResult = await ContactFormProcessor.fromEnv();
   if (!processorResult.success) return ApiErrorHandler.handle(res, processorResult.error, requestContext);
 
-  const formResult = await processorResult.data.processForm(req.body);
+  const formResult = await processorResult.data.processForm(req.body, { remoteIp: ip });
   if (!formResult.success) return ApiErrorHandler.handle(res, formResult.error, requestContext);
 
   res.status(200).json({ message: 'Message sent successfully' });

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { strict as assert } from 'node:assert';
-import { ContactFormValidator, type ContactFormData } from './ContactFormValidator';
+import { ContactFormValidator } from './ContactFormValidator';
 
 describe('ContactFormValidator', () => {
   describe('firstName validation', () => {
@@ -471,21 +471,21 @@ describe('ContactFormValidator', () => {
     });
   });
 
-  describe('recaptcha token extraction', () => {
-    test('should extract valid recaptcha token', () => {
+  describe('turnstile token extraction', () => {
+    test('should extract valid turnstile token', () => {
       const data = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-        recaptchaToken: 'valid-recaptcha-token'
+        turnstileToken: 'valid-turnstile-token'
       };
 
-      const token = ContactFormValidator.extractRecaptchaToken(data);
-      expect(token).toBe('valid-recaptcha-token');
+      const token = ContactFormValidator.extractTurnstileToken(data);
+      expect(token).toBe('valid-turnstile-token');
     });
 
-    test('should return null for missing recaptcha token', () => {
+    test('should return null for missing turnstile token', () => {
       const data = {
         firstName: 'John',
         lastName: 'Doe',
@@ -493,30 +493,30 @@ describe('ContactFormValidator', () => {
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       };
 
-      const token = ContactFormValidator.extractRecaptchaToken(data);
+      const token = ContactFormValidator.extractTurnstileToken(data);
       expect(token).toBeNull();
     });
 
-    test('should return null for empty recaptcha token', () => {
+    test('should return null for empty turnstile token', () => {
       const data = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-        recaptchaToken: ''
+        turnstileToken: ''
       };
 
-      const token = ContactFormValidator.extractRecaptchaToken(data);
+      const token = ContactFormValidator.extractTurnstileToken(data);
       expect(token).toBeNull();
     });
 
-    test('should extract form data without recaptcha token', () => {
+    test('should extract form data without turnstile token', () => {
       const data = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'test@example.com',
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.',
-        recaptchaToken: 'valid-recaptcha-token'
+        turnstileToken: 'valid-turnstile-token'
       };
 
       const formData = ContactFormValidator.extractFormData(data);
@@ -526,6 +526,24 @@ describe('ContactFormValidator', () => {
         email: 'test@example.com',
         message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
       });
+    });
+
+    const baseData = {
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'test@example.com',
+      message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
+    };
+
+    test.each([
+      ['number', 123],
+      ['object', { foo: 'bar' }],
+      ['array', ['array']],
+      ['boolean', true],
+      ['null', null]
+    ])('should return null when turnstileToken is %s', (_label, turnstileToken) => {
+      const token = ContactFormValidator.extractTurnstileToken({ ...baseData, turnstileToken });
+      expect(token).toBeNull();
     });
   });
 
@@ -555,19 +573,6 @@ describe('ContactFormValidator', () => {
 
       const result = ContactFormValidator.validate(invalidData);
       expect(result.success).toBe(false);
-    });
-  });
-
-  describe('type exports', () => {
-    test('should export correct types', () => {
-      const formData: ContactFormData = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        message: 'This is a test message with more than fifty characters to meet the minimum requirement.'
-      };
-
-      expect(formData).toBeDefined();
     });
   });
 });

@@ -1,25 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useReCaptcha } from './LazyReCaptchaProvider';
 import { ContactFormValidator, ContactFormData } from '@/features/contact/ContactFormValidator';
 import { ContactSuccessMessage } from './ContactSuccessMessage';
 import { StatusCard } from '@/shared/components/ui/StatusCard';
 import { InputField } from './InputField';
 import { TextareaField } from './TextareaField';
 import { SubmitButton } from './SubmitButton';
-import { RecaptchaNotice } from './RecaptchaNotice';
+import { Turnstile, type TurnstileHandle } from './Turnstile';
 import { logger } from '@/shared/Logger';
 
 interface ContactFormInnerProps {
   className?: string;
+  siteKey: string;
 }
 
-export function ContactFormInner({ className }: ContactFormInnerProps) {
+export function ContactFormInner({ className, siteKey }: ContactFormInnerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const { executeRecaptcha } = useReCaptcha();
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const turnstileRef = useRef<TurnstileHandle | null>(null);
+
+  // Turnstile tokens are single-use — once rejected, expired, or consumed by a successful submit, the existing
+  // token is dead. Resetting clears local state and asks the widget to issue a fresh challenge so the user can
+  // retry without a page refresh.
+  const resetTurnstile = useCallback(() => {
+    setTurnstileToken('');
+    turnstileRef.current?.reset();
+  }, []);
 
   const {
     register,
@@ -34,48 +43,34 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
   const watchedMessage = useWatch({ control, name: 'message' });
 
-  const executeRecaptchaWithTimeout = async (): Promise<string> => {
-    if (!executeRecaptcha) {
-      logger.warn('reCAPTCHA not ready, proceeding anyway (fail-open)');
-      return '';
-    }
+  const handleTurnstileSuccess = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
 
-    try {
-      const timeoutMs = parseInt(process.env.NEXT_PUBLIC_RECAPTCHA_TIMEOUT_MS!);
-      const recaptchaToken = await Promise.race([
-        executeRecaptcha('contact_form'),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('reCAPTCHA timeout')), timeoutMs))
-      ]);
-      return recaptchaToken || '';
-    } catch (error) {
-      logger.warn('reCAPTCHA failed, proceeding anyway (fail-open):', error);
-      return '';
-    }
-  };
+  const handleTurnstileError = useCallback((error: string) => {
+    logger.warn(`Turnstile error: ${error}`);
+    setTurnstileToken('');
+  }, []);
 
-  const submitContactForm = async (data: ContactFormData, recaptchaToken: string): Promise<Response> => {
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken('');
+  }, []);
+
+  const submitContactForm = async (data: ContactFormData, turnstileToken: string): Promise<Response> => {
     return fetch('/api/contact', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        ...data,
-        recaptchaToken
-      })
+      body: JSON.stringify({ ...data, turnstileToken })
     });
   };
 
   const handleApiError = async (response: Response): Promise<void> => {
     const errorData = await response.json();
     setSubmitStatus('error');
-
-    let friendlyMessage = errorData.message || 'Failed to send message';
-    if (friendlyMessage.includes('reCAPTCHA')) {
-      friendlyMessage = 'Security verification failed. Please refresh the page and try again.';
-    }
-
-    setErrorMessage(friendlyMessage);
+    setErrorMessage(errorData.message || 'Failed to send message');
+    resetTurnstile();
   };
 
   const handleUnexpectedError = (error: unknown): void => {
@@ -87,6 +82,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
     } else {
       setErrorMessage('An unexpected error occurred. Please try again.');
     }
+    resetTurnstile();
   };
 
   const onSubmit = async (data: ContactFormData) => {
@@ -95,8 +91,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
     setErrorMessage('');
 
     try {
-      const recaptchaToken = await executeRecaptchaWithTimeout();
-      const response = await submitContactForm(data, recaptchaToken);
+      const response = await submitContactForm(data, turnstileToken);
 
       if (!response.ok) {
         await handleApiError(response);
@@ -105,6 +100,7 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
 
       setSubmitStatus('success');
       reset();
+      resetTurnstile();
     } catch (error) {
       handleUnexpectedError(error);
     } finally {
@@ -169,8 +165,15 @@ export function ContactFormInner({ className }: ContactFormInnerProps) {
         watchedValue={watchedMessage}
       />
 
-      <RecaptchaNotice />
-      <SubmitButton isSubmitting={isSubmitting} />
+      <Turnstile
+        ref={turnstileRef}
+        siteKey={siteKey}
+        onSuccess={handleTurnstileSuccess}
+        onError={handleTurnstileError}
+        onExpire={handleTurnstileExpire}
+      />
+
+      <SubmitButton isSubmitting={isSubmitting} disabled={!turnstileToken} />
     </form>
   );
 }

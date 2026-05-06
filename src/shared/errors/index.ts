@@ -1,6 +1,6 @@
 export { BaseError } from './BaseError';
 export { ValidationError } from './ValidationError';
-export { RecaptchaError } from './RecaptchaError';
+export { TurnstileError } from './TurnstileError';
 export { EmailServiceError } from './EmailServiceError';
 export { RateLimitError } from './RateLimitError';
 export { ServiceUnavailableError } from './ServiceUnavailableError';

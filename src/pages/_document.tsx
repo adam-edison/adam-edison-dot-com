@@ -1,4 +1,5 @@
 import { Html, Head, Main, NextScript } from 'next/document';
+import Script from 'next/script';
 
 export default function Document() {
   return (
@@ -15,6 +16,12 @@ export default function Document() {
       <body className="antialiased">
         <Main />
         <NextScript />
+        {/*
+          `afterInteractive` keeps the Turnstile API script out of the critical render path while still landing
+          before the contact form's mount-time polling budget (~5s) on typical connections. `lazyOnload` would
+          push it past that window and leave the widget unrendered.
+        */}
+        <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="afterInteractive" />
       </body>
     </Html>
   );

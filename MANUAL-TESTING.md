@@ -16,18 +16,19 @@ This document provides instructions for manually testing features that require h
 
 These tests verify proper error handling when external services are misconfigured:
 
-### Missing reCAPTCHA Configuration
+### Missing Turnstile Configuration
 
-Test that the form gracefully handles missing reCAPTCHA keys:
+Test that the form gracefully handles missing Turnstile keys:
 
-1. **Comment out reCAPTCHA keys in `.env.local`:**
+1. **Comment out Turnstile keys in your local environment file:**
    ```bash
-   # NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-actual-site-key
-   # RECAPTCHA_SECRET_KEY=your-actual-secret-key
+   # NEXT_PUBLIC_TURNSTILE_SITE_KEY=your-actual-site-key
+   # TURNSTILE_SECRET_KEY=your-actual-secret-key
    ```
 2. **Restart development server:** `npm run dev`
 3. **Navigate to `/contact`**
 4. **Expected Result:** "Contact form is not available." message displayed
+5. **Server-side check:** A direct POST to `/api/contact` while the secret is missing should return 503 (fail-closed), not a 200 success.
 
 ### Missing Email Configuration
 
@@ -62,13 +63,13 @@ Test the complete email flow with real Resend service:
 3. **Submit the contact form**
 4. **Verify email delivery, formatting, and reply-to functionality**
 
-### reCAPTCHA Integration
+### Turnstile Integration
 
-Test with real Google reCAPTCHA service:
+Test with real Cloudflare Turnstile service:
 
-1. **Configure real reCAPTCHA keys** in `.env.local`
-2. **Test form submission** behaves normally
-3. **Optional:** Verify reCAPTCHA analytics in Google console
+1. **Configure real Turnstile keys** in your local environment file
+2. **Test form submission** behaves normally — the widget appears, you complete it, and the form submits
+3. **Optional:** Verify Turnstile analytics in the Cloudflare dashboard
 
 ## Important Notes
 
@@ -80,7 +81,7 @@ The following scenarios are **fully covered by automated tests** and don't need 
 - ✅ **Rate limiting behavior** (basic functionality and edge cases)
 - ✅ **Network error handling**
 - ✅ **Basic form submission flow**
-- ✅ **reCAPTCHA bypass for testing**
+- ✅ **Turnstile bypass for testing** (uses Cloudflare's always-pass test keys)
 
 ### Restoring Normal Operation
 
