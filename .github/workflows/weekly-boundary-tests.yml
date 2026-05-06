@@ -19,10 +19,17 @@ jobs:
       EMAIL_RECIPIENT_NAME: ${{ vars.EMAIL_RECIPIENT_NAME }}
       EMAIL_SENDER_NAME: ${{ vars.EMAIL_SENDER_NAME }}
       FROM_EMAIL: ${{ vars.FROM_EMAIL }}
+      GLOBAL_RATE_LIMIT_REQUESTS: ${{ vars.GLOBAL_RATE_LIMIT_REQUESTS }}
+      GLOBAL_RATE_LIMIT_WINDOW: ${{ vars.GLOBAL_RATE_LIMIT_WINDOW }}
       HUSKY: 0
+      RATE_LIMIT_REQUESTS: ${{ vars.RATE_LIMIT_REQUESTS }}
+      RATE_LIMIT_WINDOW: ${{ vars.RATE_LIMIT_WINDOW }}
+      REDIS_PREFIX: ${{ vars.REDIS_PREFIX }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       SEND_EMAIL_ENABLED: ${{ vars.SEND_EMAIL_ENABLED }}
       TO_EMAIL: ${{ vars.TO_EMAIL }}
+      UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+      UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
 
     steps:
       - name: Checkout code
@@ -44,5 +51,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run manual email boundary test
+      - name: Run manual boundary tests
         run: npm run test:manual
