@@ -3,9 +3,7 @@ import { InputSanitizer } from './InputSanitizer';
 
 describe('InputSanitizer', () => {
   test('escapes HTML-significant characters to entities', () => {
-    expect(InputSanitizer.sanitize('<script>alert(1)</script>')).toBe(
-      '&lt;script&gt;alert(1)&lt;&#x2F;script&gt;'
-    );
+    expect(InputSanitizer.sanitize('<script>alert(1)</script>')).toBe('&lt;script&gt;alert(1)&lt;&#x2F;script&gt;');
   });
 
   test('escapes ampersands and quotes', () => {
