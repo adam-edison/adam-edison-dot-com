@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
-import assert from 'node:assert';
+import assert, { fail } from 'node:assert';
 import { RateLimiter } from './RateLimiter';
 import { generateUniqueIdentifier } from '@tests/utils/testHelpers';
 
@@ -15,10 +15,10 @@ describe('Upstash Rate Limiter (Manual)', () => {
   beforeEach(() => {
     const requiredEnvVars = ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN', 'REDIS_PREFIX'];
     const missingVars = requiredEnvVars.filter((name) => !process.env[name]);
-    assert(
-      missingVars.length === 0,
-      `Skipping manual rate limiter test - missing environment variables: ${missingVars.join(', ')}`
-    );
+
+    if (missingVars.length > 0) {
+      fail(`Skipping manual rate limiter test - missing environment variables: ${missingVars.join(', ')}`);
+    }
 
     basePrefix = process.env.REDIS_PREFIX!;
     testPrefix = `${basePrefix}-manual-rate-limit`;
