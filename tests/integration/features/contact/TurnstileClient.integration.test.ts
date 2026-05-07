@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import assert from 'node:assert';
 import { TurnstileClient } from '@/features/contact/TurnstileClient';
+import { Configuration } from '@/shared/config/Configuration';
 
 /*
   Hits the real Cloudflare siteverify endpoint with documented testing keys to
@@ -18,14 +19,9 @@ const ALWAYS_PASS_SECRET = '1x0000000000000000000000000000000AA';
 const ALWAYS_FAIL_SECRET = '2x0000000000000000000000000000000AA';
 
 function buildClientWith(secret: string): TurnstileClient {
-  const env = {
-    NODE_ENV: 'test',
-    TURNSTILE_SECRET_KEY: secret
-  } as unknown as NodeJS.ProcessEnv;
-
-  const result = TurnstileClient.fromEnv(env);
-  assert(result.success, 'Expected TurnstileClient to construct successfully');
-  return result.data;
+  process.env.TURNSTILE_SECRET_KEY = secret;
+  Configuration.reset();
+  return TurnstileClient.fromEnv();
 }
 
 describe('TurnstileClient (integration against real Cloudflare)', () => {

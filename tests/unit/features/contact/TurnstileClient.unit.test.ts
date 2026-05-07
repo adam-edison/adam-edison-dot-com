@@ -1,16 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import assert from 'node:assert';
 import { TurnstileClient, TURNSTILE_VERIFY_URL } from '@/features/contact/TurnstileClient';
-
-const validEnv: NodeJS.ProcessEnv = {
-  NODE_ENV: 'test',
-  TURNSTILE_SECRET_KEY: 'test-secret'
-} as unknown as NodeJS.ProcessEnv;
+import { Configuration } from '@/shared/config/Configuration';
 
 function buildClient(): TurnstileClient {
-  const result = TurnstileClient.fromEnv(validEnv);
-  assert(result.success, 'Expected TurnstileClient to construct successfully');
-  return result.data;
+  return TurnstileClient.fromEnv();
 }
 
 function mockFetchOnce(response: Partial<Response>): void {
@@ -23,6 +17,7 @@ function mockFetchReject(error: Error): void {
 
 describe('TurnstileClient', () => {
   beforeEach(() => {
+    Configuration.forTesting({ TURNSTILE_SECRET_KEY: 'test-secret' });
     vi.unstubAllGlobals();
   });
 
@@ -31,22 +26,9 @@ describe('TurnstileClient', () => {
   });
 
   describe('fromEnv', () => {
-    it('returns failure when TURNSTILE_SECRET_KEY is missing', () => {
-      const result = TurnstileClient.fromEnv({ NODE_ENV: 'test' } as NodeJS.ProcessEnv);
-      assert(!result.success);
-      expect(result.error.httpStatusCode).toBe(503);
-      expect(result.error.internalMessage).toContain('TURNSTILE_SECRET_KEY');
-    });
-
-    it('returns failure when TURNSTILE_SECRET_KEY is empty string', () => {
-      const result = TurnstileClient.fromEnv({ NODE_ENV: 'test', TURNSTILE_SECRET_KEY: '' } as NodeJS.ProcessEnv);
-      assert(!result.success);
-      expect(result.error.httpStatusCode).toBe(503);
-    });
-
-    it('returns success when TURNSTILE_SECRET_KEY is set', () => {
-      const result = TurnstileClient.fromEnv(validEnv);
-      expect(result.success).toBe(true);
+    it('builds a client using the secret from Configuration', () => {
+      const client = TurnstileClient.fromEnv();
+      expect(client).toBeInstanceOf(TurnstileClient);
     });
   });
 

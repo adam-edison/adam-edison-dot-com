@@ -32,10 +32,9 @@ export class ContactFormProcessor {
       return Result.failure(serverError);
     }
 
-    const turnstileResult = TurnstileClient.fromEnv(env);
-    if (!turnstileResult.success) return Result.failure(turnstileResult.error);
+    const turnstileClient = TurnstileClient.fromEnv();
 
-    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data, turnstileResult.data);
+    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data, turnstileClient);
     return Result.success(contactFormProcessor);
   }
 
