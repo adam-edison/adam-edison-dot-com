@@ -18,7 +18,7 @@
     "test:integration": "vitest run --config vitest.integration.config.mts",
     "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "test:e2e": "playwright test",
-    "test:manual": "vitest run --config vitest.manual.config.mts",
+    "test:boundary": "vitest run --config vitest.boundary.config.mts",
     "prepare": "husky"
   },
   "dependencies": {

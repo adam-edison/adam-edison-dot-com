@@ -47,5 +47,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run manual boundary tests
-        run: npm run test:manual
+      - name: Run boundary tests
+        run: npm run test:boundary

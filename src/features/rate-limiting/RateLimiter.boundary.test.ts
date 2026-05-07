@@ -4,10 +4,10 @@ import { RateLimiter } from './RateLimiter';
 import { generateUniqueIdentifier } from '@tests/utils/testHelpers';
 
 /* Run this test with:
-  npm run test:manual -- --testNamePattern "Upstash Rate Limiter"
+  npm run test:boundary -- --testNamePattern "Upstash Rate Limiter"
 */
 
-describe('Upstash Rate Limiter (Manual)', () => {
+describe('Upstash Rate Limiter (Boundary)', () => {
   let rateLimiter: RateLimiter;
   let basePrefix: string;
   let testPrefix: string;
@@ -17,11 +17,11 @@ describe('Upstash Rate Limiter (Manual)', () => {
     const missingVars = requiredEnvVars.filter((name) => !process.env[name]);
 
     if (missingVars.length > 0) {
-      fail(`Skipping manual rate limiter test - missing environment variables: ${missingVars.join(', ')}`);
+      fail(`Skipping boundary rate limiter test - missing environment variables: ${missingVars.join(', ')}`);
     }
 
     basePrefix = process.env.REDIS_PREFIX!;
-    testPrefix = `${basePrefix}-manual-rate-limit`;
+    testPrefix = `${basePrefix}-boundary-rate-limit`;
     rateLimiter = RateLimiter.fromEnv({ limit: 5, window: '10 m', limitType: 'ip' });
   });
 
