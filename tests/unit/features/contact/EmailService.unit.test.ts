@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { EmailService } from './EmailService';
+import { EmailService } from '@/features/contact/EmailService';
 import assert from 'node:assert';
 
 /*
   Run this test with:
-  npm run test:unit src/features/contact/EmailService.unit.test.ts
+  npm run test:unit tests/unit/features/contact/EmailService.unit.test.ts
 */
 
 const validEnvironment: NodeJS.ProcessEnv = {

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { strict as assert } from 'node:assert';
-import { ContactFormValidator } from './ContactFormValidator';
+import { ContactFormValidator } from '@/features/contact/ContactFormValidator';
 
 describe('ContactFormValidator', () => {
   describe('firstName validation', () => {

@@ -8,8 +8,8 @@
  * Tests will fail with clear error messages if Redis is not configured.
  */
 import { Redis } from '@upstash/redis';
-import { RateLimiter } from './RateLimiter';
-import { RateLimiterDataStore } from './RateLimiterDataStore';
+import { RateLimiter } from '@/features/rate-limiting/RateLimiter';
+import { RateLimiterDataStore } from '@/features/rate-limiting/RateLimiterDataStore';
 import { describe, test, expect, beforeAll, afterEach } from 'vitest';
 import { generateUniqueIdentifier } from '@tests/utils/testHelpers';
 import assert from 'node:assert';

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { logger, InMemoryLogger, Logger } from './Logger';
+import { logger, InMemoryLogger, Logger } from '@/shared/Logger';
 
 describe('Logger', () => {
   let testLogger: Logger;

@@ -1,23 +1,23 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import { EmailService } from './EmailService';
-import { ContactFormData } from './ContactFormValidator';
+import { EmailService } from '@/features/contact/EmailService';
+import { ContactFormData } from '@/features/contact/ContactFormValidator';
 import { fail } from 'assert';
 
 /* Run this test with:
-  npm run test:manual -- --testNamePattern "Resend Email Integration"
+  npm run test:boundary -- --testNamePattern "Resend Email Integration"
 */
 
-describe('Resend Email Integration (Manual)', () => {
+describe('Resend Email Integration (Boundary)', () => {
   beforeEach(() => {
     const requiredEnvVars = ['RESEND_API_KEY', 'FROM_EMAIL', 'TO_EMAIL'];
     const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
     if (missingVars.length > 0) {
-      fail(`Skipping manual email test - missing environment variables: ${missingVars.join(', ')}`);
+      fail(`Skipping boundary email test - missing environment variables: ${missingVars.join(', ')}`);
     }
 
     if (process.env.SEND_EMAIL_ENABLED === 'false' || !process.env.SEND_EMAIL_ENABLED) {
-      fail('Skipping manual email test - SEND_EMAIL_ENABLED is set to "false"');
+      fail('Skipping boundary email test - SEND_EMAIL_ENABLED is set to "false"');
     }
   });
 
@@ -26,7 +26,7 @@ describe('Resend Email Integration (Manual)', () => {
       firstName: 'Test',
       lastName: 'User',
       email: 'test@example.com',
-      message: 'This is a manual integration test for email sending functionality.'
+      message: 'This is a boundary integration test for email sending functionality.'
     };
 
     const emailServiceResult = EmailService.fromEnv();

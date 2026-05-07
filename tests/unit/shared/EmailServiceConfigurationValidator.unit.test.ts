@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { strict as assert } from 'node:assert';
-import { EmailServiceConfigurationValidator } from './EmailServiceConfigurationValidator';
+import { EmailServiceConfigurationValidator } from '@/shared/EmailServiceConfigurationValidator';
 import { EmailConfiguration } from '@/features/contact/EmailService';
 
 describe('EmailServiceConfigurationValidator', () => {

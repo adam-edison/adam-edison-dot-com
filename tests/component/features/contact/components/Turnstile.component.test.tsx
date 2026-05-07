@@ -1,7 +1,7 @@
 import { describe, expect, test, vi, afterEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Turnstile } from './Turnstile';
+import { Turnstile } from '@/features/contact/components/Turnstile';
 
 interface TurnstileMock {
   render: ReturnType<typeof vi.fn>;

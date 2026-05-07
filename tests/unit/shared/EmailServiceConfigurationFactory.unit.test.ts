@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { EmailServiceConfigurationFactory } from './EmailServiceConfigurationFactory';
+import { EmailServiceConfigurationFactory } from '@/shared/EmailServiceConfigurationFactory';
 
 describe('EmailServiceConfigurationFactory', () => {
   describe('fromEnv', () => {

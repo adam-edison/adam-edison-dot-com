@@ -9,8 +9,8 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [tsconfigPaths(), react()],
     test: {
-      environment: 'jsdom',
-      include: ['**/*.manual.test.ts'],
+      environment: 'node',
+      include: ['**/*.boundary.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
       exclude: ['**/node_modules/**'],
       globals: true,
       env

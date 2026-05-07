@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import assert from 'node:assert';
-import { TurnstileClient } from './TurnstileClient';
+import { TurnstileClient } from '@/features/contact/TurnstileClient';
 
 /*
   Hits the real Cloudflare siteverify endpoint with documented testing keys to
@@ -11,7 +11,7 @@ import { TurnstileClient } from './TurnstileClient';
     1x0000000000000000000000000000000AA  always passes verification
     2x0000000000000000000000000000000AA  always fails verification
 
-  Run with: npm run test:integration src/features/contact/TurnstileClient.integration.test.ts
+  Run with: npm run test:integration tests/integration/features/contact/TurnstileClient.integration.test.ts
 */
 
 const ALWAYS_PASS_SECRET = '1x0000000000000000000000000000000AA';
