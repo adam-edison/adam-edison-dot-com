@@ -42,11 +42,12 @@ npm run format       # Format code with Prettier
 npm run format:check # Check format without writing changes
 
 # Testing
-npm run test         # Run unit tests
-npm run test:unit    # Run unit tests (explicit)
+npm run test           # Run unit tests
+npm run test:unit      # Run unit tests (pure functions, node env)
+npm run test:component # Run component tests (JSX rendering in jsdom)
 npm run test:integration # Run integration tests (requires Redis)
-npm run test:e2e     # Run end-to-end tests with Playwright
-npm run test:all     # Run all tests (unit + integration + e2e)
+npm run test:e2e       # Run end-to-end tests with Playwright
+npm run test:all       # Run all tests (unit + component + integration + e2e)
 npm run test:boundary  # Run boundary tests against real external services
 ```
 
@@ -116,8 +117,9 @@ Configure social media links and repository URL displayed throughout the site.
 
 ### Test Types
 
-- **Unit Tests**: Fast, isolated component testing (no external dependencies)
-- **Integration Tests**: API and database integration (requires Redis configuration)
+- **Unit Tests**: Pure functions in node env, no DOM or external dependencies
+- **Component Tests**: JSX rendering with `@testing-library/react` in jsdom
+- **Integration Tests**: API and service integration (requires Redis configuration)
 - **E2E Tests**: Full browser automation with Playwright
 - **Boundary Tests**: Real external service testing (Resend, Upstash) — runs only via the weekly cron workflow or manual `workflow_dispatch` trigger
 
@@ -126,6 +128,9 @@ Configure social media links and repository URL displayed throughout the site.
 ```bash
 # Quick feedback loop
 npm run test:unit
+
+# Component rendering
+npm run test:component
 
 # Full test suite
 npm run test:all
