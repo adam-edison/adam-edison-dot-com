@@ -3,12 +3,9 @@ import { InputSanitizer } from './InputSanitizer';
 import { TurnstileClient } from './TurnstileClient';
 import { ContactFormValidator, ContactFormData } from './ContactFormValidator';
 import { Result } from '@/shared/Result';
-import { ValidationError, TurnstileError, InternalServerError, ServiceUnavailableError } from '@/shared/errors';
+import { ValidationError, TurnstileError, InternalServerError } from '@/shared/errors';
 
-export type ProcessFormResult = Result<
-  void,
-  ValidationError | TurnstileError | ServiceUnavailableError | InternalServerError
->;
+export type ProcessFormResult = Result<void, ValidationError | TurnstileError | InternalServerError>;
 
 export interface ProcessFormOptions {
   remoteIp?: string;
@@ -20,22 +17,10 @@ export class ContactFormProcessor {
     private turnstileClient: TurnstileClient
   ) {}
 
-  static async fromEnv(
-    env: NodeJS.ProcessEnv = process.env
-  ): Promise<Result<ContactFormProcessor, InternalServerError | ServiceUnavailableError>> {
-    const emailServiceResult = EmailService.fromEnv(env);
-
-    if (!emailServiceResult.success) {
-      const internalMessage = `Failed to initialize email service: ${emailServiceResult.error.message}`;
-      const clientMessage = 'Internal server error';
-      const serverError = new InternalServerError(clientMessage, { internalMessage });
-      return Result.failure(serverError);
-    }
-
+  static fromEnv(): ContactFormProcessor {
+    const emailService = EmailService.fromEnv();
     const turnstileClient = TurnstileClient.fromEnv();
-
-    const contactFormProcessor = new ContactFormProcessor(emailServiceResult.data, turnstileClient);
-    return Result.success(contactFormProcessor);
+    return new ContactFormProcessor(emailService, turnstileClient);
   }
 
   async processForm(formData: unknown, options: ProcessFormOptions = {}): Promise<ProcessFormResult> {

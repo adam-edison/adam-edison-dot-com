@@ -2,9 +2,8 @@ import { Resend } from 'resend';
 import { ContactFormData } from './ContactFormValidator';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { Configuration } from '@/shared/config/Configuration';
 import { TemplateRenderer } from '@/shared/TemplateRenderer';
-import { EmailServiceConfigurationValidator } from '@/shared/EmailServiceConfigurationValidator';
-import { EmailServiceConfigurationFactory } from '@/shared/EmailServiceConfigurationFactory';
 import { Result } from '@/shared/Result';
 import { EmailServiceError } from '@/shared/errors';
 
@@ -41,21 +40,17 @@ export class EmailService {
     return { ...this.config };
   }
 
-  static fromEnv(env: NodeJS.ProcessEnv = process.env): Result<EmailService, EmailServiceError> {
-    const config = EmailServiceConfigurationFactory.fromEnv(env);
-    const validationResult = EmailServiceConfigurationValidator.validate(config);
-
-    if (!validationResult.success) {
-      const clientMessage = 'Unable to send messages at this time. Please try again later.';
-      const problemList = validationResult.error.message;
-      const internalMessage = `Email service configuration errors: ${problemList}`;
-      const configError = new EmailServiceError(clientMessage, { internalMessage, isConfigError: true });
-
-      return Result.failure(configError);
-    }
-
-    const emailService = new EmailService(config);
-    return Result.success(emailService);
+  static fromEnv(): EmailService {
+    const env = Configuration.get();
+    const config: EmailConfiguration = {
+      apiKey: env.RESEND_API_KEY,
+      fromEmail: env.FROM_EMAIL,
+      toEmail: env.TO_EMAIL,
+      senderName: env.EMAIL_SENDER_NAME,
+      recipientName: env.EMAIL_RECIPIENT_NAME,
+      sendEmailEnabled: env.SEND_EMAIL_ENABLED
+    };
+    return new EmailService(config);
   }
 
   async sendContactEmail(data: ContactFormData): Promise<Result<{ id: string }, EmailServiceError>> {
