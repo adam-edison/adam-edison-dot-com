@@ -65,12 +65,14 @@ FROM_EMAIL=your-contact@email.com
 TO_EMAIL=your-inbox@email.com
 EMAIL_SENDER_NAME=Personal Website Contact Form
 EMAIL_RECIPIENT_NAME=Your Name
+SEND_EMAIL_ENABLED=true
 ```
 
 1. Create account at [resend.com](https://resend.com)
 2. Verify your domain (add DNS records)
 3. Generate API key from dashboard
 4. Set contact email addresses and display names
+5. `SEND_EMAIL_ENABLED` is optional — only the literal string `'true'` actually delivers messages; any other value (or unset) drops the send silently
 
 #### Spam Protection (Cloudflare Turnstile)
 
@@ -88,9 +90,10 @@ TURNSTILE_SECRET_KEY=your-secret-key
 ```env
 UPSTASH_REDIS_REST_URL=https://your-redis-instance.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your-redis-token
+REDIS_PREFIX=personal-website
 ```
 
-Optional rate limit configuration:
+Rate limit configuration (all required):
 
 ```env
 RATE_LIMIT_REQUESTS=5
@@ -98,6 +101,8 @@ RATE_LIMIT_WINDOW=10 m
 GLOBAL_RATE_LIMIT_REQUESTS=10
 GLOBAL_RATE_LIMIT_WINDOW=1 h
 ```
+
+`*_REQUESTS` are positive integers; `*_WINDOW` is a duration string accepted by `@upstash/ratelimit` (e.g. `10 s`, `30 m`, `1 h`). `REDIS_PREFIX` namespaces every rate-limit key so dev, prod, and test runs do not collide.
 
 #### Social Media URLs
 
