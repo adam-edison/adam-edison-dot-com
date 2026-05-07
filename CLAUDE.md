@@ -30,26 +30,27 @@ npm run format
 # Check code formatting
 npm run format:check
 
-# Run unit tests only (fast, no external dependencies)
+# Run unit tests only (pure functions, node env, no external dependencies)
 npm run test
 
 # Run unit tests (explicit)
 npm run test:unit
 
+# Run component tests (JSX rendering in jsdom)
+npm run test:component
+
 # Run integration tests (requires Redis configuration in .env.local)
 npm run test:integration
 
-# Run all tests (unit + integration)
+# Run all tests (unit + component + integration + e2e)
 npm run test:all
 
 # Run e2e tests
 npm run test:e2e
 
-# Run manual integration tests (requires email service credentials)
-npm run test:manual
-
-# Run manual tests with actual email sending (requires RESEND_API_KEY, FROM_EMAIL, TO_EMAIL)
-# RESEND_API_KEY=your_key FROM_EMAIL=from@domain.com TO_EMAIL=to@domain.com npm run test:manual
+# Run boundary tests against real external services (Resend, Upstash)
+# Normally only runs via the weekly cron workflow or manual workflow_dispatch
+# RESEND_API_KEY=your_key FROM_EMAIL=from@domain.com TO_EMAIL=to@domain.com npm run test:boundary
 ```
 
 ## Email Configuration
@@ -244,6 +245,17 @@ The project includes `SearchEngineOptimization.md` with comprehensive SEO guidel
 - Run `npm run lint` to check for code quality issues
 - Run `npm run format` to auto-format code before commits
 
+## Test Tier Strategy
+
+Tests are organized into four tiers, each with a dedicated vitest config and file-name suffix. Pick the tier that matches what the test exercises:
+
+- **unit** — pure functions in node env. File pattern: `*.unit.test.ts`. Config: `vitest.unit.config.mts`. Setup: `tests/setup/unit.setup.ts`. Fast, no DOM, no external dependencies.
+- **component** — JSX rendering in jsdom env. File pattern: `*.component.test.{ts,tsx}`. Config: `vitest.component.config.mts`. Setup: `tests/setup/component.setup.ts` (jest-dom matchers + `cleanup`).
+- **integration** — services with mocks or local stand-ins. File pattern: `*.integration.test.ts`. Config: `vitest.integration.config.mts`. Requires Redis configuration in `.env.local`.
+- **boundary** — real external services (Resend, Upstash). File pattern: `*.boundary.test.ts`. Config: `vitest.boundary.config.mts`. **Runs only via the weekly cron workflow or manual `workflow_dispatch` trigger** — not part of `test:all`, not part of `dwa quality-check`, and never runs on PR CI.
+
+`npm run test:all` runs the first three tiers plus e2e (boundary excluded by design).
+
 ## Stable State Verification
 
 After making a set of changes, always verify stable state by running these commands in order:
@@ -252,7 +264,8 @@ After making a set of changes, always verify stable state by running these comma
 2. `npm run lint` - Check for linting issues
 3. `npm run build` - Ensure project builds successfully
 4. `npm run test:unit` - Run unit tests
-5. `npm run test:integration` - Run integration tests
-6. `npm run test:e2e` - Run end-to-end tests
+5. `npm run test:component` - Run component tests
+6. `npm run test:integration` - Run integration tests
+7. `npm run test:e2e` - Run end-to-end tests
 
 All commands must pass before considering changes complete and ready for commit.
