@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ContactFormInner } from './ContactFormInner';
 import { ContactFormErrorBoundary } from './ContactFormErrorBoundary';
+import { ClientConfiguration } from '@/shared/config/clientConfig';
 import { logger } from '@/shared/Logger';
 
 interface ContactFormProps {
@@ -9,16 +10,11 @@ interface ContactFormProps {
 
 export function ContactForm({ className }: ContactFormProps) {
   const [configStatus, setConfigStatus] = useState<'loading' | 'ready' | 'error'>('loading');
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const siteKey = ClientConfiguration.get().NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   useEffect(() => {
-    if (!siteKey) {
-      setConfigStatus('error');
-      return;
-    }
-
     checkServerConfig();
-  }, [siteKey]);
+  }, []);
 
   const checkServerConfig = async () => {
     try {
@@ -53,7 +49,7 @@ export function ContactForm({ className }: ContactFormProps) {
 
   return (
     <ContactFormErrorBoundary>
-      <ContactFormInner className={className} siteKey={siteKey!} />
+      <ContactFormInner className={className} siteKey={siteKey} />
     </ContactFormErrorBoundary>
   );
 }
