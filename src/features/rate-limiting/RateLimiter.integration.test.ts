@@ -24,7 +24,7 @@ describe('RateLimiter Integration Tests', () => {
   });
 
   afterEach(async () => {
-    await rateLimiter.clearKeys(`${testPrefix}:*`);
+    await rateLimiter.clearKeys(`${basePrefix}:*${testPrefix}*`);
   });
 
   test('should allow requests within rate limit', async () => {
