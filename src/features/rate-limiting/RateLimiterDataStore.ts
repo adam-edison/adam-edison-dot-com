@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis';
 import { Duration, Ratelimit } from '@upstash/ratelimit';
+import { Configuration } from '@/shared/config/Configuration';
 
 export interface RateLimitResult {
   success: boolean;
@@ -18,9 +19,12 @@ export class RateLimiterDataStore {
   }
 
   static fromEnv(): RateLimiterDataStore {
-    const redis = Redis.fromEnv();
-    const prefix = process.env.REDIS_PREFIX!;
-    const rateLimiterDataStore = new RateLimiterDataStore(redis, prefix);
+    const config = Configuration.get();
+    const redis = new Redis({
+      url: config.UPSTASH_REDIS_REST_URL,
+      token: config.UPSTASH_REDIS_REST_TOKEN
+    });
+    const rateLimiterDataStore = new RateLimiterDataStore(redis, config.REDIS_PREFIX);
     return rateLimiterDataStore;
   }
 
