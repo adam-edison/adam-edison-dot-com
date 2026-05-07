@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import assert, { fail } from 'node:assert';
-import { RateLimiter } from './RateLimiter';
+import { RateLimiter } from '@/features/rate-limiting/RateLimiter';
 import { generateUniqueIdentifier } from '@tests/utils/testHelpers';
 
 /* Run this test with:

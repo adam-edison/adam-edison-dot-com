@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ApiErrorHandler } from './ApiErrorHandler';
+import { ApiErrorHandler } from '@/shared/ApiErrorHandler';
 import {
   ValidationError,
   TurnstileError,
@@ -8,11 +8,11 @@ import {
   RateLimitError,
   MethodNotAllowedError,
   InternalServerError
-} from './errors';
-import { logger } from './Logger';
+} from '@/shared/errors';
+import { logger } from '@/shared/Logger';
 import type { NextApiResponse } from 'next';
 
-vi.mock('./Logger', () => ({
+vi.mock('@/shared/Logger', () => ({
   logger: {
     error: vi.fn()
   }

@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import { EmailService } from './EmailService';
-import { ContactFormData } from './ContactFormValidator';
+import { EmailService } from '@/features/contact/EmailService';
+import { ContactFormData } from '@/features/contact/ContactFormValidator';
 import { fail } from 'assert';
 
 /* Run this test with:

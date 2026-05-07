@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ApiErrorHandler } from './ApiErrorHandler';
-import { RequestContext } from './RequestContext';
-import { RateLimitError, MethodNotAllowedError, InternalServerError } from './errors';
-import { logger } from './Logger';
+import { ApiErrorHandler } from '@/shared/ApiErrorHandler';
+import { RequestContext } from '@/shared/RequestContext';
+import { RateLimitError, MethodNotAllowedError, InternalServerError } from '@/shared/errors';
+import { logger } from '@/shared/Logger';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 // Mock logger
-vi.mock('./Logger', () => ({
+vi.mock('@/shared/Logger', () => ({
   logger: {
     error: vi.fn()
   }

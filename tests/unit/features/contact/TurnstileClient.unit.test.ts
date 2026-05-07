@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import assert from 'node:assert';
-import { TurnstileClient, TURNSTILE_VERIFY_URL } from './TurnstileClient';
+import { TurnstileClient, TURNSTILE_VERIFY_URL } from '@/features/contact/TurnstileClient';
 
 const validEnv: NodeJS.ProcessEnv = {
   NODE_ENV: 'test',
