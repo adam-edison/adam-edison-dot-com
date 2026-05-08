@@ -53,70 +53,13 @@ npm run test:boundary  # Run boundary tests against real external services
 
 ## Configuration
 
-### Required Environment Variables
+Copy `.env.example` to `.env.local` and fill in the values. Each variable is documented inline in the example file.
 
-Copy `.env.example` to `.env.local` and configure these services:
+External services used:
 
-#### Email Service (Resend)
-
-```env
-RESEND_API_KEY=your-resend-api-key-here
-FROM_EMAIL=your-contact@email.com
-TO_EMAIL=your-inbox@email.com
-EMAIL_SENDER_NAME=Personal Website Contact Form
-EMAIL_RECIPIENT_NAME=Your Name
-SEND_EMAIL_ENABLED=true
-```
-
-1. Create account at [resend.com](https://resend.com)
-2. Verify your domain (add DNS records)
-3. Generate API key from dashboard
-4. Set contact email addresses and display names
-5. `SEND_EMAIL_ENABLED` is optional — only the literal string `'true'` actually delivers messages; any other value (or unset) drops the send silently
-
-#### Spam Protection (Cloudflare Turnstile)
-
-```env
-NEXT_PUBLIC_TURNSTILE_SITE_KEY=your-site-key
-TURNSTILE_SECRET_KEY=your-secret-key
-```
-
-1. Visit the [Cloudflare Turnstile dashboard](https://dash.cloudflare.com/?to=/:account/turnstile)
-2. Add a new site (use `localhost` for development)
-3. Copy the site key and secret key
-
-#### Rate Limiting (Upstash Redis)
-
-```env
-UPSTASH_REDIS_REST_URL=https://your-redis-instance.upstash.io
-UPSTASH_REDIS_REST_TOKEN=your-redis-token
-REDIS_PREFIX=personal-website
-```
-
-Rate limit configuration (all required):
-
-```env
-RATE_LIMIT_REQUESTS=5
-RATE_LIMIT_WINDOW=10 m
-GLOBAL_RATE_LIMIT_REQUESTS=10
-GLOBAL_RATE_LIMIT_WINDOW=1 h
-```
-
-`*_REQUESTS` are positive integers; `*_WINDOW` is a duration string accepted by `@upstash/ratelimit` (e.g. `10 s`, `30 m`, `1 h`). `REDIS_PREFIX` namespaces every rate-limit key so dev, prod, and test runs do not collide.
-
-#### Social Media URLs
-
-```env
-NEXT_PUBLIC_GITHUB_URL=https://github.com/your-username
-NEXT_PUBLIC_LINKEDIN_URL=https://www.linkedin.com/in/your-profile/
-NEXT_PUBLIC_REPO_URL=https://github.com/your-username/your-repo
-```
-
-Configure social media links and repository URL displayed throughout the site.
-
-1. Create account at [upstash.com](https://upstash.com)
-2. Create Redis database
-3. Copy REST URL and token from dashboard
+- [Resend](https://resend.com) for email delivery
+- [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/) for spam protection
+- [Upstash](https://upstash.com) for Redis-based rate limiting
 
 ## Testing
 
