@@ -41,16 +41,16 @@ export class EmailService {
   }
 
   static fromEnv(): EmailService {
-    const env = Configuration.get();
-    const config: EmailConfiguration = {
-      apiKey: env.RESEND_API_KEY,
-      fromEmail: env.FROM_EMAIL,
-      toEmail: env.TO_EMAIL,
-      senderName: env.EMAIL_SENDER_NAME,
-      recipientName: env.EMAIL_RECIPIENT_NAME,
-      sendEmailEnabled: env.SEND_EMAIL_ENABLED
+    const config = Configuration.get();
+    const emailConfig: EmailConfiguration = {
+      apiKey: config.RESEND_API_KEY,
+      fromEmail: config.FROM_EMAIL,
+      toEmail: config.TO_EMAIL,
+      senderName: config.EMAIL_SENDER_NAME,
+      recipientName: config.EMAIL_RECIPIENT_NAME,
+      sendEmailEnabled: config.SEND_EMAIL_ENABLED
     };
-    return new EmailService(config);
+    return new EmailService(emailConfig);
   }
 
   async sendContactEmail(data: ContactFormData): Promise<Result<{ id: string }, EmailServiceError>> {

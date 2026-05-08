@@ -41,8 +41,8 @@ export class Configuration {
   }
 }
 
-function parseEnvironment(env: Record<string, string | undefined>): Environment {
-  const result = EnvironmentSchema.safeParse(env);
+function parseEnvironment(rawEnv: Record<string, string | undefined>): Environment {
+  const result = EnvironmentSchema.safeParse(rawEnv);
   if (result.success) return result.data;
   throw formatZodIssues('Environment validation failed', result.error.issues);
 }

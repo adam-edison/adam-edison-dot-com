@@ -37,8 +37,8 @@ function readClientEnv(): Record<keyof ClientEnvironment, string | undefined> {
   };
 }
 
-function parseClientEnvironment(env: Record<string, string | undefined>): ClientEnvironment {
-  const result = ClientEnvironmentSchema.safeParse(env);
+function parseClientEnvironment(rawEnv: Record<string, string | undefined>): ClientEnvironment {
+  const result = ClientEnvironmentSchema.safeParse(rawEnv);
   if (result.success) return result.data;
   throw formatZodIssues('Client environment validation failed', result.error.issues);
 }
