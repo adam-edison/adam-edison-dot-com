@@ -45,3 +45,8 @@ export const EnvironmentSchema = ServerOnlyEnvironmentSchema.merge(ClientEnviron
 export type ServerOnlyEnvironment = z.infer<typeof ServerOnlyEnvironmentSchema>;
 export type ClientEnvironment = z.infer<typeof ClientEnvironmentSchema>;
 export type Environment = z.infer<typeof EnvironmentSchema>;
+
+export function formatZodIssues(prefix: string, issues: z.ZodIssue[]): Error {
+  const problems = issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`);
+  return new Error(`${prefix}:\n  ${problems.join('\n  ')}`);
+}

@@ -1,5 +1,4 @@
-import { z } from 'zod';
-import { ClientEnvironment, ClientEnvironmentSchema } from './EnvironmentSchema';
+import { ClientEnvironment, ClientEnvironmentSchema, formatZodIssues } from './EnvironmentSchema';
 
 type ClientEnvironmentRawInput = Partial<Record<keyof ClientEnvironment, string | undefined>>;
 
@@ -41,10 +40,5 @@ function readClientEnv(): Record<keyof ClientEnvironment, string | undefined> {
 function parseClientEnvironment(env: Record<string, string | undefined>): ClientEnvironment {
   const result = ClientEnvironmentSchema.safeParse(env);
   if (result.success) return result.data;
-  throw buildClientEnvironmentError(result.error.issues);
-}
-
-function buildClientEnvironmentError(issues: z.ZodIssue[]): Error {
-  const problems = issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`);
-  return new Error(`Client environment validation failed:\n  ${problems.join('\n  ')}`);
+  throw formatZodIssues('Client environment validation failed', result.error.issues);
 }
