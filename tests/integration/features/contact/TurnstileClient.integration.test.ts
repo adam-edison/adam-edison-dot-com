@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect } from 'vitest';
 import assert from 'node:assert';
 import { TurnstileClient } from '@/features/contact/TurnstileClient';
 import { Configuration } from '@/shared/config/Configuration';
@@ -25,6 +25,21 @@ function buildClientWith(secret: string): TurnstileClient {
 }
 
 describe('TurnstileClient (integration against real Cloudflare)', () => {
+  let originalSecret: string | undefined;
+
+  beforeEach(() => {
+    originalSecret = process.env.TURNSTILE_SECRET_KEY;
+  });
+
+  afterEach(() => {
+    if (originalSecret === undefined) {
+      delete process.env.TURNSTILE_SECRET_KEY;
+    } else {
+      process.env.TURNSTILE_SECRET_KEY = originalSecret;
+    }
+    Configuration.reset();
+  });
+
   it('returns success when Cloudflare accepts the token (always-pass secret)', async () => {
     const client = buildClientWith(ALWAYS_PASS_SECRET);
     const result = await client.verifyToken('any-token-the-real-server-will-accept');
