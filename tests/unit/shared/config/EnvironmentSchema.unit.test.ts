@@ -152,6 +152,22 @@ describe('EnvironmentSchema', () => {
     expect(paths).toEqual(['RATE_LIMIT_WINDOW']);
   });
 
+  it('rejects zero-count window strings that would disable the limiter', () => {
+    const zeroVariants = ['0 s', '0 m', '0 h', '00 ms'];
+
+    const results = zeroVariants.map((window) => ({
+      window,
+      success: EnvironmentSchema.safeParse({ ...validRawEnv, RATE_LIMIT_WINDOW: window }).success
+    }));
+
+    expect(results).toEqual([
+      { window: '0 s', success: false },
+      { window: '0 m', success: false },
+      { window: '0 h', success: false },
+      { window: '00 ms', success: false }
+    ]);
+  });
+
   it('defaults NODE_ENV to development when unset', () => {
     const input = { ...validRawEnv };
     delete (input as Record<string, unknown>).NODE_ENV;

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const RATE_LIMIT_WINDOW_PATTERN = /^\d+\s*(ms|s|m|h|d)$/;
+const RATE_LIMIT_WINDOW_PATTERN = /^[1-9]\d*\s*(ms|s|m|h|d)$/;
 
 const positiveIntFromString = (min: number, max: number) => z.coerce.number().int().min(min).max(max);
 
