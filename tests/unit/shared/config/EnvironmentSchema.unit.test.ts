@@ -143,7 +143,14 @@ describe('EnvironmentSchema', () => {
       success: EnvironmentSchema.safeParse({ ...validRawEnv, RATE_LIMIT_WINDOW: window }).success
     }));
 
-    expect(results).toEqual(variants.map((window) => ({ window, success: true })));
+    expect(results).toEqual([
+      { window: '500 ms', success: true },
+      { window: '30 s', success: true },
+      { window: '10 m', success: true },
+      { window: '1 h', success: true },
+      { window: '1 d', success: true },
+      { window: '5m', success: true }
+    ]);
   });
 
   it('rejects malformed window strings', () => {
