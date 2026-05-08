@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Environment, EnvironmentSchema } from './EnvironmentSchema';
+import { CLIENT_TEST_DEFAULTS } from './clientConfig';
 
 type EnvironmentRawInput = Partial<Record<keyof Environment, string | undefined>>;
 
@@ -19,10 +20,7 @@ const TEST_DEFAULTS: Record<keyof Environment, string> = {
   RATE_LIMIT_WINDOW: '10 m',
   GLOBAL_RATE_LIMIT_REQUESTS: '10',
   GLOBAL_RATE_LIMIT_WINDOW: '1 h',
-  NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'test-turnstile-site',
-  NEXT_PUBLIC_GITHUB_URL: 'https://github.com/test',
-  NEXT_PUBLIC_LINKEDIN_URL: 'https://www.linkedin.com/in/test',
-  NEXT_PUBLIC_REPO_URL: 'https://github.com/test/test'
+  ...CLIENT_TEST_DEFAULTS
 };
 
 export class Configuration {

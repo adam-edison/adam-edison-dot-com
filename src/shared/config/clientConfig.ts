@@ -3,7 +3,7 @@ import { ClientEnvironment, ClientEnvironmentSchema } from './EnvironmentSchema'
 
 type ClientEnvironmentRawInput = Partial<Record<keyof ClientEnvironment, string | undefined>>;
 
-const TEST_DEFAULTS: Record<keyof ClientEnvironment, string> = {
+export const CLIENT_TEST_DEFAULTS: Record<keyof ClientEnvironment, string> = {
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'test-turnstile-site',
   NEXT_PUBLIC_GITHUB_URL: 'https://github.com/test',
   NEXT_PUBLIC_LINKEDIN_URL: 'https://www.linkedin.com/in/test',
@@ -20,7 +20,7 @@ export class ClientConfiguration {
   }
 
   static forTesting(overrides: ClientEnvironmentRawInput = {}): ClientEnvironment {
-    ClientConfiguration.cached = parseClientEnvironment({ ...TEST_DEFAULTS, ...overrides });
+    ClientConfiguration.cached = parseClientEnvironment({ ...CLIENT_TEST_DEFAULTS, ...overrides });
     return ClientConfiguration.cached;
   }
 
