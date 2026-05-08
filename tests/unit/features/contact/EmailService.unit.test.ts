@@ -53,5 +53,9 @@ describe('EmailService', () => {
 
       expect(service.getConfiguration().sendEmailEnabled).toBe(true);
     });
+
+    it('aborts with an error naming the invalid field when Configuration is invalid', () => {
+      expect(() => Configuration.forTesting({ FROM_EMAIL: 'not-an-email' })).toThrow(/FROM_EMAIL/);
+    });
   });
 });
