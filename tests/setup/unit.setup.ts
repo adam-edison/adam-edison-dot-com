@@ -1,3 +1,4 @@
+import './configurationForTesting';
 import { beforeEach, afterEach } from 'vitest';
 import { logger, InMemoryLogger } from '@/shared/Logger';
 

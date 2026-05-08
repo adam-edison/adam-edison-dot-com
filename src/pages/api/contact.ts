@@ -26,10 +26,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   setRateLimitHeaders(res, rateLimitResult.data.headers);
 
-  const processorResult = await ContactFormProcessor.fromEnv();
-  if (!processorResult.success) return ApiErrorHandler.handle(res, processorResult.error, requestContext);
+  const processor = ContactFormProcessor.fromEnv();
 
-  const formResult = await processorResult.data.processForm(req.body, { remoteIp: ip });
+  const formResult = await processor.processForm(req.body, { remoteIp: ip });
   if (!formResult.success) return ApiErrorHandler.handle(res, formResult.error, requestContext);
 
   res.status(200).json({ message: 'Message sent successfully' });

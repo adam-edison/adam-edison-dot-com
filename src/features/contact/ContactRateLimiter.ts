@@ -1,4 +1,5 @@
 import { RateLimiter, RateLimitData } from '@/features/rate-limiting/RateLimiter';
+import { Configuration } from '@/shared/config/Configuration';
 import { Result } from '@/shared/Result';
 import { RateLimitError, InternalServerError } from '@/shared/errors';
 
@@ -19,15 +20,17 @@ export class ContactRateLimiter {
   }
 
   static fromEnv(): ContactRateLimiter {
+    const config = Configuration.get();
+
     const globalRateLimiter = RateLimiter.fromEnv({
-      limit: parseInt(process.env.GLOBAL_RATE_LIMIT_REQUESTS!),
-      window: process.env.GLOBAL_RATE_LIMIT_WINDOW!,
+      limit: config.GLOBAL_RATE_LIMIT_REQUESTS,
+      window: config.GLOBAL_RATE_LIMIT_WINDOW,
       limitType: 'global'
     });
 
     const ipRateLimiter = RateLimiter.fromEnv({
-      limit: parseInt(process.env.RATE_LIMIT_REQUESTS!),
-      window: process.env.RATE_LIMIT_WINDOW!,
+      limit: config.RATE_LIMIT_REQUESTS,
+      window: config.RATE_LIMIT_WINDOW,
       limitType: 'ip'
     });
 

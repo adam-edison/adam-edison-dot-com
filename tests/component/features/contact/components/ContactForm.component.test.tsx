@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { ContactForm } from '@/features/contact/components/ContactForm';
 import { logger } from '@/shared/Logger';
+import { ClientConfiguration } from '@/shared/config/clientConfig';
 
 interface TurnstileMock {
   render: ReturnType<typeof vi.fn>;
@@ -58,9 +59,7 @@ describe('ContactForm', () => {
     vi.clearAllMocks();
     installTurnstileMock();
 
-    vi.stubEnv('NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'test-site-key');
-    vi.stubEnv('TURNSTILE_SECRET_KEY', 'test-secret-key');
-    vi.stubEnv('SEND_EMAIL_ENABLED', 'false');
+    ClientConfiguration.forTesting({ NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'test-site-key' });
 
     fetchMock = vi.fn().mockImplementation(async (url) => {
       if (typeof url === 'string' && url.includes('/api/email-service-check')) {
@@ -81,7 +80,8 @@ describe('ContactForm', () => {
   afterEach(() => {
     uninstallTurnstileMock();
     vi.unstubAllGlobals();
-    vi.unstubAllEnvs();
+    ClientConfiguration.reset();
+    ClientConfiguration.forTesting();
   });
 
   const fillOutForm = async (user: ReturnType<typeof userEvent.setup>) => {

@@ -1,7 +1,8 @@
 // @vitest-environment node
-import { describe, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect } from 'vitest';
 import assert from 'node:assert';
 import { TurnstileClient } from '@/features/contact/TurnstileClient';
+import { Configuration } from '@/shared/config/Configuration';
 
 /*
   Hits the real Cloudflare siteverify endpoint with documented testing keys to
@@ -18,17 +19,27 @@ const ALWAYS_PASS_SECRET = '1x0000000000000000000000000000000AA';
 const ALWAYS_FAIL_SECRET = '2x0000000000000000000000000000000AA';
 
 function buildClientWith(secret: string): TurnstileClient {
-  const env = {
-    NODE_ENV: 'test',
-    TURNSTILE_SECRET_KEY: secret
-  } as unknown as NodeJS.ProcessEnv;
-
-  const result = TurnstileClient.fromEnv(env);
-  assert(result.success, 'Expected TurnstileClient to construct successfully');
-  return result.data;
+  process.env.TURNSTILE_SECRET_KEY = secret;
+  Configuration.reset();
+  return TurnstileClient.fromEnv();
 }
 
 describe('TurnstileClient (integration against real Cloudflare)', () => {
+  let originalSecret: string | undefined;
+
+  beforeEach(() => {
+    originalSecret = process.env.TURNSTILE_SECRET_KEY;
+  });
+
+  afterEach(() => {
+    if (originalSecret === undefined) {
+      delete process.env.TURNSTILE_SECRET_KEY;
+    } else {
+      process.env.TURNSTILE_SECRET_KEY = originalSecret;
+    }
+    Configuration.reset();
+  });
+
   it('returns success when Cloudflare accepts the token (always-pass secret)', async () => {
     const client = buildClientWith(ALWAYS_PASS_SECRET);
     const result = await client.verifyToken('any-token-the-real-server-will-accept');

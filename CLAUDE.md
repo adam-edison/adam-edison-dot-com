@@ -53,6 +53,12 @@ npm run test:e2e
 # RESEND_API_KEY=your_key FROM_EMAIL=from@domain.com TO_EMAIL=to@domain.com npm run test:boundary
 ```
 
+## Environment Variables
+
+`src/shared/config/EnvironmentSchema.ts` is the single source of truth for every env var the app reads. Add new vars there first; the runtime `Configuration` singleton, the build-time `scripts/check-env.ts` check, and the test factory all read from the same schema. Misconfigured deploys fail at boot with one aggregated error listing every missing or malformed var.
+
+The sections below describe the role each var plays in the app; the schema enforces the actual format and bounds.
+
 ## Email Configuration
 
 The contact form uses **Resend** for email delivery instead of traditional SMTP:
@@ -62,6 +68,7 @@ The contact form uses **Resend** for email delivery instead of traditional SMTP:
 - **To Address**: Uses `TO_EMAIL` in environment variables
 - **Sender Name**: Uses `EMAIL_SENDER_NAME` in environment variables (displays in email headers)
 - **Recipient Name**: Uses `EMAIL_RECIPIENT_NAME` in environment variables (displays in email headers)
+- **Send Toggle**: `SEND_EMAIL_ENABLED` (optional, defaults to `false`; only the literal string `'true'` enables sending)
 - **Reply-To**: Automatically set to the form submitter's email
 - **Domain**: Requires domain verification in Resend dashboard for production use
 
@@ -70,9 +77,8 @@ The contact form uses **Resend** for email delivery instead of traditional SMTP:
 The contact form uses **Cloudflare Turnstile** for spam protection:
 
 - **Site Key**: Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in environment variables
-- **Secret Key**: Set `TURNSTILE_SECRET_KEY` in environment variables
-- **Verification**: Server-side verification fails closed on every error path (missing
-  secret returns 503; missing token, network errors, and rejected tokens return 400)
+- **Secret Key**: Set `TURNSTILE_SECRET_KEY` in environment variables (required at boot via the schema; missing values fail the build, not a runtime 503)
+- **Verification**: Server-side verification fails closed on every runtime error path (missing token, network errors, and rejected tokens all return 400)
 - **Domain registration**: Register `adamedison.com` (and any preview domains) in the
   Cloudflare Turnstile dashboard to obtain the site key + secret key
 
@@ -82,15 +88,15 @@ The contact form uses configurable rate limiting with two layers:
 
 **Per-IP Rate Limiting:**
 
-- **Requests**: Set `RATE_LIMIT_REQUESTS` in environment variables (default: 5)
-- **Window**: Set `RATE_LIMIT_WINDOW` in environment variables (default: '10 m')
+- **Requests**: Set `RATE_LIMIT_REQUESTS` in environment variables (positive integer, max 10,000)
+- **Window**: Set `RATE_LIMIT_WINDOW` in environment variables, formatted like `'10 s'`, `'30 m'`, `'1 h'`
 
 **Global Rate Limiting:**
 
-- **Requests**: Set `GLOBAL_RATE_LIMIT_REQUESTS` in environment variables (default: 10)
-- **Window**: Set `GLOBAL_RATE_LIMIT_WINDOW` in environment variables (default: '1 h')
+- **Requests**: Set `GLOBAL_RATE_LIMIT_REQUESTS` in environment variables (positive integer, max 100,000)
+- **Window**: Set `GLOBAL_RATE_LIMIT_WINDOW` in environment variables, formatted like `'10 s'`, `'30 m'`, `'1 h'`
 
-**Redis**: Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
+**Redis**: Requires `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, and `REDIS_PREFIX` (used to namespace dev/prod/test keys).
 
 ## Social Media Configuration
 

@@ -1,6 +1,7 @@
+import { Configuration } from '@/shared/config/Configuration';
 import { logger } from '@/shared/Logger';
 import { Result } from '@/shared/Result';
-import { ServiceUnavailableError, TurnstileError } from '@/shared/errors';
+import { TurnstileError } from '@/shared/errors';
 
 export const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const TURNSTILE_VERIFY_TIMEOUT_MS = 5000;
@@ -15,20 +16,9 @@ interface TurnstileVerifyResponse {
 export class TurnstileClient {
   private constructor(private readonly secretKey: string) {}
 
-  static fromEnv(env: NodeJS.ProcessEnv = process.env): Result<TurnstileClient, ServiceUnavailableError> {
-    const secretKey = env.TURNSTILE_SECRET_KEY;
-
-    if (!secretKey) {
-      const clientMessage = 'Captcha verification is not available. Please try again later.';
-      const internalMessage = 'TURNSTILE_SECRET_KEY is not configured';
-      const configError = new ServiceUnavailableError(clientMessage, {
-        internalMessage,
-        serviceName: 'Cloudflare Turnstile'
-      });
-      return Result.failure(configError);
-    }
-
-    return Result.success(new TurnstileClient(secretKey));
+  static fromEnv(): TurnstileClient {
+    const secretKey = Configuration.get().TURNSTILE_SECRET_KEY;
+    return new TurnstileClient(secretKey);
   }
 
   async verifyToken(token: string, remoteIp?: string): Promise<Result<void, TurnstileError>> {

@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import { Configuration } from '@/shared/config/Configuration';
+
 export class Logger {
   protected formatMessage(level: string, message: string): string {
     const timestamp = new Date().toISOString();
@@ -6,7 +8,7 @@ export class Logger {
   }
 
   static create(): Logger {
-    if (process.env.NODE_ENV === 'test') {
+    if (Configuration.get().NODE_ENV === 'test') {
       const inMemoryLogger = new InMemoryLogger();
       return inMemoryLogger;
     }
@@ -27,7 +29,7 @@ export class Logger {
   }
 
   debug(message: string, ...args: unknown[]): void {
-    if (process.env.NODE_ENV === 'development') {
+    if (Configuration.get().NODE_ENV === 'development') {
       console.debug(this.formatMessage('DEBUG', message), ...args);
     }
   }

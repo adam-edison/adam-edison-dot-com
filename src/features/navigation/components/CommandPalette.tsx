@@ -13,10 +13,12 @@ import { Dialog, DialogContent } from '@/shared/components/ui/dialog';
 import { Home, FileText, Mail, Github, Linkedin, Code } from 'lucide-react';
 import { SOCIAL_LINKS } from '@/features/navigation/social-links';
 import { useCommandPalette } from '@/features/navigation/CommandPaletteContext';
+import { ClientConfiguration } from '@/shared/config/clientConfig';
 
 export function CommandPalette() {
   const { open, setOpen } = useCommandPalette();
   const router = useRouter();
+  const repoUrl = ClientConfiguration.get().NEXT_PUBLIC_REPO_URL;
 
   const handleNavigate = (path: string) => {
     router.push(path);
@@ -63,7 +65,7 @@ export function CommandPalette() {
             </CommandGroup>
 
             <CommandGroup heading="Developer">
-              <CommandItem onSelect={() => handleExternalLink(process.env.NEXT_PUBLIC_REPO_URL!)}>
+              <CommandItem onSelect={() => handleExternalLink(repoUrl)}>
                 <Code className="mr-2 h-4 w-4" />
                 <span>View Source Code</span>
               </CommandItem>
