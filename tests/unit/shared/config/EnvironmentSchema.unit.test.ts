@@ -189,6 +189,59 @@ describe('EnvironmentSchema', () => {
 
     expect(paths).toEqual(['NODE_ENV']);
   });
+
+  it('treats every Sentry variable as optional', () => {
+    const parsed = EnvironmentSchema.parse(validRawEnv);
+
+    expect({
+      SENTRY_DSN: parsed.SENTRY_DSN,
+      SENTRY_AUTH_TOKEN: parsed.SENTRY_AUTH_TOKEN,
+      SENTRY_ORG: parsed.SENTRY_ORG,
+      SENTRY_PROJECT: parsed.SENTRY_PROJECT,
+      NEXT_PUBLIC_SENTRY_DSN: parsed.NEXT_PUBLIC_SENTRY_DSN
+    }).toEqual({
+      SENTRY_DSN: undefined,
+      SENTRY_AUTH_TOKEN: undefined,
+      SENTRY_ORG: undefined,
+      SENTRY_PROJECT: undefined,
+      NEXT_PUBLIC_SENTRY_DSN: undefined
+    });
+  });
+
+  it('accepts valid Sentry credentials when present', () => {
+    const parsed = EnvironmentSchema.parse({
+      ...validRawEnv,
+      SENTRY_DSN: 'https://abc@o123.ingest.sentry.io/456',
+      SENTRY_AUTH_TOKEN: 'sntrys_token',
+      SENTRY_ORG: 'acme',
+      SENTRY_PROJECT: 'adamedison-com',
+      NEXT_PUBLIC_SENTRY_DSN: 'https://abc@o123.ingest.sentry.io/456'
+    });
+
+    expect({
+      SENTRY_DSN: parsed.SENTRY_DSN,
+      SENTRY_AUTH_TOKEN: parsed.SENTRY_AUTH_TOKEN,
+      SENTRY_ORG: parsed.SENTRY_ORG,
+      SENTRY_PROJECT: parsed.SENTRY_PROJECT,
+      NEXT_PUBLIC_SENTRY_DSN: parsed.NEXT_PUBLIC_SENTRY_DSN
+    }).toEqual({
+      SENTRY_DSN: 'https://abc@o123.ingest.sentry.io/456',
+      SENTRY_AUTH_TOKEN: 'sntrys_token',
+      SENTRY_ORG: 'acme',
+      SENTRY_PROJECT: 'adamedison-com',
+      NEXT_PUBLIC_SENTRY_DSN: 'https://abc@o123.ingest.sentry.io/456'
+    });
+  });
+
+  it('rejects malformed Sentry DSN values', () => {
+    const serverPaths = failedPaths(EnvironmentSchema, { ...validRawEnv, SENTRY_DSN: 'not-a-url' });
+    const clientPaths = failedPaths(EnvironmentSchema, { ...validRawEnv, NEXT_PUBLIC_SENTRY_DSN: 'not-a-url' });
+
+    expect({ serverPaths, clientPaths }).toEqual({
+      serverPaths: ['SENTRY_DSN'],
+      clientPaths: ['NEXT_PUBLIC_SENTRY_DSN']
+    });
+  });
 });
 
 describe('ClientEnvironmentSchema', () => {

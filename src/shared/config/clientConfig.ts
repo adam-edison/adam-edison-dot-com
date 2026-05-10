@@ -2,11 +2,12 @@ import { ClientEnvironment, ClientEnvironmentSchema, formatZodIssues } from './E
 
 type ClientEnvironmentRawInput = Partial<Record<keyof ClientEnvironment, string | undefined>>;
 
-export const CLIENT_TEST_DEFAULTS: Record<keyof ClientEnvironment, string> = {
+export const CLIENT_TEST_DEFAULTS: Record<keyof ClientEnvironment, string | undefined> = {
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'test-turnstile-site',
   NEXT_PUBLIC_GITHUB_URL: 'https://github.com/test',
   NEXT_PUBLIC_LINKEDIN_URL: 'https://www.linkedin.com/in/test',
-  NEXT_PUBLIC_REPO_URL: 'https://github.com/test/test'
+  NEXT_PUBLIC_REPO_URL: 'https://github.com/test/test',
+  NEXT_PUBLIC_SENTRY_DSN: undefined
 };
 
 export class ClientConfiguration {
@@ -33,7 +34,8 @@ function readClientEnv(): Record<keyof ClientEnvironment, string | undefined> {
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
     NEXT_PUBLIC_GITHUB_URL: process.env.NEXT_PUBLIC_GITHUB_URL,
     NEXT_PUBLIC_LINKEDIN_URL: process.env.NEXT_PUBLIC_LINKEDIN_URL,
-    NEXT_PUBLIC_REPO_URL: process.env.NEXT_PUBLIC_REPO_URL
+    NEXT_PUBLIC_REPO_URL: process.env.NEXT_PUBLIC_REPO_URL,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN
   };
 }
 

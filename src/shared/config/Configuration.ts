@@ -3,7 +3,7 @@ import { CLIENT_TEST_DEFAULTS } from './clientConfig';
 
 type EnvironmentRawInput = Partial<Record<keyof Environment, string | undefined>>;
 
-const TEST_DEFAULTS: Record<keyof Environment, string> = {
+const TEST_DEFAULTS: Record<keyof Environment, string | undefined> = {
   NODE_ENV: 'test',
   RESEND_API_KEY: 'test-resend-key',
   FROM_EMAIL: 'from@example.test',
@@ -19,6 +19,10 @@ const TEST_DEFAULTS: Record<keyof Environment, string> = {
   RATE_LIMIT_WINDOW: '10 m',
   GLOBAL_RATE_LIMIT_REQUESTS: '10',
   GLOBAL_RATE_LIMIT_WINDOW: '1 h',
+  SENTRY_DSN: undefined,
+  SENTRY_AUTH_TOKEN: undefined,
+  SENTRY_ORG: undefined,
+  SENTRY_PROJECT: undefined,
   ...CLIENT_TEST_DEFAULTS
 };
 
