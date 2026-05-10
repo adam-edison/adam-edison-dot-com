@@ -1,6 +1,9 @@
 /* eslint-disable no-console */
-import { Configuration } from '@/shared/config/Configuration';
 
+// Read NODE_ENV directly rather than through Configuration: this module is reachable from
+// client components, and Configuration parses the full server+client schema, which crashes
+// in the browser where server-only env vars are absent. Next.js statically inlines
+// process.env.NODE_ENV in both bundles, so the direct read is safe on both sides.
 export class Logger {
   protected formatMessage(level: string, message: string): string {
     const timestamp = new Date().toISOString();
@@ -8,7 +11,7 @@ export class Logger {
   }
 
   static create(): Logger {
-    if (Configuration.get().NODE_ENV === 'test') {
+    if (process.env.NODE_ENV === 'test') {
       const inMemoryLogger = new InMemoryLogger();
       return inMemoryLogger;
     }
@@ -29,7 +32,7 @@ export class Logger {
   }
 
   debug(message: string, ...args: unknown[]): void {
-    if (Configuration.get().NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development') {
       console.debug(this.formatMessage('DEBUG', message), ...args);
     }
   }
