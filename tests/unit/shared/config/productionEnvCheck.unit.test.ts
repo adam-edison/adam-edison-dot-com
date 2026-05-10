@@ -43,7 +43,10 @@ describe('checkProductionRequirements', () => {
   });
 
   it('flags SENTRY_DSN when missing in production', () => {
-    const env = EnvironmentSchema.parse({ ...baseRawEnv, NEXT_PUBLIC_SENTRY_DSN: validSentryEnv.NEXT_PUBLIC_SENTRY_DSN });
+    const env = EnvironmentSchema.parse({
+      ...baseRawEnv,
+      NEXT_PUBLIC_SENTRY_DSN: validSentryEnv.NEXT_PUBLIC_SENTRY_DSN
+    });
 
     expect(checkProductionRequirements(env)).toEqual([
       'SENTRY_DSN: required in production for server-side error reporting'
