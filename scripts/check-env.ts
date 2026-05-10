@@ -11,19 +11,31 @@
 import { config } from 'dotenv';
 import { join } from 'path';
 import { EnvironmentSchema } from '../src/shared/config/EnvironmentSchema';
+import { checkProductionRequirements } from '../src/shared/config/productionEnvCheck';
 
 config({ path: join(process.cwd(), '.env.local'), quiet: true });
 
 const result = EnvironmentSchema.safeParse(process.env);
 
-if (result.success) {
-  console.log('✅ All environment variables validated against EnvironmentSchema');
-  process.exit(0);
+if (!result.success) {
+  console.error('❌ Build failed: environment validation errors');
+  for (const issue of result.error.issues) {
+    console.error(`   - ${issue.path.join('.')}: ${issue.message}`);
+  }
+  console.error('\nUpdate the corresponding env vars and re-run the build.');
+  process.exit(1);
 }
 
-console.error('❌ Build failed: environment validation errors');
-for (const issue of result.error.issues) {
-  console.error(`   - ${issue.path.join('.')}: ${issue.message}`);
+const productionIssues = checkProductionRequirements(result.data);
+
+if (productionIssues.length > 0) {
+  console.error('❌ Build failed: production environment requirements not met');
+  for (const issue of productionIssues) {
+    console.error(`   - ${issue}`);
+  }
+  console.error('\nProvide the required vars in Netlify (or .env.local for production builds) and retry.');
+  process.exit(1);
 }
-console.error('\nUpdate the corresponding env vars and re-run the build.');
-process.exit(1);
+
+console.log('✅ All environment variables validated against EnvironmentSchema');
+process.exit(0);
