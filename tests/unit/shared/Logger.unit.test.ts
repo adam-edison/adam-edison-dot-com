@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { sentryReporter } from '@/shared/observability/sentryReporter';
 import { logger, InMemoryLogger, Logger } from '@/shared/Logger';
 
 describe('Logger', () => {
@@ -62,5 +63,42 @@ describe('Logger', () => {
 
   it('should be the same instance everywhere', () => {
     expect(logger).toBe(testLogger);
+  });
+});
+
+describe('Logger Sentry forwarding', () => {
+  let testLogger: Logger;
+  let reportErrorSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    testLogger = logger;
+    testLogger.clear();
+    reportErrorSpy = vi.spyOn(sentryReporter, 'reportError').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    reportErrorSpy.mockRestore();
+  });
+
+  it('forwards error() calls to the Sentry reporter with the same message and args', () => {
+    const error = new Error('boom');
+
+    testLogger.error('API failed', error, { context: 'contact-form' });
+
+    expect(reportErrorSpy.mock.calls).toEqual([['API failed', [error, { context: 'contact-form' }]]]);
+  });
+
+  it('forwards error() calls with no Error in args (string-only)', () => {
+    testLogger.error('plain error log', 'extra string arg');
+
+    expect(reportErrorSpy.mock.calls).toEqual([['plain error log', ['extra string arg']]]);
+  });
+
+  it('does not forward non-error levels', () => {
+    testLogger.warn('only a warning');
+    testLogger.info('just info');
+    testLogger.debug('debug only');
+
+    expect(reportErrorSpy.mock.calls).toEqual([]);
   });
 });
