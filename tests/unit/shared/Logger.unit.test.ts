@@ -1,6 +1,20 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest';
 import { SentryReporter } from '@/shared/observability/SentryReporter';
 import { logger, InMemoryLogger, Logger } from '@/shared/Logger';
+
+let reportErrorSpy: ReturnType<typeof vi.spyOn>;
+
+beforeAll(() => {
+  reportErrorSpy = vi.spyOn(SentryReporter, 'reportError').mockImplementation(() => undefined);
+});
+
+afterAll(() => {
+  reportErrorSpy.mockRestore();
+});
+
+beforeEach(() => {
+  reportErrorSpy.mockClear();
+});
 
 describe('Logger', () => {
   let testLogger: Logger;
@@ -68,16 +82,10 @@ describe('Logger', () => {
 
 describe('Logger Sentry forwarding', () => {
   let testLogger: Logger;
-  let reportErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     testLogger = logger;
     testLogger.clear();
-    reportErrorSpy = vi.spyOn(SentryReporter, 'reportError').mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    reportErrorSpy.mockRestore();
   });
 
   it('forwards error() calls to the Sentry reporter with the same message and args', () => {
