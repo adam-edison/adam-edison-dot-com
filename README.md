@@ -60,6 +60,7 @@ External services used:
 - [Resend](https://resend.com) for email delivery
 - [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/) for spam protection
 - [Upstash](https://upstash.com) for Redis-based rate limiting
+- [Sentry](https://sentry.io) for server- and client-side error tracking (optional in dev, required in production)
 
 ## Testing
 
