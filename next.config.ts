@@ -82,5 +82,5 @@ export default withSentryConfig(nextConfig, {
   silent: !process.env.CI,
   tunnelRoute: '/monitoring',
   sourcemaps: { disable: !sourceMapUploadConfigured },
-  disableLogger: true
+  bundleSizeOptimizations: { excludeDebugStatements: true }
 });
