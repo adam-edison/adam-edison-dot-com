@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { sentryReporter } from '@/shared/observability/sentryReporter';
+import { SentryReporter } from '@/shared/observability/SentryReporter';
 import { logger, InMemoryLogger, Logger } from '@/shared/Logger';
 
 describe('Logger', () => {
@@ -73,7 +73,7 @@ describe('Logger Sentry forwarding', () => {
   beforeEach(() => {
     testLogger = logger;
     testLogger.clear();
-    reportErrorSpy = vi.spyOn(sentryReporter, 'reportError').mockImplementation(() => undefined);
+    reportErrorSpy = vi.spyOn(SentryReporter, 'reportError').mockImplementation(() => undefined);
   });
 
   afterEach(() => {

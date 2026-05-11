@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ContactFormErrorBoundary } from '@/features/contact/components/ContactFormErrorBoundary';
-import { sentryReporter } from '@/shared/observability/sentryReporter';
+import { SentryReporter } from '@/shared/observability/SentryReporter';
 
 function ExplodingChild({ error }: { error: Error }): never {
   throw error;
@@ -13,7 +13,7 @@ describe('ContactFormErrorBoundary', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    reportErrorSpy = vi.spyOn(sentryReporter, 'reportError').mockImplementation(() => undefined);
+    reportErrorSpy = vi.spyOn(SentryReporter, 'reportError').mockImplementation(() => undefined);
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 

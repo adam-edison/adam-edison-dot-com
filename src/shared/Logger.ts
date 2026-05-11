@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { sentryReporter } from './observability/sentryReporter';
+import { SentryReporter } from './observability/SentryReporter';
 
 // Read NODE_ENV directly rather than through Configuration: this module is reachable from
 // client components, and Configuration parses the full server+client schema, which crashes
@@ -22,7 +22,7 @@ export class Logger {
 
   error(message: string, ...args: unknown[]): void {
     console.error(this.formatMessage('ERROR', message), ...args);
-    sentryReporter.reportError(message, args);
+    SentryReporter.reportError(message, args);
   }
 
   warn(message: string, ...args: unknown[]): void {
@@ -63,7 +63,7 @@ export class InMemoryLogger extends Logger {
 
   error(message: string, ...args: unknown[]): void {
     this.appendToOutput('ERROR', message, ...args);
-    sentryReporter.reportError(message, args);
+    SentryReporter.reportError(message, args);
   }
 
   warn(message: string, ...args: unknown[]): void {
