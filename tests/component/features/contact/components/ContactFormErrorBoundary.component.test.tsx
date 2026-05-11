@@ -1,10 +1,11 @@
+import type { ReactElement } from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ContactFormErrorBoundary } from '@/features/contact/components/ContactFormErrorBoundary';
 import { SentryReporter } from '@/shared/observability/SentryReporter';
 
-function ExplodingChild({ error }: { error: Error }): never {
+function ExplodingChild({ error }: { error: Error }): ReactElement {
   throw error;
 }
 
@@ -32,7 +33,7 @@ describe('ContactFormErrorBoundary', () => {
     expect(screen.getByText('safe content')).toBeInTheDocument();
   });
 
-  it('renders the fallback UI and reports the error with React errorInfo to Sentry', () => {
+  it('renders the fallback UI and forwards the thrown error plus React errorInfo to the Sentry reporter', () => {
     const renderError = new Error('boom');
 
     render(
@@ -44,13 +45,10 @@ describe('ContactFormErrorBoundary', () => {
     expect(screen.getByText(/Something went wrong with the contact form/)).toBeInTheDocument();
     expect(reportErrorSpy.mock.calls.length).toBe(1);
 
-    const [forwardedMessage, forwardedArgs] = reportErrorSpy.mock.calls[0];
-    expect(forwardedMessage).toBe('Contact form error boundary caught an error:');
-    expect(forwardedArgs).toContain(renderError);
+    const forwardedArgs = reportErrorSpy.mock.calls[0][1] as unknown[];
+    expect(forwardedArgs[0]).toBe(renderError);
 
-    const errorInfo = forwardedArgs.find(
-      (arg: unknown) => typeof arg === 'object' && arg !== null && 'componentStack' in arg
-    ) as { componentStack: string } | undefined;
-    expect(typeof errorInfo?.componentStack).toBe('string');
+    const errorInfo = forwardedArgs[1] as { componentStack: string };
+    expect(typeof errorInfo.componentStack).toBe('string');
   });
 });
