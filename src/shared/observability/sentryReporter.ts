@@ -22,7 +22,9 @@ function findReactErrorInfo(args: unknown[]): { componentStack: string } | undef
   return undefined;
 }
 
-function buildCaptureContext(errorInfo: { componentStack: string } | undefined): Parameters<typeof Sentry.captureException>[1] {
+function buildCaptureContext(
+  errorInfo: { componentStack: string } | undefined
+): Parameters<typeof Sentry.captureException>[1] {
   if (!errorInfo) return undefined;
   return { contexts: { react: errorInfo } };
 }
