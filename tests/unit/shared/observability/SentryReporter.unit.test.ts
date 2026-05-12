@@ -10,7 +10,12 @@ async function loadModulesWithMockedSentry() {
   vi.resetModules();
   vi.doMock('@sentry/nextjs', () => ({
     captureException: vi.fn(),
-    captureMessage: vi.fn()
+    logger: {
+      error: vi.fn(),
+      warn: vi.fn(),
+      info: vi.fn(),
+      debug: vi.fn()
+    }
   }));
 
   Sentry = await import('@sentry/nextjs');
@@ -29,7 +34,7 @@ describe('SentryReporter.report', () => {
     SentryReporter.report('error', 'whatever', [error, errorInfo]);
 
     expect(vi.mocked(Sentry.captureException).mock.calls).toEqual([[error, { contexts: { react: errorInfo } }]]);
-    expect(vi.mocked(Sentry.captureMessage).mock.calls).toEqual([]);
+    expect(vi.mocked(Sentry.logger.error).mock.calls).toEqual([]);
   });
 
   it('forwards an Error without errorInfo to captureException with no context', () => {
@@ -38,26 +43,26 @@ describe('SentryReporter.report', () => {
     SentryReporter.report('error', 'whatever', [error, { unrelated: 'metadata' }]);
 
     expect(vi.mocked(Sentry.captureException).mock.calls).toEqual([[error, undefined]]);
-    expect(vi.mocked(Sentry.captureMessage).mock.calls).toEqual([]);
+    expect(vi.mocked(Sentry.logger.error).mock.calls).toEqual([]);
   });
 
-  it('falls back to captureMessage with the supplied level when no Error is present in args', () => {
+  it('routes error-level messages without an Error to Sentry.logger.error', () => {
     SentryReporter.report('error', 'something went wrong', ['extra string']);
 
-    expect(vi.mocked(Sentry.captureMessage).mock.calls).toEqual([['something went wrong', 'error']]);
+    expect(vi.mocked(Sentry.logger.error).mock.calls).toEqual([['something went wrong', { arg_0: 'extra string' }]]);
     expect(vi.mocked(Sentry.captureException).mock.calls).toEqual([]);
   });
 
-  it('propagates non-error levels through captureMessage', () => {
-    SentryReporter.report('warning', 'rate limit close', []);
-    SentryReporter.report('info', 'email sent', []);
-    SentryReporter.report('debug', 'config loaded', []);
+  it('routes warning, info, and debug levels through Sentry.logger.*', () => {
+    SentryReporter.report('warning', 'rate limit close', [{ remaining: 1 }]);
+    SentryReporter.report('info', 'email sent', [{ recipient: 'user@example.com' }]);
+    SentryReporter.report('debug', 'config loaded', [{ keys: 5 }]);
 
-    expect(vi.mocked(Sentry.captureMessage).mock.calls).toEqual([
-      ['rate limit close', 'warning'],
-      ['email sent', 'info'],
-      ['config loaded', 'debug']
+    expect(vi.mocked(Sentry.logger.warn).mock.calls).toEqual([['rate limit close', { arg_0: { remaining: 1 } }]]);
+    expect(vi.mocked(Sentry.logger.info).mock.calls).toEqual([
+      ['email sent', { arg_0: { recipient: 'user@example.com' } }]
     ]);
+    expect(vi.mocked(Sentry.logger.debug).mock.calls).toEqual([['config loaded', { arg_0: { keys: 5 } }]]);
     expect(vi.mocked(Sentry.captureException).mock.calls).toEqual([]);
   });
 
@@ -68,5 +73,49 @@ describe('SentryReporter.report', () => {
     SentryReporter.report('error', 'whatever', [error, badErrorInfo]);
 
     expect(vi.mocked(Sentry.captureException).mock.calls).toEqual([[error, undefined]]);
+  });
+});
+
+describe('SentryReporter.captureException', () => {
+  beforeEach(async () => {
+    await loadModulesWithMockedSentry();
+  });
+
+  it('forwards a bare error with no extra context', () => {
+    const error = new Error('boom');
+
+    SentryReporter.captureException(error);
+
+    expect(vi.mocked(Sentry.captureException).mock.calls).toEqual([[error, undefined]]);
+  });
+
+  it('attaches React errorInfo under contexts.react when provided', () => {
+    const error = new Error('boom');
+    const errorInfo = { componentStack: 'stack-trace-here' };
+
+    SentryReporter.captureException(error, { errorInfo });
+
+    expect(vi.mocked(Sentry.captureException).mock.calls).toEqual([[error, { contexts: { react: errorInfo } }]]);
+  });
+
+  it('attaches the boundary source label under contexts.boundary when provided', () => {
+    const error = new Error('boom');
+
+    SentryReporter.captureException(error, { source: 'unhandled application error' });
+
+    expect(vi.mocked(Sentry.captureException).mock.calls).toEqual([
+      [error, { contexts: { boundary: { source: 'unhandled application error' } } }]
+    ]);
+  });
+
+  it('attaches both errorInfo and source when both are provided', () => {
+    const error = new Error('boom');
+    const errorInfo = { componentStack: 'stack-trace-here' };
+
+    SentryReporter.captureException(error, { errorInfo, source: 'contact form error boundary' });
+
+    expect(vi.mocked(Sentry.captureException).mock.calls).toEqual([
+      [error, { contexts: { react: errorInfo, boundary: { source: 'contact form error boundary' } } }]
+    ]);
   });
 });

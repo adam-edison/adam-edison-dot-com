@@ -18,7 +18,8 @@ export async function register() {
     dsn: process.env.SENTRY_DSN,
     environment: resolveSentryEnvironment(),
     tracesSampleRate: 1.0,
-    sendDefaultPii: false
+    sendDefaultPii: false,
+    enableLogs: true
   });
 }
 

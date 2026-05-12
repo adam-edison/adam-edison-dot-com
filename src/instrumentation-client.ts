@@ -7,7 +7,8 @@ if (dsn) {
     dsn,
     environment: process.env.NODE_ENV,
     tracesSampleRate: 1.0,
-    sendDefaultPii: false
+    sendDefaultPii: false,
+    enableLogs: true
   });
 }
 
