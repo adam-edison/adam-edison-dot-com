@@ -1,9 +1,14 @@
 import type { NextConfig } from 'next';
 import { withSentryConfig } from '@sentry/nextjs';
+import { ServerOnlyEnvironmentSchema } from './src/shared/config/EnvironmentSchema';
 
-const sourceMapUploadConfigured = Boolean(
-  process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT
-);
+const sentryBuildConfigSchema = ServerOnlyEnvironmentSchema.pick({
+  SENTRY_AUTH_TOKEN: true,
+  SENTRY_ORG: true,
+  SENTRY_PROJECT: true
+}).required();
+
+const sourceMapUploadConfigured = sentryBuildConfigSchema.safeParse(process.env).success;
 
 const nextConfig: NextConfig = {
   /* config options here */
