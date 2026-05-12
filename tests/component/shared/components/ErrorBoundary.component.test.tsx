@@ -2,14 +2,14 @@ import type { ReactElement } from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { ContactFormErrorBoundary } from '@/features/contact/components/ContactFormErrorBoundary';
+import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { SentryReporter } from '@/shared/observability/SentryReporter';
 
 function ExplodingChild({ error }: { error: Error }): ReactElement {
   throw error;
 }
 
-describe('ContactFormErrorBoundary', () => {
+describe('ErrorBoundary', () => {
   let captureSpy: ReturnType<typeof vi.spyOn>;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
@@ -25,9 +25,9 @@ describe('ContactFormErrorBoundary', () => {
 
   it('renders children when no error is thrown', () => {
     render(
-      <ContactFormErrorBoundary>
+      <ErrorBoundary>
         <div>safe content</div>
-      </ContactFormErrorBoundary>
+      </ErrorBoundary>
     );
 
     expect(screen.getByText('safe content')).toBeInTheDocument();
@@ -37,12 +37,12 @@ describe('ContactFormErrorBoundary', () => {
     const renderError = new Error('boom');
 
     render(
-      <ContactFormErrorBoundary>
+      <ErrorBoundary>
         <ExplodingChild error={renderError} />
-      </ContactFormErrorBoundary>
+      </ErrorBoundary>
     );
 
-    expect(screen.getByText(/Something went wrong with the contact form/)).toBeInTheDocument();
+    expect(screen.getByText(/Application Error/)).toBeInTheDocument();
     expect(captureSpy.mock.calls.length).toBe(1);
 
     const [forwardedError, forwardedContext] = captureSpy.mock.calls[0] as [
@@ -50,7 +50,7 @@ describe('ContactFormErrorBoundary', () => {
       { errorInfo?: { componentStack: string }; source?: string }
     ];
     expect(forwardedError).toBe(renderError);
-    expect(forwardedContext.source).toBe('contact form error boundary');
+    expect(forwardedContext.source).toBe('unhandled application error');
     expect(typeof forwardedContext.errorInfo?.componentStack).toBe('string');
   });
 });

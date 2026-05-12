@@ -1,14 +1,14 @@
-import React from 'react';
-import { StatusCard } from '@/shared/components/ui/StatusCard';
-import { logger } from '@/shared/Logger';
+import React, { ReactNode } from 'react';
+import { ContactFormErrorFallback } from './ContactFormErrorFallback';
+import { SentryReporter } from '@/shared/observability/SentryReporter';
 
 interface ContactFormErrorBoundaryState {
   hasError: boolean;
-  error?: Error;
+  error: Error | null;
 }
 
 interface ContactFormErrorBoundaryProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export class ContactFormErrorBoundary extends React.Component<
@@ -17,7 +17,7 @@ export class ContactFormErrorBoundary extends React.Component<
 > {
   constructor(props: ContactFormErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): ContactFormErrorBoundaryState {
@@ -25,27 +25,12 @@ export class ContactFormErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    logger.error('Contact form error boundary caught an error:', error, errorInfo);
+    SentryReporter.captureException(error, { errorInfo, source: 'contact form error boundary' });
   }
 
   render() {
     if (this.state.hasError) {
-      return (
-        <div className="max-w-2xl mx-auto p-8">
-          <StatusCard
-            variant="error"
-            message="Something went wrong with the contact form. Please refresh the page and try again."
-            showIcon
-            className="mb-4"
-          />
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-          >
-            Refresh Page
-          </button>
-        </div>
-      );
+      return <ContactFormErrorFallback onRefresh={() => window.location.reload()} />;
     }
 
     return this.props.children;
