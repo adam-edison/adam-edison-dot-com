@@ -2,18 +2,18 @@ import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vites
 import { SentryReporter } from '@/shared/observability/SentryReporter';
 import { logger, InMemoryLogger, Logger } from '@/shared/Logger';
 
-let reportErrorSpy: ReturnType<typeof vi.spyOn>;
+let reportSpy: ReturnType<typeof vi.spyOn>;
 
 beforeAll(() => {
-  reportErrorSpy = vi.spyOn(SentryReporter, 'reportError').mockImplementation(() => undefined);
+  reportSpy = vi.spyOn(SentryReporter, 'report').mockImplementation(() => undefined);
 });
 
 afterAll(() => {
-  reportErrorSpy.mockRestore();
+  reportSpy.mockRestore();
 });
 
 beforeEach(() => {
-  reportErrorSpy.mockClear();
+  reportSpy.mockClear();
 });
 
 describe('Logger', () => {
@@ -88,25 +88,35 @@ describe('Logger Sentry forwarding', () => {
     testLogger.clear();
   });
 
-  it('forwards error() calls to the Sentry reporter with the same message and args', () => {
+  it('forwards error() calls to the Sentry reporter with the error level and the same args', () => {
     const error = new Error('boom');
 
     testLogger.error('API failed', error, { context: 'contact-form' });
 
-    expect(reportErrorSpy.mock.calls).toEqual([['API failed', [error, { context: 'contact-form' }]]]);
+    expect(reportSpy.mock.calls).toEqual([['error', 'API failed', [error, { context: 'contact-form' }]]]);
   });
 
   it('forwards error() calls with no Error in args (string-only)', () => {
     testLogger.error('plain error log', 'extra string arg');
 
-    expect(reportErrorSpy.mock.calls).toEqual([['plain error log', ['extra string arg']]]);
+    expect(reportSpy.mock.calls).toEqual([['error', 'plain error log', ['extra string arg']]]);
   });
 
-  it('does not forward non-error levels', () => {
-    testLogger.warn('only a warning');
-    testLogger.info('just info');
-    testLogger.debug('debug only');
+  it('forwards warn() calls to the Sentry reporter with the warning level', () => {
+    testLogger.warn('rate limit close', { remaining: 1 });
 
-    expect(reportErrorSpy.mock.calls).toEqual([]);
+    expect(reportSpy.mock.calls).toEqual([['warning', 'rate limit close', [{ remaining: 1 }]]]);
+  });
+
+  it('forwards info() calls to the Sentry reporter with the info level', () => {
+    testLogger.info('email sent', { recipient: 'user@example.com' });
+
+    expect(reportSpy.mock.calls).toEqual([['info', 'email sent', [{ recipient: 'user@example.com' }]]]);
+  });
+
+  it('forwards debug() calls to the Sentry reporter with the debug level', () => {
+    testLogger.debug('config loaded', { keys: 5 });
+
+    expect(reportSpy.mock.calls).toEqual([['debug', 'config loaded', [{ keys: 5 }]]]);
   });
 });

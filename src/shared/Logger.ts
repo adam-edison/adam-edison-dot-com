@@ -22,21 +22,24 @@ export class Logger {
 
   error(message: string, ...args: unknown[]): void {
     console.error(this.formatMessage('ERROR', message), ...args);
-    SentryReporter.reportError(message, args);
+    SentryReporter.report('error', message, args);
   }
 
   warn(message: string, ...args: unknown[]): void {
     console.warn(this.formatMessage('WARN', message), ...args);
+    SentryReporter.report('warning', message, args);
   }
 
   info(message: string, ...args: unknown[]): void {
     console.info(this.formatMessage('INFO', message), ...args);
+    SentryReporter.report('info', message, args);
   }
 
   debug(message: string, ...args: unknown[]): void {
     if (process.env.NODE_ENV === 'development') {
       console.debug(this.formatMessage('DEBUG', message), ...args);
     }
+    SentryReporter.report('debug', message, args);
   }
 
   clear(): void {
@@ -63,19 +66,22 @@ export class InMemoryLogger extends Logger {
 
   error(message: string, ...args: unknown[]): void {
     this.appendToOutput('ERROR', message, ...args);
-    SentryReporter.reportError(message, args);
+    SentryReporter.report('error', message, args);
   }
 
   warn(message: string, ...args: unknown[]): void {
     this.appendToOutput('WARN', message, ...args);
+    SentryReporter.report('warning', message, args);
   }
 
   info(message: string, ...args: unknown[]): void {
     this.appendToOutput('INFO', message, ...args);
+    SentryReporter.report('info', message, args);
   }
 
   debug(message: string, ...args: unknown[]): void {
     this.appendToOutput('DEBUG', message, ...args);
+    SentryReporter.report('debug', message, args);
   }
 
   clear(): void {

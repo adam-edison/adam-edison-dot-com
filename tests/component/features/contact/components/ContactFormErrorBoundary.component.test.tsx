@@ -10,16 +10,16 @@ function ExplodingChild({ error }: { error: Error }): ReactElement {
 }
 
 describe('ContactFormErrorBoundary', () => {
-  let reportErrorSpy: ReturnType<typeof vi.spyOn>;
+  let reportSpy: ReturnType<typeof vi.spyOn>;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    reportErrorSpy = vi.spyOn(SentryReporter, 'reportError').mockImplementation(() => undefined);
+    reportSpy = vi.spyOn(SentryReporter, 'report').mockImplementation(() => undefined);
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
-    reportErrorSpy.mockRestore();
+    reportSpy.mockRestore();
     consoleErrorSpy.mockRestore();
   });
 
@@ -43,9 +43,10 @@ describe('ContactFormErrorBoundary', () => {
     );
 
     expect(screen.getByText(/Something went wrong with the contact form/)).toBeInTheDocument();
-    expect(reportErrorSpy.mock.calls.length).toBe(1);
+    expect(reportSpy.mock.calls.length).toBe(1);
 
-    const forwardedArgs = reportErrorSpy.mock.calls[0][1] as unknown[];
+    const [level, , forwardedArgs] = reportSpy.mock.calls[0] as [string, string, unknown[]];
+    expect(level).toBe('error');
     expect(forwardedArgs[0]).toBe(renderError);
 
     const errorInfo = forwardedArgs[1] as { componentStack: string };

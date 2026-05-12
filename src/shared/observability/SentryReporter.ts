@@ -1,5 +1,7 @@
 import * as Sentry from '@sentry/nextjs';
 
+export type SentryLevel = 'error' | 'warning' | 'info' | 'debug';
+
 function findFirstError(loggerArgs: unknown[]): Error | undefined {
   return loggerArgs.find((arg): arg is Error => arg instanceof Error);
 }
@@ -23,12 +25,12 @@ function buildCaptureContext(
 }
 
 export class SentryReporter {
-  static reportError(message: string, loggerArgs: unknown[]): void {
+  static report(level: SentryLevel, message: string, loggerArgs: unknown[]): void {
     const errorArg = findFirstError(loggerArgs);
     if (errorArg) {
       Sentry.captureException(errorArg, buildCaptureContext(findReactErrorInfo(loggerArgs)));
       return;
     }
-    Sentry.captureMessage(message, 'error');
+    Sentry.captureMessage(message, level);
   }
 }
