@@ -242,6 +242,53 @@ describe('EnvironmentSchema', () => {
       clientPaths: ['NEXT_PUBLIC_SENTRY_DSN']
     });
   });
+
+  describe('production requirements', () => {
+    const productionDsn = 'https://abc@o123.ingest.sentry.io/456';
+
+    it('allows missing Sentry DSNs outside production', () => {
+      const result = EnvironmentSchema.safeParse({ ...validRawEnv, NODE_ENV: 'development' });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('passes when production has both Sentry DSNs configured', () => {
+      const result = EnvironmentSchema.safeParse({
+        ...validRawEnv,
+        NODE_ENV: 'production',
+        SENTRY_DSN: productionDsn,
+        NEXT_PUBLIC_SENTRY_DSN: productionDsn
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('flags missing SENTRY_DSN in production', () => {
+      const paths = failedPaths(EnvironmentSchema, {
+        ...validRawEnv,
+        NODE_ENV: 'production',
+        NEXT_PUBLIC_SENTRY_DSN: productionDsn
+      });
+
+      expect(paths).toEqual(['SENTRY_DSN']);
+    });
+
+    it('flags missing NEXT_PUBLIC_SENTRY_DSN in production', () => {
+      const paths = failedPaths(EnvironmentSchema, {
+        ...validRawEnv,
+        NODE_ENV: 'production',
+        SENTRY_DSN: productionDsn
+      });
+
+      expect(paths).toEqual(['NEXT_PUBLIC_SENTRY_DSN']);
+    });
+
+    it('aggregates every missing Sentry DSN in production', () => {
+      const paths = failedPaths(EnvironmentSchema, { ...validRawEnv, NODE_ENV: 'production' });
+
+      expect(paths).toEqual(['NEXT_PUBLIC_SENTRY_DSN', 'SENTRY_DSN']);
+    });
+  });
 });
 
 describe('ClientEnvironmentSchema', () => {

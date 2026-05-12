@@ -46,7 +46,26 @@ export const ClientEnvironmentSchema = z.object({
   NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional()
 });
 
-export const EnvironmentSchema = ServerOnlyEnvironmentSchema.merge(ClientEnvironmentSchema);
+const MergedEnvironmentSchema = ServerOnlyEnvironmentSchema.merge(ClientEnvironmentSchema);
+type MergedEnvironment = z.infer<typeof MergedEnvironmentSchema>;
+
+function flagMissingProductionVar(ctx: z.RefinementCtx, name: keyof MergedEnvironment, message: string): void {
+  ctx.addIssue({ code: z.ZodIssueCode.custom, path: [name], message });
+}
+
+function validateProductionRequirements(env: MergedEnvironment, ctx: z.RefinementCtx): void {
+  if (env.NODE_ENV !== 'production') return;
+
+  if (!env.SENTRY_DSN) {
+    flagMissingProductionVar(ctx, 'SENTRY_DSN', 'required in production for server-side error reporting');
+  }
+
+  if (!env.NEXT_PUBLIC_SENTRY_DSN) {
+    flagMissingProductionVar(ctx, 'NEXT_PUBLIC_SENTRY_DSN', 'required in production for client-side error reporting');
+  }
+}
+
+export const EnvironmentSchema = MergedEnvironmentSchema.superRefine(validateProductionRequirements);
 
 export type ServerOnlyEnvironment = z.infer<typeof ServerOnlyEnvironmentSchema>;
 export type ClientEnvironment = z.infer<typeof ClientEnvironmentSchema>;

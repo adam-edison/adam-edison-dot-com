@@ -11,7 +11,6 @@
 import { config } from 'dotenv';
 import { join } from 'path';
 import { EnvironmentSchema } from '../src/shared/config/EnvironmentSchema';
-import { checkProductionRequirements } from '../src/shared/config/productionEnvCheck';
 
 config({ path: join(process.cwd(), '.env.local'), quiet: true });
 
@@ -23,17 +22,6 @@ if (!result.success) {
     console.error(`   - ${issue.path.join('.')}: ${issue.message}`);
   }
   console.error('\nUpdate the corresponding env vars and re-run the build.');
-  process.exit(1);
-}
-
-const productionIssues = checkProductionRequirements(result.data);
-
-if (productionIssues.length > 0) {
-  console.error('❌ Build failed: production environment requirements not met');
-  for (const issue of productionIssues) {
-    console.error(`   - ${issue}`);
-  }
-  console.error('\nProvide the required vars in Netlify (or .env.local for production builds) and retry.');
   process.exit(1);
 }
 

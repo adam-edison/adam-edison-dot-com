@@ -108,9 +108,9 @@ Social media links are configurable through environment variables:
 
 ## Observability
 
-Sentry error tracking env vars are validated by `src/shared/config/EnvironmentSchema.ts` and gated for production by `scripts/check-env.ts`:
+Sentry error tracking env vars are validated by `src/shared/config/EnvironmentSchema.ts`. The schema's production refinement requires `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` when `NODE_ENV === 'production'`, so any production build (or production-mode boot) fails fast when either is missing:
 
-- **`SENTRY_DSN`** — server-side ingest URL. Optional in dev/test; **required in production** (build fails when missing).
+- **`SENTRY_DSN`** — server-side ingest URL. Optional in dev/test; **required in production** (build/boot fails when missing).
 - **`NEXT_PUBLIC_SENTRY_DSN`** — client bundle ingest URL. Optional in dev/test; **required in production**. Typically the same value as `SENTRY_DSN`.
 - **`SENTRY_AUTH_TOKEN`**, **`SENTRY_ORG`**, **`SENTRY_PROJECT`** — build-time only, consumed by the Sentry CLI to upload source maps. Optional everywhere; absent values disable source-map upload but do not fail the build.
 
