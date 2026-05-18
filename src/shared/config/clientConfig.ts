@@ -2,12 +2,12 @@ import { ClientEnvironment, ClientEnvironmentSchema, formatZodIssues } from './E
 
 type ClientEnvironmentRawInput = Partial<Record<keyof ClientEnvironment, string | undefined>>;
 
-export const CLIENT_TEST_DEFAULTS: Record<keyof ClientEnvironment, string | undefined> = {
+export const CLIENT_TEST_DEFAULTS: Record<keyof ClientEnvironment, string> = {
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'test-turnstile-site',
   NEXT_PUBLIC_GITHUB_URL: 'https://github.com/test',
   NEXT_PUBLIC_LINKEDIN_URL: 'https://www.linkedin.com/in/test',
   NEXT_PUBLIC_REPO_URL: 'https://github.com/test/test',
-  NEXT_PUBLIC_SENTRY_DSN: undefined
+  NEXT_PUBLIC_SENTRY_DSN: 'https://abc@o0.ingest.sentry.io/0'
 };
 
 export class ClientConfiguration {

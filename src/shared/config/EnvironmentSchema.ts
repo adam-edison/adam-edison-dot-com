@@ -32,10 +32,10 @@ export const ServerOnlyEnvironmentSchema = z.object({
   GLOBAL_RATE_LIMIT_REQUESTS: positiveIntFromString(1, 100_000),
   GLOBAL_RATE_LIMIT_WINDOW: rateLimitWindow,
 
-  SENTRY_DSN: z.string().url().optional(),
-  SENTRY_AUTH_TOKEN: z.string().min(1).optional(),
-  SENTRY_ORG: z.string().min(1).optional(),
-  SENTRY_PROJECT: z.string().min(1).optional()
+  SENTRY_DSN: z.string().url(),
+  SENTRY_AUTH_TOKEN: z.string().min(1),
+  SENTRY_ORG: z.string().min(1),
+  SENTRY_PROJECT: z.string().min(1)
 });
 
 export const ClientEnvironmentSchema = z.object({
@@ -43,29 +43,10 @@ export const ClientEnvironmentSchema = z.object({
   NEXT_PUBLIC_GITHUB_URL: z.string().url(),
   NEXT_PUBLIC_LINKEDIN_URL: z.string().url(),
   NEXT_PUBLIC_REPO_URL: z.string().url(),
-  NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional()
+  NEXT_PUBLIC_SENTRY_DSN: z.string().url()
 });
 
-const MergedEnvironmentSchema = ServerOnlyEnvironmentSchema.merge(ClientEnvironmentSchema);
-type MergedEnvironment = z.infer<typeof MergedEnvironmentSchema>;
-
-function flagMissingProductionVar(ctx: z.RefinementCtx, name: keyof MergedEnvironment, message: string): void {
-  ctx.addIssue({ code: z.ZodIssueCode.custom, path: [name], message });
-}
-
-function validateProductionRequirements(env: MergedEnvironment, ctx: z.RefinementCtx): void {
-  if (env.NODE_ENV !== 'production') return;
-
-  if (!env.SENTRY_DSN) {
-    flagMissingProductionVar(ctx, 'SENTRY_DSN', 'required in production for server-side error reporting');
-  }
-
-  if (!env.NEXT_PUBLIC_SENTRY_DSN) {
-    flagMissingProductionVar(ctx, 'NEXT_PUBLIC_SENTRY_DSN', 'required in production for client-side error reporting');
-  }
-}
-
-export const EnvironmentSchema = MergedEnvironmentSchema.superRefine(validateProductionRequirements);
+export const EnvironmentSchema = ServerOnlyEnvironmentSchema.merge(ClientEnvironmentSchema);
 
 export type ServerOnlyEnvironment = z.infer<typeof ServerOnlyEnvironmentSchema>;
 export type ClientEnvironment = z.infer<typeof ClientEnvironmentSchema>;
