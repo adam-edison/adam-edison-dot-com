@@ -1,8 +1,9 @@
 import * as Sentry from '@sentry/nextjs';
+import { shouldInitSentry } from '@/shared/observability/shouldInitSentry';
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
-if (dsn) {
+if (shouldInitSentry(dsn)) {
   Sentry.init({
     dsn,
     environment: process.env.NODE_ENV,

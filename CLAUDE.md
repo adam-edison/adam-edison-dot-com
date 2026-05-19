@@ -113,6 +113,7 @@ Sentry error tracking env vars are validated by `src/shared/config/EnvironmentSc
 - **`SENTRY_DSN`** — server-side ingest URL (Pages Router API routes, instrumentation).
 - **`NEXT_PUBLIC_SENTRY_DSN`** — client bundle ingest URL. Typically the same value as `SENTRY_DSN`.
 - **`SENTRY_AUTH_TOKEN`**, **`SENTRY_ORG`**, **`SENTRY_PROJECT`** — build-time only, consumed by the Sentry CLI to upload source maps and create releases.
+- **`NEXT_PUBLIC_SENTRY_DISABLED`** — optional boolean flag. Set to `'true'` to skip Sentry init on both server and client. The Playwright e2e config sets this so tests never report to the real project; production deploys leave it unset.
 
 ## Architecture
 

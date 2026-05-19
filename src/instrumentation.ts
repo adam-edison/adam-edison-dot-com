@@ -1,9 +1,9 @@
 import * as Sentry from '@sentry/nextjs';
+import { shouldInitSentry } from '@/shared/observability/shouldInitSentry';
 
 const supportedRuntimes = new Set(['nodejs', 'edge']);
 
-function shouldInit(): boolean {
-  if (!process.env.SENTRY_DSN) return false;
+function isSupportedRuntime(): boolean {
   return supportedRuntimes.has(process.env.NEXT_RUNTIME ?? '');
 }
 
@@ -12,10 +12,12 @@ function resolveSentryEnvironment(): string | undefined {
 }
 
 export async function register() {
-  if (!shouldInit()) return;
+  const dsn = process.env.SENTRY_DSN;
+  if (!shouldInitSentry(dsn)) return;
+  if (!isSupportedRuntime()) return;
 
   Sentry.init({
-    dsn: process.env.SENTRY_DSN,
+    dsn,
     environment: resolveSentryEnvironment(),
     tracesSampleRate: 1.0,
     sendDefaultPii: false,
