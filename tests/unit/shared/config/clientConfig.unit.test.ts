@@ -15,7 +15,8 @@ describe('ClientConfiguration', () => {
         NEXT_PUBLIC_GITHUB_URL: 'https://github.com/test',
         NEXT_PUBLIC_LINKEDIN_URL: 'https://www.linkedin.com/in/test',
         NEXT_PUBLIC_REPO_URL: 'https://github.com/test/test',
-        NEXT_PUBLIC_SENTRY_DSN: 'https://abc@o0.ingest.sentry.io/0'
+        NEXT_PUBLIC_SENTRY_DSN: 'https://abc@o0.ingest.sentry.io/0',
+        NEXT_PUBLIC_SENTRY_DISABLED: false
       });
     });
 

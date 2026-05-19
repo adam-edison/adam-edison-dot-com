@@ -1,10 +1,9 @@
 import * as Sentry from '@sentry/nextjs';
 
-const SENTRY_DISABLED_HOST = 'e2e.invalid';
-
 function shouldInit(dsn: string | undefined): dsn is string {
+  if (process.env.NEXT_PUBLIC_SENTRY_DISABLED === 'true') return false;
   if (!dsn) return false;
-  return !dsn.includes(SENTRY_DISABLED_HOST);
+  return true;
 }
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;

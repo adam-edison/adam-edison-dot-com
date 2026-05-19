@@ -69,7 +69,8 @@ describe('EnvironmentSchema', () => {
       SENTRY_AUTH_TOKEN: 'sntrys_token',
       SENTRY_ORG: 'acme',
       SENTRY_PROJECT: 'adamedison-com',
-      NEXT_PUBLIC_SENTRY_DSN: sentryDsn
+      NEXT_PUBLIC_SENTRY_DSN: sentryDsn,
+      NEXT_PUBLIC_SENTRY_DISABLED: false
     });
   });
 
@@ -230,7 +231,7 @@ describe('ClientEnvironmentSchema', () => {
 
     const parsed = ClientEnvironmentSchema.parse(clientEnv);
 
-    expect(parsed).toEqual(clientEnv);
+    expect(parsed).toEqual({ ...clientEnv, NEXT_PUBLIC_SENTRY_DISABLED: false });
   });
 });
 

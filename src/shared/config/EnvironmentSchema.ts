@@ -43,7 +43,8 @@ export const ClientEnvironmentSchema = z.object({
   NEXT_PUBLIC_GITHUB_URL: z.string().url(),
   NEXT_PUBLIC_LINKEDIN_URL: z.string().url(),
   NEXT_PUBLIC_REPO_URL: z.string().url(),
-  NEXT_PUBLIC_SENTRY_DSN: z.string().url()
+  NEXT_PUBLIC_SENTRY_DSN: z.string().url(),
+  NEXT_PUBLIC_SENTRY_DISABLED: optionalBoolFromString
 });
 
 export const EnvironmentSchema = ServerOnlyEnvironmentSchema.merge(ClientEnvironmentSchema);
