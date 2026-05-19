@@ -1,9 +1,12 @@
 import * as Sentry from '@sentry/nextjs';
 
 const supportedRuntimes = new Set(['nodejs', 'edge']);
+const SENTRY_DISABLED_HOST = 'e2e.invalid';
 
 function shouldInit(): boolean {
-  if (!process.env.SENTRY_DSN) return false;
+  const dsn = process.env.SENTRY_DSN;
+  if (!dsn) return false;
+  if (dsn.includes(SENTRY_DISABLED_HOST)) return false;
   return supportedRuntimes.has(process.env.NEXT_RUNTIME ?? '');
 }
 
