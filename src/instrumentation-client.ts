@@ -1,14 +1,9 @@
 import * as Sentry from '@sentry/nextjs';
-
-function shouldInit(dsn: string | undefined): dsn is string {
-  if (process.env.NEXT_PUBLIC_SENTRY_DISABLED === 'true') return false;
-  if (!dsn) return false;
-  return true;
-}
+import { shouldInitSentry } from '@/shared/observability/shouldInitSentry';
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
-if (shouldInit(dsn)) {
+if (shouldInitSentry(dsn)) {
   Sentry.init({
     dsn,
     environment: process.env.NODE_ENV,
