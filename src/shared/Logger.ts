@@ -1,6 +1,10 @@
 /* eslint-disable no-console */
-import { Configuration } from '@/shared/config/Configuration';
+import { SentryReporter } from './observability/SentryReporter';
 
+// Read NODE_ENV directly rather than through Configuration: this module is reachable from
+// client components, and Configuration parses the full server+client schema, which crashes
+// in the browser where server-only env vars are absent. Next.js statically inlines
+// process.env.NODE_ENV in both bundles, so the direct read is safe on both sides.
 export class Logger {
   protected formatMessage(level: string, message: string): string {
     const timestamp = new Date().toISOString();
@@ -8,7 +12,7 @@ export class Logger {
   }
 
   static create(): Logger {
-    if (Configuration.get().NODE_ENV === 'test') {
+    if (process.env.NODE_ENV === 'test') {
       const inMemoryLogger = new InMemoryLogger();
       return inMemoryLogger;
     }
@@ -18,20 +22,24 @@ export class Logger {
 
   error(message: string, ...args: unknown[]): void {
     console.error(this.formatMessage('ERROR', message), ...args);
+    SentryReporter.report('error', message, args);
   }
 
   warn(message: string, ...args: unknown[]): void {
     console.warn(this.formatMessage('WARN', message), ...args);
+    SentryReporter.report('warning', message, args);
   }
 
   info(message: string, ...args: unknown[]): void {
     console.info(this.formatMessage('INFO', message), ...args);
+    SentryReporter.report('info', message, args);
   }
 
   debug(message: string, ...args: unknown[]): void {
-    if (Configuration.get().NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development') {
       console.debug(this.formatMessage('DEBUG', message), ...args);
     }
+    SentryReporter.report('debug', message, args);
   }
 
   clear(): void {
@@ -58,18 +66,22 @@ export class InMemoryLogger extends Logger {
 
   error(message: string, ...args: unknown[]): void {
     this.appendToOutput('ERROR', message, ...args);
+    SentryReporter.report('error', message, args);
   }
 
   warn(message: string, ...args: unknown[]): void {
     this.appendToOutput('WARN', message, ...args);
+    SentryReporter.report('warning', message, args);
   }
 
   info(message: string, ...args: unknown[]): void {
     this.appendToOutput('INFO', message, ...args);
+    SentryReporter.report('info', message, args);
   }
 
   debug(message: string, ...args: unknown[]): void {
     this.appendToOutput('DEBUG', message, ...args);
+    SentryReporter.report('debug', message, args);
   }
 
   clear(): void {

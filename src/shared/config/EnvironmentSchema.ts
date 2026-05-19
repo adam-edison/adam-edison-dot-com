@@ -30,14 +30,20 @@ export const ServerOnlyEnvironmentSchema = z.object({
   RATE_LIMIT_REQUESTS: positiveIntFromString(1, 10_000),
   RATE_LIMIT_WINDOW: rateLimitWindow,
   GLOBAL_RATE_LIMIT_REQUESTS: positiveIntFromString(1, 100_000),
-  GLOBAL_RATE_LIMIT_WINDOW: rateLimitWindow
+  GLOBAL_RATE_LIMIT_WINDOW: rateLimitWindow,
+
+  SENTRY_DSN: z.string().url(),
+  SENTRY_AUTH_TOKEN: z.string().min(1),
+  SENTRY_ORG: z.string().min(1),
+  SENTRY_PROJECT: z.string().min(1)
 });
 
 export const ClientEnvironmentSchema = z.object({
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1),
   NEXT_PUBLIC_GITHUB_URL: z.string().url(),
   NEXT_PUBLIC_LINKEDIN_URL: z.string().url(),
-  NEXT_PUBLIC_REPO_URL: z.string().url()
+  NEXT_PUBLIC_REPO_URL: z.string().url(),
+  NEXT_PUBLIC_SENTRY_DSN: z.string().url()
 });
 
 export const EnvironmentSchema = ServerOnlyEnvironmentSchema.merge(ClientEnvironmentSchema);

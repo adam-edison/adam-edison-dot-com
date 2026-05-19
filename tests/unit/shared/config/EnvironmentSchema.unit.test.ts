@@ -6,6 +6,8 @@ import {
   ServerOnlyEnvironmentSchema
 } from '@/shared/config/EnvironmentSchema';
 
+const sentryDsn = 'https://abc@o123.ingest.sentry.io/456';
+
 const validRawEnv = {
   NODE_ENV: 'test',
   RESEND_API_KEY: 'rk_test',
@@ -25,7 +27,12 @@ const validRawEnv = {
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'ts_site',
   NEXT_PUBLIC_GITHUB_URL: 'https://github.com/example',
   NEXT_PUBLIC_LINKEDIN_URL: 'https://linkedin.com/in/example',
-  NEXT_PUBLIC_REPO_URL: 'https://github.com/example/repo'
+  NEXT_PUBLIC_REPO_URL: 'https://github.com/example/repo',
+  SENTRY_DSN: sentryDsn,
+  SENTRY_AUTH_TOKEN: 'sntrys_token',
+  SENTRY_ORG: 'acme',
+  SENTRY_PROJECT: 'adamedison-com',
+  NEXT_PUBLIC_SENTRY_DSN: sentryDsn
 };
 
 const failedPaths = (schema: typeof EnvironmentSchema, input: unknown): string[] => {
@@ -57,7 +64,12 @@ describe('EnvironmentSchema', () => {
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'ts_site',
       NEXT_PUBLIC_GITHUB_URL: 'https://github.com/example',
       NEXT_PUBLIC_LINKEDIN_URL: 'https://linkedin.com/in/example',
-      NEXT_PUBLIC_REPO_URL: 'https://github.com/example/repo'
+      NEXT_PUBLIC_REPO_URL: 'https://github.com/example/repo',
+      SENTRY_DSN: sentryDsn,
+      SENTRY_AUTH_TOKEN: 'sntrys_token',
+      SENTRY_ORG: 'acme',
+      SENTRY_PROJECT: 'adamedison-com',
+      NEXT_PUBLIC_SENTRY_DSN: sentryDsn
     });
   });
 
@@ -73,11 +85,16 @@ describe('EnvironmentSchema', () => {
       'NEXT_PUBLIC_GITHUB_URL',
       'NEXT_PUBLIC_LINKEDIN_URL',
       'NEXT_PUBLIC_REPO_URL',
+      'NEXT_PUBLIC_SENTRY_DSN',
       'NEXT_PUBLIC_TURNSTILE_SITE_KEY',
       'RATE_LIMIT_REQUESTS',
       'RATE_LIMIT_WINDOW',
       'REDIS_PREFIX',
       'RESEND_API_KEY',
+      'SENTRY_AUTH_TOKEN',
+      'SENTRY_DSN',
+      'SENTRY_ORG',
+      'SENTRY_PROJECT',
       'TO_EMAIL',
       'TURNSTILE_SECRET_KEY',
       'UPSTASH_REDIS_REST_TOKEN',
@@ -189,6 +206,16 @@ describe('EnvironmentSchema', () => {
 
     expect(paths).toEqual(['NODE_ENV']);
   });
+
+  it('rejects malformed Sentry DSN values', () => {
+    const serverPaths = failedPaths(EnvironmentSchema, { ...validRawEnv, SENTRY_DSN: 'not-a-url' });
+    const clientPaths = failedPaths(EnvironmentSchema, { ...validRawEnv, NEXT_PUBLIC_SENTRY_DSN: 'not-a-url' });
+
+    expect({ serverPaths, clientPaths }).toEqual({
+      serverPaths: ['SENTRY_DSN'],
+      clientPaths: ['NEXT_PUBLIC_SENTRY_DSN']
+    });
+  });
 });
 
 describe('ClientEnvironmentSchema', () => {
@@ -197,7 +224,8 @@ describe('ClientEnvironmentSchema', () => {
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'ts_site',
       NEXT_PUBLIC_GITHUB_URL: 'https://github.com/example',
       NEXT_PUBLIC_LINKEDIN_URL: 'https://linkedin.com/in/example',
-      NEXT_PUBLIC_REPO_URL: 'https://github.com/example/repo'
+      NEXT_PUBLIC_REPO_URL: 'https://github.com/example/repo',
+      NEXT_PUBLIC_SENTRY_DSN: 'https://abc@o123.ingest.sentry.io/456'
     };
 
     const parsed = ClientEnvironmentSchema.parse(clientEnv);

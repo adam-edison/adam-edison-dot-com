@@ -48,3 +48,6 @@ next-env.d.ts
 
 # Local Test Reports
 playwright-report
+
+# dwa tool
+.dwa/

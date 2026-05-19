@@ -106,6 +106,14 @@ Social media links are configurable through environment variables:
 - **LinkedIn URL**: Set `NEXT_PUBLIC_LINKEDIN_URL` in environment variables
 - **Repository URL**: Set `NEXT_PUBLIC_REPO_URL` in environment variables (for "View Source Code" link)
 
+## Observability
+
+Sentry error tracking env vars are validated by `src/shared/config/EnvironmentSchema.ts` and required everywhere — dev, test, CI, and production. Missing or malformed values fail the schema parse with one aggregated error.
+
+- **`SENTRY_DSN`** — server-side ingest URL (Pages Router API routes, instrumentation).
+- **`NEXT_PUBLIC_SENTRY_DSN`** — client bundle ingest URL. Typically the same value as `SENTRY_DSN`.
+- **`SENTRY_AUTH_TOKEN`**, **`SENTRY_ORG`**, **`SENTRY_PROJECT`** — build-time only, consumed by the Sentry CLI to upload source maps and create releases.
+
 ## Architecture
 
 ### Framework & Stack

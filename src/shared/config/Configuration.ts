@@ -19,6 +19,10 @@ const TEST_DEFAULTS: Record<keyof Environment, string> = {
   RATE_LIMIT_WINDOW: '10 m',
   GLOBAL_RATE_LIMIT_REQUESTS: '10',
   GLOBAL_RATE_LIMIT_WINDOW: '1 h',
+  SENTRY_DSN: 'https://abc@o0.ingest.sentry.io/0',
+  SENTRY_AUTH_TOKEN: 'test-sentry-auth-token',
+  SENTRY_ORG: 'test-org',
+  SENTRY_PROJECT: 'test-project',
   ...CLIENT_TEST_DEFAULTS
 };
 

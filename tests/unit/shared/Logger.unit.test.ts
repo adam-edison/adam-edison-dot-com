@@ -1,5 +1,20 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest';
+import { SentryReporter } from '@/shared/observability/SentryReporter';
 import { logger, InMemoryLogger, Logger } from '@/shared/Logger';
+
+let reportSpy: ReturnType<typeof vi.spyOn>;
+
+beforeAll(() => {
+  reportSpy = vi.spyOn(SentryReporter, 'report').mockImplementation(() => undefined);
+});
+
+afterAll(() => {
+  reportSpy.mockRestore();
+});
+
+beforeEach(() => {
+  reportSpy.mockClear();
+});
 
 describe('Logger', () => {
   let testLogger: Logger;
@@ -62,5 +77,46 @@ describe('Logger', () => {
 
   it('should be the same instance everywhere', () => {
     expect(logger).toBe(testLogger);
+  });
+});
+
+describe('Logger Sentry forwarding', () => {
+  let testLogger: Logger;
+
+  beforeEach(() => {
+    testLogger = logger;
+    testLogger.clear();
+  });
+
+  it('forwards error() calls to the Sentry reporter with the error level and the same args', () => {
+    const error = new Error('boom');
+
+    testLogger.error('API failed', error, { context: 'contact-form' });
+
+    expect(reportSpy.mock.calls).toEqual([['error', 'API failed', [error, { context: 'contact-form' }]]]);
+  });
+
+  it('forwards error() calls with no Error in args (string-only)', () => {
+    testLogger.error('plain error log', 'extra string arg');
+
+    expect(reportSpy.mock.calls).toEqual([['error', 'plain error log', ['extra string arg']]]);
+  });
+
+  it('forwards warn() calls to the Sentry reporter with the warning level', () => {
+    testLogger.warn('rate limit close', { remaining: 1 });
+
+    expect(reportSpy.mock.calls).toEqual([['warning', 'rate limit close', [{ remaining: 1 }]]]);
+  });
+
+  it('forwards info() calls to the Sentry reporter with the info level', () => {
+    testLogger.info('email sent', { recipient: 'user@example.com' });
+
+    expect(reportSpy.mock.calls).toEqual([['info', 'email sent', [{ recipient: 'user@example.com' }]]]);
+  });
+
+  it('forwards debug() calls to the Sentry reporter with the debug level', () => {
+    testLogger.debug('config loaded', { keys: 5 });
+
+    expect(reportSpy.mock.calls).toEqual([['debug', 'config loaded', [{ keys: 5 }]]]);
   });
 });

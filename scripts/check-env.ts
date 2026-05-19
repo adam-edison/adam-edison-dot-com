@@ -16,14 +16,14 @@ config({ path: join(process.cwd(), '.env.local'), quiet: true });
 
 const result = EnvironmentSchema.safeParse(process.env);
 
-if (result.success) {
-  console.log('✅ All environment variables validated against EnvironmentSchema');
-  process.exit(0);
+if (!result.success) {
+  console.error('❌ Build failed: environment validation errors');
+  for (const issue of result.error.issues) {
+    console.error(`   - ${issue.path.join('.')}: ${issue.message}`);
+  }
+  console.error('\nUpdate the corresponding env vars and re-run the build.');
+  process.exit(1);
 }
 
-console.error('❌ Build failed: environment validation errors');
-for (const issue of result.error.issues) {
-  console.error(`   - ${issue.path.join('.')}: ${issue.message}`);
-}
-console.error('\nUpdate the corresponding env vars and re-run the build.');
-process.exit(1);
+console.log('✅ All environment variables validated against EnvironmentSchema');
+process.exit(0);

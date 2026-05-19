@@ -52,7 +52,7 @@ export default defineConfig({
     {
       command: 'PORT=3000 npm run dev',
       url: 'http://localhost:3000',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 120 * 1000,
       stdout: 'ignore',
       stderr: 'ignore',
@@ -61,7 +61,7 @@ export default defineConfig({
     {
       command: 'PORT=3001 npm run dev',
       url: 'http://localhost:3001',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 120 * 1000,
       stdout: 'ignore',
       stderr: 'ignore',
